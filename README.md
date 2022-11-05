@@ -1,9 +1,9 @@
 # RecipeDex
 A Software as a Service (SAAS) application for storing, indexing and searching recipes from all across the web. Makes use of the [Recipe Scraper Package](https://github.com/hhursev/recipe-scrapers) combined with bespoke NLP. Back-end developed in [Flask](https://flask.palletsprojects.com/en/2.2.x/) and [MongoDB](https://www.mongodb.com/), front-end developed in [React](https://reactjs.org/). Planned deployment as a service in the cloud coming 2023.
 
-## Installation
+This README contains instructions for setting up the developer environment, for more specific instruction on setting up the backend/frontend/recipedex module see the README's within those folders.
 
-### Developer Environment
+## Installation
 
 Install Vagrant and VirtualBox to your machine:
 
@@ -40,29 +40,17 @@ Install Remote Explorer from extensions
 Add the SSH Target from your ssh config file
 ```
 
-### Module
-
-TODO
-
-### Front-end
-
-TODO
-
-### Back-end
-
-TODO
+Once SSH'd in, configure git with your email and name:
+```
+git config --global user.email "email@example.com"
+git config --global user.name "firstname lastname"
+```
 
 ## Usage
 
-### Module
-
 TODO
 
-### Front-end
-
-TODO
-
-### Back-end
+## Deployment
 
 TODO
 

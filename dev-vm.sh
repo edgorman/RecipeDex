@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+# Update and install base packages
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get dist-upgrade
 sudo apt-get remove -y --purge man-db
 sudo apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+
+# Fix for systems with nvidia gpus
+sudo sed -i 's/quiet splash/quiet splash nouveau.modeset=0/g' /etc/default/grub
 
 # Install python 3.10.*
 cd /tmp
