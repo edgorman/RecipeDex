@@ -28,7 +28,7 @@ options:
 Examples:
 
 ```
-python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/
+python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --verbose
 ```
 
 If python packages are added, update the requirements.txt:

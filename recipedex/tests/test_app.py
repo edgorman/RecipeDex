@@ -45,3 +45,21 @@ def test_parse_urls_error_handling():
     ]
 
     assert len(App.parse_urls(url_list)) == 1
+
+def test_extract_ingredients():
+    recipes_dict = {
+        "url": {
+            "name": "name",
+            "ingredients": [
+                '2 eggs, beaten', '2 cloves garlic, minced', '4 ounces feta cheese',
+                '1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry', '2 pounds ground turkey'
+            ],
+        }
+    }
+    expected_ingredients = [
+        ("eggs", "beaten", "eggs", "2"), ("garlic", "minced", "cloves", "2"), ("feta cheese", "", "ounces", "4"),
+        ("frozen chopped spinach", "thawed and squeezed dry", "(10 ounce) box", "1"),
+        ("ground turkey", "", "pounds", "2")
+    ]
+
+    assert App.extract_ingredients(recipes_dict)["url"]["ingredients_list"] == expected_ingredients
