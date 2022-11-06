@@ -3,10 +3,15 @@ This is the python module that performs the parsing and manipulates the recipes 
 
 ## Installation
 
-Install the required python packages (in parent directory since it includes backend packages):
+Install the required python packages:
 
 ```
-python -m pip install -r requirements.txt
+python -m pip install recipedex/.
+```
+
+If you're developing this package a handy line to reinstall is:
+```
+python -m pip uninstall recipedex -y; python -m pip install recipedex/.
 ```
 
 ## Usage
@@ -31,10 +36,10 @@ Examples:
 python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --verbose
 ```
 
-If python packages are added, update the requirements.txt:
+If python packages are added, update the setup.py file by using the following:
 
 ```
-python -m pip freeze > requirements.txt
+python -m pip freeze
 ```
 
 ## Testing
