@@ -61,23 +61,28 @@ class App:
 
         for url, recipe in recipes_dict.items():
             try:
-                sys.stdout = open(os.devnull, 'w')
-                ingredients_list = [parse_ingredient(replace_vulgar(i)) for i in recipe["ingredients"]]
-                sys.stdout = sys.__stdout__
+                ingredients_list = []
+                for ingredient in recipe["ingredients"]:
+                    parsed_ingredient = {"optional": "option" in ingredient.lower()}
 
-                recipes_dict[url]["ingredients_list"] = [
-                    {
-                        "name": i.name,
-                        "quantity": i.quantity,
-                        "unit": i.unit,
-                        "comment": i.comment
-                    }
-                    for i in ingredients_list
-                ]
+                    try:
+                        sys.stdout = open(os.devnull, 'w')
+                        i = parse_ingredient(replace_vulgar(ingredient))
+                        sys.stdout = sys.__stdout__
 
+                        parsed_ingredient["name"] = i.name
+                        parsed_ingredient["quantity"] = i.quantity
+                        parsed_ingredient["unit"] = i.unit
+                        parsed_ingredient["comment"] = i.comment
+                    except Exception as e:
+                        sys.stdout = sys.__stdout__
+                        Log.error(f"Could not parse line {ingredient}, moving onto next...")
+                    finally:
+                        ingredients_list.append(parsed_ingredient)
+
+                recipes_dict[url]["ingredients_list"] = ingredients_list
                 Log.success(f"Extracted ingredients for '{recipe['name']}'")
             except Exception as e:
-                sys.stdout = sys.__stdout__
                 Log.error(f"Failed extracting ingredients for '{recipe['name']}': {str(e)}")
                 continue
 

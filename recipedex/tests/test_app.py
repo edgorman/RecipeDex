@@ -72,6 +72,62 @@ from recipedex.app import App
                 }
             }
         }
+    ),
+    (
+        [
+            "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps"
+        ],
+        {
+            "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps": {
+                "host": "bbcgoodfood.com",
+                "name": "Pizza Margherita in 4 easy steps",
+                "time": 35,
+                "servings": "2 items",
+                "ingredients": [
+                    "300g strong bread flour",
+                    "1 tsp instant yeast (from a sachet or a tub)",
+                    "1 tsp salt",
+                    "1 tbsp olive oil, plus extra for drizzling",
+                    "100ml passata",
+                    "handful fresh basil or 1 tsp dried",
+                    "1 garlic clove, crushed",
+                    "125g ball mozzarella, sliced",
+                    "handful grated or shaved parmesan (or vegetarian alternative)",
+                    "handful of cherry tomatoes, halved",
+                    "handful of basil leaves (optional)"
+                ],
+                "instructions": [
+                    "Make the base: Put the flour into a large bowl, then stir in the yeast and salt. Make a well, pour"
+                    " in 200ml warm water and the olive oil and bring together with a wooden spoon until you have a "
+                    "soft, fairly wet dough. Turn onto a lightly floured surface and knead for 5 mins until smooth. "
+                    "Cover with a tea towel and set aside. You can leave the dough to rise if you like, but it’s not "
+                    "essential for a thin crust.",
+                    "Make the sauce: Mix the passata, basil and crushed garlic together, then season to taste. Leave to"
+                    " stand at room temperature while you get on with shaping the base.",
+                    "Roll out the dough: if you’ve let the dough rise, give it a quick knead, then split into two "
+                    "balls. On a floured surface, roll out the dough into large rounds, about 25cm across, using a "
+                    "rolling pin. The dough needs to be very thin as it will rise in the oven. Lift the rounds onto "
+                    "two floured baking sheets.",
+                    "Top and bake: heat the oven to 240C/220C fan/gas 8. Put another baking sheet or an upturned "
+                    "baking tray in the oven on the top shelf. Smooth sauce over bases with the back of a spoon. "
+                    "Scatter with cheese and tomatoes, drizzle with olive oil and season. Put one pizza, still on its "
+                    "baking sheet, on top of the preheated sheet or tray. Bake for 8-10 mins until crisp. Serve with a "
+                    "little more olive oil, and basil leaves if using. Repeat step for remaining pizza."
+                ],
+                "image_url": "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/recipe-image-legacy"
+                "-id-51643_11-2f4a2cc.jpg?resize=768,574",
+                "nutrients": {
+                    "calories": "431 calories",
+                    "fatContent": "15 grams fat",
+                    "saturatedFatContent": "7 grams saturated fat",
+                    "carbohydrateContent": "59 grams carbohydrates",
+                    "sugarContent": "2 grams sugar",
+                    "fiberContent": "3 grams fiber",
+                    "proteinContent": "19 grams protein",
+                    "sodiumContent": "1.9 milligram of sodium"
+                }
+            }
+        }
     )
 ])
 def test_parse_urls_successful(url_list, expected):
@@ -95,12 +151,12 @@ def test_parse_urls_error_handling():
             "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "2 pounds ground turkey"
         ],
         [
-            {"name": "eggs", "quantity": 2.0, "unit": "", "comment": "beaten"},
-            {"name": "garlic", "quantity": 2.0, "unit": "clove", "comment": "minced"},
-            {"name": "feta cheese", "quantity": 4.0, "unit": "oz", "comment": ""},
-            {"name": "box frozen chopped spinach", "quantity": 1.0,
-                "unit": "", "comment": "(10 ounce)  thawed and squeezed dry"},
-            {"name": "ground turkey", "quantity": 2.0, "unit": "lb", "comment": ""}
+            {'optional': False, 'name': 'eggs', 'quantity': 2.0, 'unit': '', 'comment': 'beaten'},
+            {'optional': False, 'name': 'garlic', 'quantity': 2.0, 'unit': 'clove', 'comment': 'minced'},
+            {'optional': False, 'name': 'feta cheese', 'quantity': 4.0, 'unit': 'oz', 'comment': ''},
+            {'optional': False, 'name': 'box frozen chopped spinach', 'quantity': 1.0, 'unit': '',
+             'comment': '(10 ounce)  thawed and squeezed dry'},
+            {'optional': False, 'name': 'ground turkey', 'quantity': 2.0, 'unit': 'lb', 'comment': ''}
         ]
     ),
     (
@@ -111,18 +167,50 @@ def test_parse_urls_error_handling():
             "50g grated mozzarella", "1/2 small bunch of parsley , finely chopped"
         ],
         [
-            {"name": "olive oil", "quantity": 4.0, "unit": "tbsp", "comment": ""},
-            {"name": "onion", "quantity": 1.0, "unit": "", "comment": "finely chopped"},
-            {"name": "garlic cloves", "quantity": 2.0, "unit": "", "comment": "crushed"},
-            {"name": "chilli flakes", "quantity": 2.5, "unit": "tsp", "comment": ""},
-            {"name": "x 400g cans chopped tomatoes", "quantity": 2.0, "unit": "", "comment": ""},
-            {"name": "caster sugar", "quantity": 1.0, "unit": "tsp", "comment": ""},
-            {"name": "mascarpone", "quantity": 6.0, "unit": "tbsp", "comment": ""},
-            {"name": "skinless chicken breasts", "quantity": 4.0, "unit": "", "comment": "sliced into strips"},
-            {"name": "penne", "quantity": 300.0, "unit": "g", "comment": ""},
-            {"name": "mature cheddar", "quantity": 70.0, "unit": "g", "comment": "grated"},
-            {"name": "grated mozzarella", "quantity": 50.0, "unit": "g", "comment": ""},
-            {"name": "small bunch of parsley", "quantity": 1.5, "unit": "", "comment": "finely chopped"}
+            {'optional': False, 'name': 'olive oil', 'quantity': 4.0, 'unit': 'tbsp', 'comment': ''},
+            {'optional': False, 'name': 'onion', 'quantity': 1.0, 'unit': '', 'comment': 'finely chopped'},
+            {'optional': False, 'name': 'garlic cloves', 'quantity': 2.0, 'unit': '', 'comment': 'crushed'},
+            {'optional': False, 'name': 'chilli flakes', 'quantity': 2.5, 'unit': 'tsp', 'comment': ''},
+            {'optional': False, 'name': 'x 400g cans chopped tomatoes', 'quantity': 2.0, 'unit': '', 'comment': ''},
+            {'optional': False, 'name': 'caster sugar', 'quantity': 1.0, 'unit': 'tsp', 'comment': ''},
+            {'optional': False, 'name': 'mascarpone', 'quantity': 6.0, 'unit': 'tbsp', 'comment': ''},
+            {'optional': False, 'name': 'skinless chicken breasts', 'quantity': 4.0, 'unit': '',
+             'comment': 'sliced into strips'},
+            {'optional': False, 'name': 'penne', 'quantity': 300.0, 'unit': 'g', 'comment': ''},
+            {'optional': False, 'name': 'mature cheddar', 'quantity': 70.0, 'unit': 'g', 'comment': 'grated'},
+            {'optional': False, 'name': 'grated mozzarella', 'quantity': 50.0, 'unit': 'g', 'comment': ''},
+            {'optional': False, 'name': 'small bunch of parsley', 'quantity': 1.5, 'unit': '', 'comment':
+             'finely chopped'}
+        ]
+    ),
+    (
+        [
+            "300g strong bread flour",
+            "1 tsp instant yeast (from a sachet or a tub)",
+            "1 tsp salt",
+            "1 tbsp olive oil, plus extra for drizzling",
+            "100ml passata",
+            "handful fresh basil or 1 tsp dried",
+            "1 garlic clove, crushed",
+            "125g ball mozzarella, sliced",
+            "handful grated or shaved parmesan (or vegetarian alternative)",
+            "handful of cherry tomatoes, halved",
+            "handful of basil leaves (optional)"
+        ],
+        [
+            {'optional': False, 'name': 'strong bread flour', 'quantity': 300.0, 'unit': 'g', 'comment': ''},
+            {'optional': False, 'name': 'instant yeast', 'quantity': 1.0, 'unit': 'tsp',
+             'comment': '(from a sachet or a tub)'},
+            {'optional': False, 'name': 'salt', 'quantity': 1.0, 'unit': 'tsp', 'comment': ''},
+            {'optional': False, 'name': 'olive oil', 'quantity': 1.0, 'unit': 'tbsp', 'comment':
+             'plus extra for drizzling'},
+            {'optional': False, 'name': 'passata', 'quantity': 100.0, 'unit': 'ml', 'comment': ''},
+            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
+            {'optional': False, 'name': 'garlic clove', 'quantity': 1.0, 'unit': '', 'comment': 'crushed'},
+            {'optional': False, 'name': 'ball mozzarella', 'quantity': 125.0, 'unit': 'g', 'comment': 'sliced'},
+            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
+            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
+            {'optional': True}  # parse_ingredients cannot handle "handful" keyword
         ]
     )
 ])
