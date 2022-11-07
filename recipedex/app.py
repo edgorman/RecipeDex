@@ -102,11 +102,18 @@ class App:
 
         for _, recipe in recipes_dict.items():
             try:
-                # TODO: Generate metadata here
+                # TODO: Generate metadata here, may include
+                # * season (?)
+                # * tags (title of recipe with keywords removed)
+                # * linked recipes (try run scrape_recipe on each url in page?)
+                # * popularity (ratings/comment counts on the page)
+                # * price (need a way to lookup price of individual ingredients)
+                # * author (regex search for By: <>)
+                # * date last updated (maybe use metadata)
 
                 Log.success(f"Generated metadata for '{recipe['name']}'")
             except Exception as e:
-                Log.error(f"Failed generated metadata for '{recipe['name']}': {str(e)}")
+                Log.error(f"Failed generating metadata for '{recipe['name']}': {str(e)}")
                 continue
 
         return recipes_dict
@@ -133,4 +140,6 @@ class App:
         recipes_dict = App.generate_metadata(recipes_dict)
         Log.success("Finished generating metadata for recipes.")
 
-        Log.print(json.dumps(recipes_dict))
+        json_output = json.dumps(recipes_dict)
+        Log.print(json_output)
+        return json_output
