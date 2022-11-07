@@ -1,5 +1,5 @@
 # RecipeDex
-A Software as a Service (SAAS) application for storing, indexing and searching recipes from all across the web. Makes use of the [Recipe Scraper Package](https://github.com/hhursev/recipe-scrapers) combined with bespoke NLP. Back-end developed in [Flask](https://flask.palletsprojects.com/en/2.2.x/) and [MongoDB](https://www.mongodb.com/), front-end developed in [React](https://reactjs.org/). Planned deployment as a service in the cloud coming 2023.
+A Software as a Service (SAAS) application for storing, indexing and searching recipes from all across the web. Makes use of the [Recipe Scraper Package](https://github.com/hhursev/recipe-scrapers) combined with bespoke NLP. Back-end developed in [FastAPI](https://fastapi.tiangolo.com/) and [MongoDB](https://www.mongodb.com/), front-end developed in [React](https://reactjs.org/). Planned deployment as a service in the cloud coming 2023.
 
 This README contains instructions for setting up the developer environment, for more specific instruction on setting up the backend/frontend/recipedex module see the README's within those folders.
 
@@ -23,6 +23,7 @@ Start and provision the dev virtual machine (this may take ~5 minutes):
 
 ```
 cd RecipeDex
+vagrant plugin install vagrant-vbguest
 vagrant up
 ```
 
@@ -40,15 +41,16 @@ Install Remote Explorer from extensions
 Add the SSH Target from your ssh config file
 ```
 
-Once SSH'd in, configure git with your email and name:
+SSH in and configure git with your email and name:
 ```
+vagrant ssh
 git config --global user.email "email@example.com"
 git config --global user.name "firstname lastname"
 ```
 
 ## Usage
 
-TODO
+See each subfolder for instructions on installation and usage.
 
 ## Deployment
 
@@ -56,4 +58,4 @@ TODO
 
 # License
 
-TODO
+TBD
