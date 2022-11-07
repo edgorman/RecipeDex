@@ -76,7 +76,7 @@ class App:
                         parsed_ingredient["comment"] = i.comment
                     except Exception as e:
                         sys.stdout = sys.__stdout__
-                        Log.error(f"Could not parse line {ingredient}, moving onto next...")
+                        Log.error(f"Could not parse line {ingredient}: {str(e)}")
                     finally:
                         ingredients_list.append(parsed_ingredient)
 

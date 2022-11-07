@@ -7,7 +7,7 @@ setup(
     description='Automatically parse and extract info from recipes.',
     author='Edward Gorman',
     author_email='',
-    packages=find_packages('.'), 
+    packages=find_packages('.'),
     install_requires=[
         "attrs",
         "autopep8",
