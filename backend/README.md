@@ -39,7 +39,7 @@ options:
 Example:
 
 ```
-python -m backend --port 5000 --log info --reload
+python -m backend --port 5000 --log DEBUG --reload
 ```
 
 ## Testing
