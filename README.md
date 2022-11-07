@@ -3,6 +3,8 @@ A Software as a Service (SAAS) application for storing, indexing and searching r
 
 This README contains instructions for setting up the developer environment, for more specific instruction on setting up the backend/frontend/recipedex module see the README's within those folders.
 
+[![.github/workflows/pipeline.yml](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml/badge.svg)](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml)
+
 ## Installation
 
 Install Vagrant and VirtualBox to your machine:
