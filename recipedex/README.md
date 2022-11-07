@@ -23,23 +23,24 @@ python -m pip freeze
 ## Usage
 
 ```
-usage: recipedex [-h] [--verbose] [--version] urls [urls ...]
+usage: recipedex [-h] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version] urls [urls ...]
 
 Automatically parse and extract info from recipes.
 
 positional arguments:
-  urls        the urls to parse
+  urls                  the urls to parse
 
 options:
-  -h, --help  show this help message and exit
-  --verbose   show logging in output
-  --version   show program's version number and exit
+  -h, --help            show this help message and exit
+  --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
+                        the log level
+  --version             show program's version number and exit
 ```
 
 Example:
 
 ```
-python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --verbose
+python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --log DEBUG
 ```
 
 ## Testing

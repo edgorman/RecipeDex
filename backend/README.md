@@ -23,16 +23,16 @@ python -m pip freeze
 ## Usage
 
 ```
-usage: backend [-h] [--port PORT] [--log {critical,error,warning,info,debug,trace}] [--reload] [--version]
+usage: backend [-h] [--port PORT] [--reload] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
 
 Host the FastAPI and MongoDB backend for recipedex.
 
 options:
   -h, --help            show this help message and exit
   --port PORT           the port to serve fastapi on
-  --log {critical,error,warning,info,debug,trace}
-                        the log level for uvicorn
   --reload              reload on change (for dev)
+  --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
+                        the log level
   --version             show program's version number and exit
 ```
 
