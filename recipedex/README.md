@@ -1,6 +1,8 @@
 # RecipeDex - Module
 This is the python module that performs the parsing and manipulates the recipes using natural langauge processing (NLP) techniques. This README assumes you have set up the developer environment as detailed in the base directory of this repository.
 
+[![.github/workflows/pipeline.yml](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml/badge.svg)](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml)
+
 ## Installation
 
 Install the required python packages:
@@ -12,6 +14,12 @@ python -m pip install recipedex/.
 If you're developing this package a handy line to reinstall is:
 ```
 python -m pip uninstall recipedex -y; python -m pip install recipedex/.
+```
+
+If python packages are added, update the setup.py file by using the following:
+
+```
+python -m pip freeze
 ```
 
 ## Usage
@@ -30,16 +38,10 @@ options:
   -version    show program's version number and exit
 ```
 
-Examples:
+Example:
 
 ```
 python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --verbose
-```
-
-If python packages are added, update the setup.py file by using the following:
-
-```
-python -m pip freeze
 ```
 
 ## Testing
