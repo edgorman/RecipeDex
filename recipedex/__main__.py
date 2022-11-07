@@ -3,12 +3,13 @@ import sys
 import logging
 import argparse
 from logging import _levelToName as log_levels
-LOG_LEVELS = list(log_levels.values())[:-1]
 
-from recipedex.app import App
-from recipedex import __name__
-from recipedex import __version__
 from recipedex import __description__
+from recipedex import __version__
+from recipedex import __name__
+from recipedex.app import App
+
+LOG_LEVELS = list(log_levels.values())[:-1]
 
 
 # Parse input arguments

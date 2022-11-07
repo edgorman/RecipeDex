@@ -4,11 +4,12 @@ import uvicorn
 import logging
 import argparse
 from logging import _levelToName as log_levels
-LOG_LEVELS = list(log_levels.values())[:-1]
 
-from backend import __name__
-from backend import __version__
 from backend import __description__
+from backend import __version__
+from backend import __name__
+
+LOG_LEVELS = list(log_levels.values())[:-1]
 
 
 # Parse input arguments
