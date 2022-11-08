@@ -12,5 +12,8 @@ setup(
         "fastapi",
         "uvicorn",
         "motor",
+        "pytest",
+        "flake8",
+        "pytest-asyncio"
     ]
 )

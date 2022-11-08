@@ -51,7 +51,7 @@ jobs:
         python -m pip install backend/.
         python -m pip install recipedex/.
 
-    - name: Lint with flake8
+    - name: Test with pytest
       run: |
         python -m pytest -svv backend/tests/ --disable-pytest-warnings --cov=backend --cov-config=backend/tests/.coveragerc
         python -m pytest -svv recipedex/tests/ --disable-pytest-warnings --cov=recipedex --cov-config=recipedex/tests/.coveragerc

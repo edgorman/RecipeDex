@@ -1,7 +1,7 @@
 import email
 from pkg_resources import get_distribution
 
-from recipedex.app import App
+from recipedex.app import App  # noqa: F401
 
 
 __name__ = get_distribution("recipedex").project_name
