@@ -1,7 +1,9 @@
 # RecipeDex
-A Software as a Service (SAAS) application for storing, indexing and searching recipes from all across the web. Makes use of the [Recipe Scraper Package](https://github.com/hhursev/recipe-scrapers) combined with bespoke NLP. Back-end developed in [Flask](https://flask.palletsprojects.com/en/2.2.x/) and [MongoDB](https://www.mongodb.com/), front-end developed in [React](https://reactjs.org/). Planned deployment as a service in the cloud coming 2023.
+A Software as a Service (SAAS) application for storing, indexing and searching recipes from all across the web. Web application based on the FARM stack ([FastAPI](https://fastapi.tiangolo.com/), [React](https://reactjs.org/), [MongoDB](https://www.mongodb.com/)). Planned deployment to the [Google Cloud Platform](https://cloud.google.com/) coming 2023.
 
 This README contains instructions for setting up the developer environment, for more specific instruction on setting up the backend/frontend/recipedex module see the README's within those folders.
+
+[![.github/workflows/pipeline.yml](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml/badge.svg)](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml)
 
 ## Installation
 
