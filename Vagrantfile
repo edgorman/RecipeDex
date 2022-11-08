@@ -4,15 +4,14 @@ Vagrant.configure("2") do |config|
   config.vm.define "RecipeDexVM"
   config.vm.hostname = "dev-vm"
   
-  config.vm.provider :virtualbox do |v|
-    v.memory = 4096
-    v.cpus = 2
-  end
   config.vm.provider :virtualbox do |vb|
-	  vb.name = "RecipeDexVM"
+    vb.memory = 4096
+    vb.cpus = 2
+	vb.name = "RecipeDexVM"
+	vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/.", "1"]
   end
   
   config.vm.synced_folder ".", "/home/vagrant/RecipeDex"
   config.vm.provision "shell", path: "dev-vm.sh", privileged: true
-  config.vm.provision 'shell', reboot: true
+  config.vm.provision "shell", reboot: true
 end

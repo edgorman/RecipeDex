@@ -20,4 +20,6 @@ sudo make altinstall
 sudo ln -sf /usr/local/bin/python3.10 /usr/bin/python
 
 # Install npm
-sudo apt-get install -y nodejs npm
+cd /tmp
+curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
