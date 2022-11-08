@@ -41,7 +41,7 @@ class App:
                     'nutrients': recipe.nutrients(),
                 }
 
-                logger.debug(f"Extracted recipe for '{recipes_dict[url]['name']}'")
+                logger.info(f"Extracted recipe for '{recipes_dict[url]['name']}'")
             except Exception as e:
                 logger.warning(f"Failed extracting recipe for '{url}': {str(e)}")
                 continue
@@ -83,7 +83,7 @@ class App:
                         ingredients_list.append(parsed_ingredient)
 
                 recipes_dict[url]["ingredients_list"] = ingredients_list
-                logger.debug(f"Extracted ingredients for '{recipe['name']}'")
+                logger.info(f"Extracted ingredients for '{recipe['name']}'")
             except Exception as e:
                 logger.warning(f"Failed extracting ingredients for '{recipe['name']}': {str(e)}")
                 continue
@@ -111,7 +111,7 @@ class App:
                 # * author (regex search for By: <>)
                 # * date last updated (maybe use metadata)
 
-                logger.debug(f"Generated metadata for '{recipe['name']}'")
+                logger.info(f"Generated metadata for '{recipe['name']}'")
             except Exception as e:
                 logger.warning(f"Failed generating metadata for '{recipe['name']}': {str(e)}")
                 continue
@@ -128,16 +128,16 @@ class App:
             Returns:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
-        logger.debug(f"Parsing {len(args.urls)} urls with the recipe scraper package.")
+        logger.setLevel(args.log)
+
+        logger.info(f"Parsing {len(args.urls)} urls with the recipe scraper package.")
         recipes_dict = App.parse_urls(args.urls)
-        logger.debug("Finished parsing urls from the command line.")
 
-        logger.debug("Extracting ingredients to a list of names, preperation, metric and amount.")
+        logger.info("Extracting ingredients to a list of names, preperation, metric and amount.")
         recipes_dict = App.extract_ingredients(recipes_dict)
-        logger.debug("Finished extracting ingredients.")
 
-        logger.debug("Generating additional metdata about each recipe.")
+        logger.info("Generating additional metdata about each recipe.")
         recipes_dict = App.generate_metadata(recipes_dict)
-        logger.debug("Finished generating metadata for recipes.")
 
+        logger.info("Outputting response as a JSON encoded string.")
         return json.dumps(recipes_dict)

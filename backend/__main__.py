@@ -25,4 +25,4 @@ logger = logging.getLogger('backend')
 logger.setLevel(args.log)
 
 # Process arguments and run app
-uvicorn.run("backend.app:app", port=int(args.port), log_level=args.log.lower(), reload=args.reload)
+uvicorn.run("backend.api:api", port=int(args.port), log_level=args.log.lower(), reload=args.reload, use_colors=False)
