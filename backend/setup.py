@@ -9,11 +9,9 @@ setup(
     author_email='',
     packages=find_packages('.'),
     install_requires=[
+        "recipedex @ file://localhost/home/vagrant/RecipeDex/recipedex#egg=recipedex",
         "fastapi",
         "uvicorn",
         "motor",
-        "pytest",
-        "flake8",
-        "pytest-asyncio"
     ]
 )

@@ -18,3 +18,6 @@ cd Python-3.10.*/
 sudo ./configure --enable-optimizations
 sudo make altinstall
 sudo ln -sf /usr/local/bin/python3.10 /usr/bin/python
+
+# Install npm
+sudo apt-get install -y nodejs npm
