@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "recipedex",
+  "name": "Frontend for recipedex service",
   "icons": [
     {
       "src": "favicon.ico",

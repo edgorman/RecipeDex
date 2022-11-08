@@ -3,12 +3,26 @@ import logging
 from fastapi import FastAPI
 from fastapi import Request
 from argparse import Namespace
+from fastapi.middleware.cors import CORSMiddleware
 
 from recipedex import App
 
 
 logger = logging.getLogger("backend.api")
 api = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+]
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @api.get("/")
