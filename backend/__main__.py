@@ -14,7 +14,7 @@ LOG_LEVELS = list(log_levels.values())[:-1]
 
 # Parse input arguments
 parser = argparse.ArgumentParser(prog=__name__, description=__description__)
-parser.add_argument("--port", dest="port", help="the port to serve fastapi on", default="5000", type=int)
+parser.add_argument("--port", dest="port", help="the port to serve fastapi on", default=5000, type=int)
 parser.add_argument("--reload", action="store_true", dest="reload", help="reload on change (for dev)", default=False)
 parser.add_argument("--log", dest="log", help="the log level", default="WARNING", choices=LOG_LEVELS)
 parser.add_argument("--version", action="version", version="%(prog)s@" + __version__)
