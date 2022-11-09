@@ -12,6 +12,6 @@ Vagrant.configure("2") do |config|
   end
   
   config.vm.synced_folder ".", "/home/vagrant/RecipeDex"
-  config.vm.provision "shell", path: "dev-vm.sh", privileged: true
+  config.vm.provision "shell", path: "scripts/setup.sh", privileged: true
   config.vm.provision "shell", reboot: true
 end

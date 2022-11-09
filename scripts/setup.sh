@@ -23,3 +23,4 @@ sudo ln -sf /usr/local/bin/python3.10 /usr/bin/python
 cd /tmp
 curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
 sudo apt-get install -y nodejs
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
