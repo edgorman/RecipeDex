@@ -1,4 +1,4 @@
-# Development
+# Sprint Planning
 
 This page will describe the planned development process and include any relevant updates.
 

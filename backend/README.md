@@ -1,19 +1,7 @@
 # RecipeDex - Backend
-This is the ([FastAPI](https://fastapi.tiangolo.com/) and [MongoDB](https://www.mongodb.com/)) backend that performs the API routing and data storage/indexing. 
-
-This README assumes you have done the following:
-
-1. Set up your developer environment [as described here](../README.md#installation)
-2. Set up a GCP account with a (TBD type of node) 
-3. Set up a MongoDB account and free shared tier cluster
+This is the [FastAPI](https://fastapi.tiangolo.com/) and [MongoDB](https://www.mongodb.com/) backend that performs the API routing and data storage/indexing. 
 
 ## Installation
-
-TODO: setup gcp and mongodb account information
-
-```
-here
-```
 
 Install the required python packages:
 
