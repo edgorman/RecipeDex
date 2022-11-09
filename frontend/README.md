@@ -3,6 +3,11 @@ This is the [Node.js](https://nodejs.org/en/) and [React](https://reactjs.org/) 
 
 ## Installation
 
+To install the frontend:
+
+```
+npm install --prefix frontend
+```
 
 ## Usage
 
@@ -22,5 +27,6 @@ npm run build --prefix frontend
 
 To run the tests:
 ```
-npm test --prefix frontend
+npm run lint --prefix frontend
+CI=true npm run test --prefix frontend
 ```
