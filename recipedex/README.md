@@ -1,7 +1,5 @@
 # RecipeDex - Module
-This is the python module that performs the parsing and manipulates the recipes using natural langauge processing (NLP) techniques. This README assumes you have set up the developer environment as detailed in the base directory of this repository.
-
-[![.github/workflows/pipeline.yml](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml/badge.svg)](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml)
+This is the python module that performs recipe and ingredient parsing using the [Recipe Scraper](https://github.com/hhursev/recipe-scrapers) and the [Parse Ingredients](https://github.com/MichielMag/parse-ingredients) packages. This README assumes you have set up the developer environment as detailed in the base directory of this repository.
 
 ## Installation
 
@@ -25,23 +23,24 @@ python -m pip freeze
 ## Usage
 
 ```
-usage: RecipeDex [-h] [-verbose] [-version] url
+usage: recipedex [-h] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version] urls [urls ...]
 
 Automatically parse and extract info from recipes.
 
 positional arguments:
-  url         the url to parse
+  urls                  the urls to parse
 
 options:
-  -h, --help  show this help message and exit
-  -verbose    show extra output
-  -version    show program's version number and exit
+  -h, --help            show this help message and exit
+  --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
+                        the log level
+  --version             show program's version number and exit
 ```
 
 Example:
 
 ```
-python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --verbose
+python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/ --log DEBUG
 ```
 
 ## Testing
@@ -49,7 +48,7 @@ python -m recipedex https://www.allrecipes.com/recipe/158968/spinach-and-feta-tu
 Run the testing scripts in the base directory:
 
 ```
-python -m autopep8 . --in-place --aggressive --recursive --max-line-length 120
-python -m flake8 . --max-line-length=120
+python -m autopep8 recipedex/ --in-place --aggressive --recursive --max-line-length 120
+python -m flake8 recipedex/ --max-line-length=120
 python -m pytest -svv recipedex/tests/ --disable-pytest-warnings --cov=recipedex --cov-config=recipedex/tests/.coveragerc
 ```

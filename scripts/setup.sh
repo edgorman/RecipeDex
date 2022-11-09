@@ -18,3 +18,9 @@ cd Python-3.10.*/
 sudo ./configure --enable-optimizations
 sudo make altinstall
 sudo ln -sf /usr/local/bin/python3.10 /usr/bin/python
+
+# Install npm 19.*
+cd /tmp
+curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p

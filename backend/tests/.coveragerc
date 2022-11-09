@@ -1,0 +1,6 @@
+[run]
+omit = 
+    backend/tests/*
+    backend/__init__.py
+    backend/__main__.py
+    backend/setup.py
