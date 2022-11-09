@@ -34,8 +34,8 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        python -m flake8 backend/. --max-line-length=120
         python -m flake8 recipedex/. --max-line-length=120
+        python -m flake8 backend/. --max-line-length=120
     
     - name: Install Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -73,8 +73,8 @@ jobs:
 
     - name: Test with pytest
       run: |
-        python -m pytest -svv backend/tests/ --disable-pytest-warnings --cov=backend --cov-config=backend/tests/.coveragerc
         python -m pytest -svv recipedex/tests/ --disable-pytest-warnings --cov=recipedex --cov-config=recipedex/tests/.coveragerc
+        python -m pytest -svv backend/tests/ --disable-pytest-warnings --cov=backend --cov-config=backend/tests/.coveragerc
     
     - name: Install Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
