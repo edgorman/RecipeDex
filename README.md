@@ -1,5 +1,7 @@
 # RecipeDex
+
 A Software as a Service (SAAS) application for storing, indexing, and searching recipes from most recipes on the internet. A full-stack web application based on the FARM stack including [FastAPI](https://fastapi.tiangolo.com/), [React](https://reactjs.org/), and [MongoDB](https://www.mongodb.com/). Planned deployment to the [Google Cloud Platform](https://cloud.google.com/) coming 2023.
+
 
 [![.github/workflows/pipeline.yml](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml/badge.svg)](https://github.com/edgorman/RecipeDex/actions/workflows/pipeline.yml)
 
@@ -11,4 +13,4 @@ All too often recipes are listed on websites that contain many burdensome ads as
 
 ## License
 
-TODO
+TBD
