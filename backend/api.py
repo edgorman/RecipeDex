@@ -6,19 +6,17 @@ from argparse import Namespace
 from fastapi.middleware.cors import CORSMiddleware
 
 from recipedex import App
+from backend import __description__
+from backend import __version__
+from backend import __name__
 
 
 logger = logging.getLogger("backend.api")
+
 api = FastAPI()
-
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-]
-
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +25,11 @@ api.add_middleware(
 
 @api.get("/")
 async def root():
-    return {"message": "hello world"}
+    return {
+        "name": __name__,
+        "version": __version__,
+        "description": __description__
+    }
 
 
 @api.get("/recipe/{request:path}")
