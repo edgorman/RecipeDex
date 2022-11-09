@@ -41,9 +41,13 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+    
+    - name: Install packages
+      run: |
+        npm install --prefix frontend
 
     - name: Lint with eslint
-      run: \
+      run: |
         npm run lint --prefix frontend
 
   test:
@@ -77,6 +81,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     
+    - name: Install packages
+      run: |
+        npm install --prefix frontend
+
     - name: Test with jest
-      run: \
+      run: |
         CI=true npm run test --prefix frontend
