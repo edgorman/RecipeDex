@@ -1,10 +1,6 @@
 # Developer
 
-This README contains instructions for setting up the developer environment, for more specific instruction on setting up the backend/frontend/recipedex module see the README's within those folders.
-
-## Structure
-
-The codebase is divided into three primary folders:
+This README contains instructions for setting up the developer environment, and is organised into three core folders which contain the following:
 
 `recipedex`: This is the python module where the heavy-lifting website crawling is implemented using the [Recipe Scraper](https://github.com/hhursev/recipe-scrapers) and [Parse Ingredient](https://github.com/MichielMag/parse-ingredients) modules. There will also be some additional extraction of metadata and other useful features from the web page where available.
 
@@ -32,14 +28,23 @@ Start and provision the dev virtual machine (this may take ~5 minutes):
 
 ```
 cd RecipeDex
+vagrant plugin install vagrant-vbguest
 vagrant up
+```
+
+SSH in and configure git with your email and name:
+```
+vagrant ssh
+git config --global user.email "email@example.com"
+git config --global user.name "firstname lastname"
 ```
 
 (Optional) Get the ssh credentials and store in your ssh config file:
 
 ```
+exit (if you are in the SSH session)
 vagrant ssh-config
-~/.ssh/config <- copy and paste into here
+~/.ssh/config <- copy and paste creds into here
 ```
 
 (Optional) Set up VSCode to use remote dev vm for development:
@@ -49,12 +54,12 @@ Install Remote Explorer from extensions
 Add the SSH Target from your ssh config file
 ```
 
-Once SSH'd in, configure git with your email and name:
-```
-git config --global user.email "email@example.com"
-git config --global user.name "firstname lastname"
-```
-
 ## Deployment
 
-TODO
+Deploying the service locally is as simple as:
+
+```
+./scripts/deploy.sh
+```
+
+Deploying the service to the cloud might be as simple, still TBD...
