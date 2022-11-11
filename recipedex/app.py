@@ -1,9 +1,8 @@
 
-import os
-import sys
 import json
 import logging
 import argparse
+import regex as re
 
 from recipedex.ingredient import parse_ingredient
 from recipe_scrapers import scrape_me as parse_recipe
@@ -34,7 +33,7 @@ class App:
                     'host': recipe.host(),
                     'name': recipe.title(),
                     'time': recipe.total_time(),
-                    'servings': recipe.yields(),
+                    'servings': re.search(r"(\d+)", recipe.yields()).group(1),
                     'ingredients': recipe.ingredients(),
                     'instructions': recipe.instructions_list(),
                     'image_url': recipe.image(),
@@ -58,9 +57,6 @@ class App:
             Returns:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
-        def replace_vulgar(v):
-            return v.replace(u"¼", "1/4").replace(u"½", "1/2").replace(u"¾", "3/4").replace(u"⅕", "1/5")
-
         for url, recipe in recipes_dict.items():
             try:
                 ingredients_list = []
@@ -68,7 +64,7 @@ class App:
                     parsed_ingredient = {}
 
                     try:
-                        parsed_ingredient = parse_ingredient(replace_vulgar(ingredient))
+                        parsed_ingredient = parse_ingredient(ingredient)
                     except Exception as e:
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
 

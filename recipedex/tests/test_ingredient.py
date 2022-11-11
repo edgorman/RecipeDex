@@ -38,8 +38,8 @@ from recipedex.ingredient import parse_ingredient
         {"optional": False, "name": "Onion", "quantity": "1", "unit": "count", "comment": "finely chopped"}
     ),
     (
-        "1/4 tsp chilli flakes",
-        {"optional": False, "name": "Chilli flakes", "quantity": "1/4", "unit": "tsp", "comment": ""}
+        "0.5 tsp chilli flakes",
+        {"optional": False, "name": "Chilli flakes", "quantity": "0.5", "unit": "tsp", "comment": ""}
     ),
     (
         "2 x 400g cans chopped tomatoes",
@@ -63,8 +63,12 @@ from recipedex.ingredient import parse_ingredient
         {"optional": False, "name": "Mature cheddar", "quantity": "70", "unit": "g", "comment": "grated"}
     ),
     (
-        "1/2 bunch of parsley , finely chopped",
-        {"optional": False, "name": "Parsley", "quantity": "1/2", "unit": "bunch", "comment": "finely chopped"}
+        "0.5 bunch of parsley , finely chopped",
+        {"optional": False, "name": "Parsley", "quantity": "0.5", "unit": "bunch", "comment": "finely chopped"}
+    ),
+    (
+        "0.5 cup chopped onion",
+        {"optional": False, "name": "Chopped onion", "quantity": "0.5", "unit": "cup", "comment": ""}
     ),
     (
         "1 garlic clove, crushed",
@@ -80,11 +84,11 @@ from recipedex.ingredient import parse_ingredient
     ),
     (
         "salt to taste",
-        {"optional": False, "name": "Salt to taste", "quantity": "", "unit": "", "comment": ""}
+        {"optional": False, "name": "Salt", "quantity": "", "unit": "to taste", "comment": ""}
     ),
     (
         "ground black pepper to taste",
-        {"optional": False, "name": "Ground black pepper to taste", "quantity": "", "unit": "", "comment": ""}
+        {"optional": False, "name": "Ground black pepper", "quantity": "", "unit": "to taste", "comment": ""}
     )
 ])
 def test_parse_ingredient(ingredient, expected):

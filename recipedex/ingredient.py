@@ -8,16 +8,22 @@ MANUAL_UNITS = [
     "pinch",
     "envelope",
     "dash",
-    "can",    
+    "can",
     "whole",
     "head",
     "clove",
     "bunch",
     "handful",
-    "piece"
+    "piece",
+    "strip",
+    "splash",
+    "stick"
 ]
-FRACTIONS = "\u00BC-\u00BE\u2150-\u215E"
-STOP_WORDS = nltk.corpus.stopwords.words('english')
+STOP_WORDS = nltk.corpus.stopwords.words('english') + [
+    "small",
+    "medium",
+    "large"
+]
 
 def parse_ingredient(ingredient: str) -> dict:
     '''
@@ -41,38 +47,38 @@ def parse_ingredient(ingredient: str) -> dict:
 
     # Find comment and remove from string
     comment = ", ".join(
-        re.findall(r", (.+)", ingredient) + 
-        re.findall(r"\((.+)\)", ingredient) + 
-        re.findall(r"(or .+)", ingredient)
+        re.sub(r"(\(|\)|,\s*)", "", i) 
+        for i in re.findall(r"(, (?:.+)|\((?:.+)\)|(?:or .+))", ingredient)
     )
     ingredient = re.sub(r"(, .+)|(\(.*\))|(or .*)", "", ingredient)
 
     try:
         # Find quantity followed by unit
-        quantity, unit = re.search(r"(\d\s*x\s*\d+|\d/\d|\d+|[" + FRACTIONS + r"]) ?(\w+)", ingredient).groups()
-        ingredient = re.sub(r"(\d\s*x\s*\d+|\d/\d|\d+|[" + FRACTIONS + r"]) ?(\w+)", "", ingredient)
-    except:
+        quantity, unit = re.search(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", ingredient).groups()
+        ingredient = re.sub(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", "", ingredient)
+    except Exception as _:
         try:
             # Find manual unit (assumes quantity is 1)
             quantity, unit = "1", re.search(r"("+ "|".join(MANUAL_UNITS) + r")\w*\s", ingredient).group(1)
             ingredient = re.sub(r"("+ "|".join(MANUAL_UNITS) + r")\w*\s", "", ingredient)
-        except:
+        except Exception as _:
             try:
                 # Check comment contains quantity and unit
-                quantity, unit = re.search(r"(\d\s*x\s*\d+|\d/\d|\d+|[" + FRACTIONS + r"]) ?(\w+)", comment).groups()
-                comment = re.sub(r"(, )?("+quantity+r") ?("+unit+r")", "", comment)
-            except:
+                quantity, unit = re.search(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", comment).groups()
+                comment = re.sub(r"(, )?(" + quantity + r") ?(" + unit + r")(, )?", "", comment)
+            except Exception as _:
                 # Not found, set each as empty strings
                 quantity, unit = "", ""
-    
+
     # Parse rest of ingredient
     ingredient = ingredient.strip()
-
     if len(ingredient) > 0:
-        if "to taste" in ingredient:
-            name = ingredient
+        # Unique case where string contains "to taste"
+        if "to taste" in ingredient and len(unit) == 0:
+            name = re.sub(r"(\s?to taste)", "", ingredient)
+            unit = "to taste"
+        # Else, remove stop words, numbers, and punctuation
         else:
-            # Remove stop words, numbers and punctuation from string
             name = " ".join([i for i in re.findall(r"([a-zA-Z]+)", ingredient) if i not in STOP_WORDS])
     else:
         # Unit must actually be the name (e.g. 2 eggs)
