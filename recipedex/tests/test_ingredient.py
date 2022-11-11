@@ -93,6 +93,11 @@ from recipedex.ingredient import parse_ingredient
     (
         "2 tbsp tomato purée",
         {"optional": False, "name": "Tomato purée", "quantity": "2", "unit": "tbsp", "comment": ""}
+    ),
+    (
+        "0.5 cucumber, peeled, cut into small strips",
+        {"optional": False, "name": "Cucumber", "quantity": "0.5", "unit": "count",
+         "comment": "peeled, cut into small strips"}
     )
 ])
 def test_parse_ingredient(ingredient, expected):
