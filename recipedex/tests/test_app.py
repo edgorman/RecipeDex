@@ -13,7 +13,7 @@ from recipedex.app import App
                 "host": "allrecipes.com",
                 "name": "Spinach and Feta Turkey Burgers",
                 "time": 35,
-                "servings": "8 servings",
+                "servings": 8,
                 "ingredients": [
                     "2 eggs, beaten", "2 cloves garlic, minced", "4 ounces feta cheese",
                     "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "2 pounds ground turkey"
@@ -44,7 +44,7 @@ from recipedex.app import App
                 "host": "bbcgoodfood.com",
                 "name": "Chicken pasta bake",
                 "time": 75,
-                "servings": "6 servings",
+                "servings": 6,
                 "ingredients": [
                     "4 tbsp olive oil", "1 onion , finely chopped", "2 garlic cloves , crushed", "¼ tsp chilli flakes",
                     "2 x 400g cans chopped tomatoes", "1 tsp caster sugar", "6 tbsp mascarpone",
@@ -82,7 +82,7 @@ from recipedex.app import App
                 "host": "bbcgoodfood.com",
                 "name": "Pizza Margherita in 4 easy steps",
                 "time": 35,
-                "servings": "2 items",
+                "servings": 2,
                 "ingredients": [
                     "300g strong bread flour",
                     "1 tsp instant yeast (from a sachet or a tub)",
@@ -142,84 +142,3 @@ def test_parse_urls_error_handling():
     ]
 
     assert len(App.parse_urls(url_list)) == 1
-
-
-@pytest.mark.parametrize("ingredients,expected", [
-    (
-        [
-            "2 eggs, beaten", "2 cloves garlic, minced", "4 ounces feta cheese",
-            "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "2 pounds ground turkey"
-        ],
-        [
-            {'optional': False, 'name': 'eggs', 'quantity': 2.0, 'unit': '', 'comment': 'beaten'},
-            {'optional': False, 'name': 'garlic', 'quantity': 2.0, 'unit': 'clove', 'comment': 'minced'},
-            {'optional': False, 'name': 'feta cheese', 'quantity': 4.0, 'unit': 'oz', 'comment': ''},
-            {'optional': False, 'name': 'box frozen chopped spinach', 'quantity': 1.0, 'unit': '',
-             'comment': '(10 ounce)  thawed and squeezed dry'},
-            {'optional': False, 'name': 'ground turkey', 'quantity': 2.0, 'unit': 'lb', 'comment': ''}
-        ]
-    ),
-    (
-        [
-            "4 tbsp olive oil", "1 onion , finely chopped", "2 garlic cloves , crushed", "1/4 tsp chilli flakes",
-            "2 x 400g cans chopped tomatoes", "1 tsp caster sugar", "6 tbsp mascarpone",
-            "4 skinless chicken breasts, sliced into strips", "300g penne", "70g mature cheddar , grated",
-            "50g grated mozzarella", "1/2 small bunch of parsley , finely chopped"
-        ],
-        [
-            {'optional': False, 'name': 'olive oil', 'quantity': 4.0, 'unit': 'tbsp', 'comment': ''},
-            {'optional': False, 'name': 'onion', 'quantity': 1.0, 'unit': '', 'comment': 'finely chopped'},
-            {'optional': False, 'name': 'garlic cloves', 'quantity': 2.0, 'unit': '', 'comment': 'crushed'},
-            {'optional': False, 'name': 'chilli flakes', 'quantity': 2.5, 'unit': 'tsp', 'comment': ''},
-            {'optional': False, 'name': 'x 400g cans chopped tomatoes', 'quantity': 2.0, 'unit': '', 'comment': ''},
-            {'optional': False, 'name': 'caster sugar', 'quantity': 1.0, 'unit': 'tsp', 'comment': ''},
-            {'optional': False, 'name': 'mascarpone', 'quantity': 6.0, 'unit': 'tbsp', 'comment': ''},
-            {'optional': False, 'name': 'skinless chicken breasts', 'quantity': 4.0, 'unit': '',
-             'comment': 'sliced into strips'},
-            {'optional': False, 'name': 'penne', 'quantity': 300.0, 'unit': 'g', 'comment': ''},
-            {'optional': False, 'name': 'mature cheddar', 'quantity': 70.0, 'unit': 'g', 'comment': 'grated'},
-            {'optional': False, 'name': 'grated mozzarella', 'quantity': 50.0, 'unit': 'g', 'comment': ''},
-            {'optional': False, 'name': 'small bunch of parsley', 'quantity': 1.5, 'unit': '', 'comment':
-             'finely chopped'}
-        ]
-    ),
-    (
-        [
-            "300g strong bread flour",
-            "1 tsp instant yeast (from a sachet or a tub)",
-            "1 tsp salt",
-            "1 tbsp olive oil, plus extra for drizzling",
-            "100ml passata",
-            "handful fresh basil or 1 tsp dried",
-            "1 garlic clove, crushed",
-            "125g ball mozzarella, sliced",
-            "handful grated or shaved parmesan (or vegetarian alternative)",
-            "handful of cherry tomatoes, halved",
-            "handful of basil leaves (optional)"
-        ],
-        [
-            {'optional': False, 'name': 'strong bread flour', 'quantity': 300.0, 'unit': 'g', 'comment': ''},
-            {'optional': False, 'name': 'instant yeast', 'quantity': 1.0, 'unit': 'tsp',
-             'comment': '(from a sachet or a tub)'},
-            {'optional': False, 'name': 'salt', 'quantity': 1.0, 'unit': 'tsp', 'comment': ''},
-            {'optional': False, 'name': 'olive oil', 'quantity': 1.0, 'unit': 'tbsp', 'comment':
-             'plus extra for drizzling'},
-            {'optional': False, 'name': 'passata', 'quantity': 100.0, 'unit': 'ml', 'comment': ''},
-            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
-            {'optional': False, 'name': 'garlic clove', 'quantity': 1.0, 'unit': '', 'comment': 'crushed'},
-            {'optional': False, 'name': 'ball mozzarella', 'quantity': 125.0, 'unit': 'g', 'comment': 'sliced'},
-            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
-            {'optional': False},  # parse_ingredients cannot handle "handful" keyword
-            {'optional': True}  # parse_ingredients cannot handle "handful" keyword
-        ]
-    )
-])
-def test_extract_ingredients(ingredients, expected):
-    recipes_dict = {
-        "url": {
-            "name": "name",
-            "ingredients": ingredients
-        }
-    }
-
-    assert App.extract_ingredients(recipes_dict)["url"]["ingredients_list"] == expected

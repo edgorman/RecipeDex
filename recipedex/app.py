@@ -1,12 +1,11 @@
 
-import os
-import sys
 import json
 import logging
 import argparse
+import regex as re
 
-from parse_ingredients import parse_ingredient
-from recipe_scrapers import scrape_me as scrape_recipe
+from recipedex.ingredient import parse_ingredient
+from recipe_scrapers import scrape_me as parse_recipe
 
 
 logger = logging.getLogger("recipedex.app")
@@ -28,13 +27,13 @@ class App:
 
         for url in urls:
             try:
-                recipe = scrape_recipe(url)
+                recipe = parse_recipe(url)
 
                 recipes_dict[url] = {
                     'host': recipe.host(),
                     'name': recipe.title(),
                     'time': recipe.total_time(),
-                    'servings': recipe.yields(),
+                    'servings': int(re.search(r"(\d+)", recipe.yields()).group(1)),
                     'ingredients': recipe.ingredients(),
                     'instructions': recipe.instructions_list(),
                     'image_url': recipe.image(),
@@ -58,29 +57,18 @@ class App:
             Returns:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
-        def replace_vulgar(v):
-            return v.replace(u"¼", "1/4").replace(u"½", "1/2").replace(u"¾", "3/4").replace(u"⅕", "1/5")
-
         for url, recipe in recipes_dict.items():
             try:
                 ingredients_list = []
                 for ingredient in recipe["ingredients"]:
-                    parsed_ingredient = {"optional": "option" in ingredient.lower()}
+                    parsed_ingredient = {}
 
                     try:
-                        sys.stdout = open(os.devnull, 'w')
-                        i = parse_ingredient(replace_vulgar(ingredient))
-                        sys.stdout = sys.__stdout__
-
-                        parsed_ingredient["name"] = i.name
-                        parsed_ingredient["quantity"] = i.quantity
-                        parsed_ingredient["unit"] = i.unit
-                        parsed_ingredient["comment"] = i.comment
+                        parsed_ingredient = parse_ingredient(ingredient)
                     except Exception as e:
-                        sys.stdout = sys.__stdout__
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
-                    finally:
-                        ingredients_list.append(parsed_ingredient)
+
+                    ingredients_list.append(parsed_ingredient)
 
                 recipes_dict[url]["ingredients_list"] = ingredients_list
                 logger.info(f"Extracted ingredients for '{recipe['name']}'")
@@ -105,7 +93,7 @@ class App:
                 # TODO: Generate metadata here, may include
                 # * season (?)
                 # * tags (title of recipe with keywords removed)
-                # * linked recipes (try run scrape_recipe on each url in page?)
+                # * linked recipes (try run parse_recipe on each url in page?)
                 # * popularity (ratings/comment counts on the page)
                 # * price (need a way to lookup price of individual ingredients)
                 # * author (regex search for By: <>)
