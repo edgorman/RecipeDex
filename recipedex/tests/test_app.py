@@ -13,7 +13,7 @@ from recipedex.app import App
                 "host": "allrecipes.com",
                 "name": "Spinach and Feta Turkey Burgers",
                 "time": 35,
-                "servings": "8 servings",
+                "servings": 8,
                 "ingredients": [
                     "2 eggs, beaten", "2 cloves garlic, minced", "4 ounces feta cheese",
                     "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "2 pounds ground turkey"
@@ -44,7 +44,7 @@ from recipedex.app import App
                 "host": "bbcgoodfood.com",
                 "name": "Chicken pasta bake",
                 "time": 75,
-                "servings": "6 servings",
+                "servings": 6,
                 "ingredients": [
                     "4 tbsp olive oil", "1 onion , finely chopped", "2 garlic cloves , crushed", "¼ tsp chilli flakes",
                     "2 x 400g cans chopped tomatoes", "1 tsp caster sugar", "6 tbsp mascarpone",
@@ -82,7 +82,7 @@ from recipedex.app import App
                 "host": "bbcgoodfood.com",
                 "name": "Pizza Margherita in 4 easy steps",
                 "time": 35,
-                "servings": "2 items",
+                "servings": 2,
                 "ingredients": [
                     "300g strong bread flour",
                     "1 tsp instant yeast (from a sachet or a tub)",

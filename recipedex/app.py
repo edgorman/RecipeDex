@@ -33,7 +33,7 @@ class App:
                     'host': recipe.host(),
                     'name': recipe.title(),
                     'time': recipe.total_time(),
-                    'servings': re.search(r"(\d+)", recipe.yields()).group(1),
+                    'servings': int(re.search(r"(\d+)", recipe.yields()).group(1)),
                     'ingredients': recipe.ingredients(),
                     'instructions': recipe.instructions_list(),
                     'image_url': recipe.image(),

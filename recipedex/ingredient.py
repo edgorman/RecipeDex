@@ -25,13 +25,14 @@ STOP_WORDS = nltk.corpus.stopwords.words('english') + [
     "large"
 ]
 
+
 def parse_ingredient(ingredient: str) -> dict:
     '''
         Parse the string on an ingredient into its principal components
 
         Parameters:
             ingredient: string version of the ingredient
-        
+
         Returns:
             ingredient_dict: dictionary version of the ingredient
     '''
@@ -47,7 +48,7 @@ def parse_ingredient(ingredient: str) -> dict:
 
     # Find comment and remove from string
     comment = ", ".join(
-        re.sub(r"(\(|\)|^,\s*)", "", i) 
+        re.sub(r"(\(|\)|^,\s*)", "", i)
         for i in re.findall(r"(, (?:.+)|\((?:.+)\)|(?:or .+))", ingredient)
     )
     ingredient = re.sub(r"(, .+)|(\(.*\))|(or .*)", "", ingredient)
@@ -57,19 +58,19 @@ def parse_ingredient(ingredient: str) -> dict:
         # Quantity followed by unit
         quantity, unit = re.search(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", ingredient).groups()
         ingredient = re.sub(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", "", ingredient)
-    except Exception as _:
+    except:  # noqa: E722
         try:
             # Manual unit with no number
-            quantity, unit = "1", re.search(r"("+ "|".join(MANUAL_UNITS) + r")\w*\s", ingredient).group(1)
-            ingredient = re.sub(r"("+ "|".join(MANUAL_UNITS) + r")\w*\s", "", ingredient)
-        except Exception as _:
+            quantity, unit = "1", re.search(r"(" + "|".join(MANUAL_UNITS) + r")\w*\s", ingredient).group(1)
+            ingredient = re.sub(r"(" + "|".join(MANUAL_UNITS) + r")\w*\s", "", ingredient)
+        except:  # noqa: E722
             try:
                 # Check comment contains number
                 quantity, unit = re.search(r"(\d\s*x\s*\d+|\d*\.\d+|\d+) ?(\w+)", comment).groups()
                 comment = re.sub(r"(, )?(" + quantity + r") ?(" + unit + r")(, )?", "", comment)
-            except Exception as _:
+            except:  # noqa: E722
                 quantity, unit = "", ""
-    
+
     # Crop quantity decimals that are longer than two
     quantity = re.sub(r"(\d+\.\d{3,})", lambda q: re.search(r"(\d+\.\d{0,2})", q.group()).group(), quantity)
 
