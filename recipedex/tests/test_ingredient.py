@@ -89,6 +89,10 @@ from recipedex.ingredient import parse_ingredient
     (
         "ground black pepper to taste",
         {"optional": False, "name": "Ground black pepper", "quantity": "", "unit": "to taste", "comment": ""}
+    ),
+    (
+        "2 tbsp tomato purée",
+        {"optional": False, "name": "Tomato purée", "quantity": "2", "unit": "tbsp", "comment": ""}
     )
 ])
 def test_parse_ingredient(ingredient, expected):

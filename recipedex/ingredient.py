@@ -79,7 +79,7 @@ def parse_ingredient(ingredient: str) -> dict:
             unit = "to taste"
         # Else, remove stop words, numbers, and punctuation
         else:
-            name = " ".join([i for i in re.findall(r"([a-zA-Z]+)", ingredient) if i not in STOP_WORDS])
+            name = " ".join([i for i in re.findall(r"([^\W\d_]+)", ingredient, re.UNICODE) if i not in STOP_WORDS])
     else:
         # Unit must actually be the name (e.g. 2 eggs)
         name, unit = unit, "count"
