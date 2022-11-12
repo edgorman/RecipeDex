@@ -1,6 +1,7 @@
 
 import nltk
 import regex as re
+from pint import UnitRegistry
 nltk.download('stopwords')
 
 
@@ -96,3 +97,57 @@ def parse_ingredient(ingredient: str) -> dict:
         "comment": comment.lower(),
         "optional": optional
     }
+
+
+def convert_to_unit(ingredient: dict, new_unit: str) -> dict:
+    '''
+        Convert the ingredient to the new unit, updating the quantity if necessary
+
+        Parameters:
+            ingredient: dictionary containing ingredient unit and quantity
+            new_unit: the new unit to change the ingredient to
+        
+        Returns:
+            ingredient: new dictionary with updated unit and quantity
+    '''
+    # Parse current ingredient using Pint package
+    ureg = UnitRegistry()
+    curr = ureg.Quantity(float(ingredient["quantity"]), ingredient["unit"])
+
+    # Check if new unit can convert the old unit
+    assert curr.check(new_unit), f"Cannot convert from '{str(curr.units)}' to '{new_unit}'."
+    curr = curr.to(new_unit)
+
+    # Update dictionary and return with conversion
+    ingredient.update({
+        "quantity": str(round(curr.magnitude, 2)),
+        "unit": str(curr.units)
+    })
+    return ingredient
+
+
+def convert_to_system(ingredient: dict, new_system: str) -> dict:
+    '''
+        Convert the ingredient to the new unit system, updating the quantity if necessary
+
+        Parameters:
+            ingredient: dictionary containing ingredient unit and quantity
+            new_system: the new unit system to change the ingredient to
+        
+        Returns:
+            ingredient: new dictionary with updated unit and quantity
+    '''
+    # Parse current ingredient using Pint package
+    ureg = UnitRegistry()
+    curr = ureg.Quantity(float(ingredient["quantity"]), ingredient["unit"])
+
+    # Change to new unit system
+    ureg.default_system = new_system
+    curr = curr.to_base_units().to_compact()
+
+    # Update dictionary and return with conversion
+    ingredient.update({
+        "quantity": str(round(curr.magnitude, 2)),
+        "unit": str(curr.units)
+    })
+    return ingredient

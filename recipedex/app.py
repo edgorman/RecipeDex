@@ -5,6 +5,7 @@ import argparse
 import regex as re
 
 from recipedex.ingredient import parse_ingredient
+from recipedex.ingredient import convert_to_system
 from recipe_scrapers import scrape_me as parse_recipe
 
 
@@ -48,15 +49,21 @@ class App:
         return recipes_dict
 
     @staticmethod
-    def extract_ingredients(recipes_dict: dict) -> dict:
+    def extract_ingredients(recipes_dict: dict, use_metric: bool = False, use_imperial: bool = False) -> dict:
         '''
             Extract the name, quantity, unit and comment from an ingredient string
 
             Parameters:
                 recipes_dict: Dict of recipe objects where the url is the key
+                use_metric: Whether to automatically use metric system
+                use_imperial: Whether to automatically use imperial system
             Returns:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
+        unit_system = None
+        if use_metric: unit_system = "mks"
+        if use_imperial: unit_system = "imperial"
+
         for url, recipe in recipes_dict.items():
             try:
                 ingredients_list = []
@@ -67,6 +74,12 @@ class App:
                         parsed_ingredient = parse_ingredient(ingredient)
                     except Exception as e:
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
+                    
+                    try:
+                        if unit_system is not None:
+                            parsed_ingredient = convert_to_system(parsed_ingredient, unit_system)
+                    except Exception as e:
+                        logger.warning(f"Could not convert {ingredient} to '{unit_system}': {str(e)}")
 
                     ingredients_list.append(parsed_ingredient)
 
@@ -122,7 +135,7 @@ class App:
         recipes_dict = App.parse_urls(args.urls)
 
         logger.info("Extracting ingredients to a list of names, preperation, metric and amount.")
-        recipes_dict = App.extract_ingredients(recipes_dict)
+        recipes_dict = App.extract_ingredients(recipes_dict, use_metric=args.metric, use_imperial=args.imperial)
 
         logger.info("Generating additional metdata about each recipe.")
         recipes_dict = App.generate_metadata(recipes_dict)
