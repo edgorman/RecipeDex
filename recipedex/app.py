@@ -61,8 +61,10 @@ class App:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
         unit_system = None
-        if use_metric: unit_system = "mks"
-        if use_imperial: unit_system = "imperial"
+        if use_metric:
+            unit_system = "mks"
+        if use_imperial:
+            unit_system = "imperial"
 
         for url, recipe in recipes_dict.items():
             try:
@@ -76,7 +78,7 @@ class App:
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
 
                     ingredients_list.append(parsed_ingredient)
-                
+
                 if unit_system is not None:
                     ingredients_list = convert_to_system(ingredients_list, unit_system)
 

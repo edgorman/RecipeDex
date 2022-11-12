@@ -110,7 +110,7 @@ def convert_to_unit(ingredient: dict, new_unit: str) -> dict:
         Parameters:
             ingredient: dictionary containing ingredient unit and quantity
             new_unit: the new unit to change the ingredient to
-        
+
         Returns:
             ingredient: new dictionary with updated unit and quantity
     '''
@@ -136,7 +136,7 @@ def convert_to_system(ingredients: list, new_system: str) -> dict:
         Parameters:
             ingredient: list containing ingredients with unit and quantity
             new_system: the new unit system to change the ingredients to
-        
+
         Returns:
             ingredient: new list with updated units and quantities
     '''
