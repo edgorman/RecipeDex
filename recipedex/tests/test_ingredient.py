@@ -5,6 +5,8 @@ import warnings
 from recipedex.tests.conftest import AssertionWarning
 from recipedex.tests.conftest import dict_diff
 from recipedex.ingredient import parse_ingredient
+from recipedex.ingredient import convert_to_unit
+from recipedex.ingredient import convert_to_system
 
 
 @pytest.mark.parametrize("ingredient,expected", [
@@ -108,3 +110,35 @@ def test_parse_ingredient(ingredient, expected):
     if result != expected:
         assert result.keys() == expected.keys()
         warnings.warn(dict_diff(result, expected), AssertionWarning)
+
+
+@pytest.mark.parametrize("ingredient,new_unit,expected", [
+    (
+        {"quantity": "1", "unit": "kg"},
+        "pound",
+        {"quantity": "2.2", "unit": "pound"}
+    ),
+    (
+        {"quantity": "1", "unit": "cups"},
+        "liter",
+        {"quantity": "0.24", "unit": "liter"}
+    )
+])
+def test_convert_to_unit(ingredient, new_unit, expected):
+    assert convert_to_unit(ingredient, new_unit) == expected
+
+
+@pytest.mark.parametrize("ingredient,new_system,expected", [
+    (
+        [{"quantity": "1", "unit": "kg"}],
+        "imperial",
+        [{"quantity": "2.2", "unit": "pound"}]
+    ),
+    (
+        [{"quantity": "2.20462", "unit": "pounds"}],
+        "mks",
+        [{"quantity": "1.0", "unit": "kilogram"}]
+    )
+])
+def test_convert_to_system(ingredient, new_system, expected):
+    assert convert_to_system(ingredient, new_system) == expected

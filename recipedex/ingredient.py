@@ -1,7 +1,12 @@
 
 import nltk
+import logging
 import regex as re
-nltk.download('stopwords')
+from pint import UnitRegistry
+
+ureg = UnitRegistry()
+nltk.download("stopwords")
+logger = logging.getLogger("recipedex.ingredient")
 
 
 MANUAL_UNITS = [
@@ -96,3 +101,60 @@ def parse_ingredient(ingredient: str) -> dict:
         "comment": comment.lower(),
         "optional": optional
     }
+
+
+def convert_to_unit(ingredient: dict, new_unit: str) -> dict:
+    '''
+        Convert the ingredient to the new unit, updating the quantity if necessary
+
+        Parameters:
+            ingredient: dictionary containing ingredient unit and quantity
+            new_unit: the new unit to change the ingredient to
+
+        Returns:
+            ingredient: new dictionary with updated unit and quantity
+    '''
+    # Parse current ingredient using Pint package
+    curr = ureg.Quantity(float(ingredient["quantity"]), ingredient["unit"])
+
+    # Check if new unit can convert the old unit
+    assert curr.check(new_unit), f"Cannot convert from '{str(curr.units)}' to '{new_unit}'."
+    curr = curr.to(new_unit)
+
+    # Update dictionary and return with conversion
+    ingredient.update({
+        "quantity": str(round(curr.magnitude, 2)),
+        "unit": str(curr.units)
+    })
+    return ingredient
+
+
+def convert_to_system(ingredients: list, new_system: str) -> dict:
+    '''
+        Convert the list of ingredients to the new unit system, updating the quantity if necessary
+
+        Parameters:
+            ingredient: list containing ingredients with unit and quantity
+            new_system: the new unit system to change the ingredients to
+
+        Returns:
+            ingredient: new list with updated units and quantities
+    '''
+    # Set new default unit system
+    ureg.default_system = new_system
+
+    for i in range(len(ingredients)):
+        try:
+            # Change ingredient to new unit system using pint
+            curr = ureg.Quantity(float(ingredients[i]["quantity"]), ingredients[i]["unit"])
+            curr = curr.to_base_units().to_reduced_units()
+
+            # Update dictionary and return with conversion
+            ingredients[i].update({
+                "quantity": str(round(curr.magnitude, 2)),
+                "unit": str(curr.units)
+            })
+        except Exception as e:
+            logger.warning(f"Could not convert ingredient {ingredients[i]} to new unit system {new_system}: {str(e)}")
+
+    return ingredients

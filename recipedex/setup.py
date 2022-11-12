@@ -15,6 +15,7 @@ setup(
         "regex",
         "flake8",
         "nltk",
+        "pint",
         "numpy",
         "parse-ingredients",
         "pytest",

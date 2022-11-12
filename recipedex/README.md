@@ -23,7 +23,7 @@ python -m pip freeze
 ## Usage
 
 ```
-usage: recipedex [-h] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version] urls [urls ...]
+usage: recipedex [-h] [--metric] [--imperial] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version] urls [urls ...]
 
 Automatically parse and extract info from recipes.
 
@@ -32,6 +32,8 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  --metric              force units to be metric
+  --imperial            force units to be imperial
   --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
                         the log level
   --version             show program's version number and exit
