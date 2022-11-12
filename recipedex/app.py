@@ -74,14 +74,11 @@ class App:
                         parsed_ingredient = parse_ingredient(ingredient)
                     except Exception as e:
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
-                    
-                    try:
-                        if unit_system is not None:
-                            parsed_ingredient = convert_to_system(parsed_ingredient, unit_system)
-                    except Exception as e:
-                        logger.warning(f"Could not convert {ingredient} to '{unit_system}': {str(e)}")
 
                     ingredients_list.append(parsed_ingredient)
+                
+                if unit_system is not None:
+                    ingredients_list = convert_to_system(ingredients_list, unit_system)
 
                 recipes_dict[url]["ingredients_list"] = ingredients_list
                 logger.info(f"Extracted ingredients for '{recipe['name']}'")

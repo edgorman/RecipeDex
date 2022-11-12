@@ -33,9 +33,9 @@ async def root():
 
 
 @api.get("/recipe/{request:path}")
-async def get_recipe_by_url(request: Request):
+async def get_recipe_by_url(request: Request, metric: bool=False, imperial: bool=True):
     urls = [request.url.path[8:]]
-    args = Namespace(urls=urls, log=logging.getLevelName(logger.getEffectiveLevel()), metric=False, imperial=False)
+    args = Namespace(urls=urls, log=logging.getLevelName(logger.getEffectiveLevel()), metric=metric, imperial=imperial)
     resp = json.loads(App.main(args))
 
     return resp

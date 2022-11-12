@@ -130,14 +130,14 @@ def test_convert_to_unit(ingredient, new_unit, expected):
 
 @pytest.mark.parametrize("ingredient,new_system,expected", [
     (
-        {"quantity": "1", "unit": "kg"},
+        [{"quantity": "1", "unit": "kg"}],
         "imperial",
-        {"quantity": "2.2", "unit": "pound"}
+        [{"quantity": "2.2", "unit": "pound"}]
     ),
     (
-        {"quantity": "2.20462", "unit": "pounds"},
+        [{"quantity": "2.20462", "unit": "pounds"}],
         "mks",
-        {"quantity": "1000.0", "unit": "gram"}
+        [{"quantity": "1.0", "unit": "kilogram"}]
     )
 ])
 def test_convert_to_system(ingredient, new_system, expected):
