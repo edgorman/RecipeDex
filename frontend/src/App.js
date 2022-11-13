@@ -65,11 +65,11 @@ class App extends React.Component {
                   {
                     this.state.ingredients.map(function(i, idx){
                       return (
-                        <div key={idx} class="input-group mt-1 mb-1">
-                          <input type="text" class="form-control" defaultValue={i.name}/>
-                          <input type="text" class="form-control" defaultValue={i.comment}/>
-                          <span class="input-group-text">{i.quantity}</span>
-                          <span class="input-group-text">{i.unit}</span>
+                        <div key={idx} className="input-group mt-1 mb-1">
+                          <input type="text" className="form-control" defaultValue={i.name}/>
+                          <input type="text" className="form-control" defaultValue={i.comment}/>
+                          <span className="input-group-text">{i.quantity}</span>
+                          <span className="input-group-text">{i.unit}</span>
                         </div>
                       )
                     })

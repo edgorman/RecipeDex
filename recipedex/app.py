@@ -6,6 +6,7 @@ import regex as re
 
 from recipedex.ingredient import parse_ingredient
 from recipedex.ingredient import convert_to_system
+from recipedex.ingredient import scale_to_amount
 from recipe_scrapers import scrape_me as parse_recipe
 
 
@@ -49,39 +50,47 @@ class App:
         return recipes_dict
 
     @staticmethod
-    def extract_ingredients(recipes_dict: dict, use_metric: bool = False, use_imperial: bool = False) -> dict:
+    def extract_ingredients(recipes_dict: dict, serves: int = 0, metric: bool = False, imperial: bool = False) -> dict:
         '''
             Extract the name, quantity, unit and comment from an ingredient string
 
             Parameters:
                 recipes_dict: Dict of recipe objects where the url is the key
-                use_metric: Whether to automatically use metric system
-                use_imperial: Whether to automatically use imperial system
+                serves: How much to scale ingredients to (0=don't scale)
+                metric: Whether to automatically use metric system
+                imperial: Whether to automatically use imperial system
             Returns:
                 recipes_dict: Dict of recipe objects where the url is the key
         '''
-        unit_system = None
-        if use_metric:
-            unit_system = "mks"
-        if use_imperial:
-            unit_system = "imperial"
-
+        # For each recipe being parsed
         for url, recipe in recipes_dict.items():
             try:
                 ingredients_list = []
+
+                # For each ingredient in recipe
                 for ingredient in recipe["ingredients"]:
                     parsed_ingredient = {}
 
                     try:
+                        # Parse ingredient
                         parsed_ingredient = parse_ingredient(ingredient)
                     except Exception as e:
                         logger.warning(f"Could not parse line {ingredient}: {str(e)}")
 
                     ingredients_list.append(parsed_ingredient)
 
-                if unit_system is not None:
-                    ingredients_list = convert_to_system(ingredients_list, unit_system)
+                # Convert to new unit system if set
+                if metric:
+                    ingredients_list = convert_to_system(ingredients_list, 'mks')
+                if imperial:
+                    ingredients_list = convert_to_system(ingredients_list, 'imperial')
 
+                # Convert to new scale if set
+                if serves > 0:
+                    ingredients_list = scale_to_amount(ingredients_list, serves / recipe['servings'])
+                    recipe['servings'] = serves
+
+                # Update recipe with new recipes list
                 recipes_dict[url]["ingredients_list"] = ingredients_list
                 logger.info(f"Extracted ingredients for '{recipe['name']}'")
             except Exception as e:
@@ -134,7 +143,12 @@ class App:
         recipes_dict = App.parse_urls(args.urls)
 
         logger.info("Extracting ingredients to a list of names, preperation, metric and amount.")
-        recipes_dict = App.extract_ingredients(recipes_dict, use_metric=args.metric, use_imperial=args.imperial)
+        recipes_dict = App.extract_ingredients(
+            recipes_dict,
+            serves=args.serves,
+            metric=args.metric,
+            imperial=args.imperial
+        )
 
         logger.info("Generating additional metdata about each recipe.")
         recipes_dict = App.generate_metadata(recipes_dict)
