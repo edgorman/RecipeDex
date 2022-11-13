@@ -155,7 +155,7 @@ def convert_to_system(ingredients: list, system: str) -> list:
                 "unit": str(curr.units)
             })
         except Exception as e:
-            logger.warning(f"Could not convert ingredient {ingredients[i]} to new unit system {new_system}: {str(e)}")
+            logger.warning(f"Could not convert ingredient {ingredients[i]} to unit system {system}: {str(e)}")
 
     return ingredients
 

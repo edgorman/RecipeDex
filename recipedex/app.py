@@ -84,7 +84,7 @@ class App:
                     ingredients_list = convert_to_system(ingredients_list, 'mks')
                 if imperial:
                     ingredients_list = convert_to_system(ingredients_list, 'imperial')
-                
+
                 # Convert to new scale if set
                 if serves > 0:
                     ingredients_list = scale_to_amount(ingredients_list, serves / recipe['servings'])
