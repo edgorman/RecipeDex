@@ -7,6 +7,7 @@ from recipedex.tests.conftest import dict_diff
 from recipedex.ingredient import parse_ingredient
 from recipedex.ingredient import convert_to_unit
 from recipedex.ingredient import convert_to_system
+from recipedex.ingredient import scale_to_amount
 
 
 @pytest.mark.parametrize("ingredient,expected", [
@@ -128,7 +129,7 @@ def test_convert_to_unit(ingredient, new_unit, expected):
     assert convert_to_unit(ingredient, new_unit) == expected
 
 
-@pytest.mark.parametrize("ingredient,new_system,expected", [
+@pytest.mark.parametrize("ingredient,system,expected", [
     (
         [{"quantity": "1", "unit": "kg"}],
         "imperial",
@@ -140,5 +141,26 @@ def test_convert_to_unit(ingredient, new_unit, expected):
         [{"quantity": "1.0", "unit": "kilogram"}]
     )
 ])
-def test_convert_to_system(ingredient, new_system, expected):
-    assert convert_to_system(ingredient, new_system) == expected
+def test_convert_to_system(ingredient, system, expected):
+    assert convert_to_system(ingredient, system) == expected
+
+
+@pytest.mark.parametrize("ingredient,scale,expected", [
+    (
+        [{"quantity": "1", "unit": "kg"}],
+        1,
+        [{"quantity": "1.0", "unit": "kg"}]
+    ),
+    (
+        [{"quantity": "27", "unit": "grams"}],
+        5,
+        [{"quantity": "135.0", "unit": "grams"}]
+    ),
+    (
+        [{"quantity": "135", "unit": "pounds"}],
+        0.2,
+        [{"quantity": "27.0", "unit": "pounds"}]
+    )
+])
+def test_scale_to_amount(ingredient, scale, expected):
+    assert scale_to_amount(ingredient, scale) == expected
