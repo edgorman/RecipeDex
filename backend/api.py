@@ -1,6 +1,5 @@
 import json
 import logging
-import motor.motor_asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,13 +22,6 @@ api.add_middleware(
 )
 api.include_router(recipes.router)
 
-# Set up MongoDB connection
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://127.0.0.1:27017")
-database = client.recipes
-recipes_collection = database.get_collection("recipes_collection")
-hostname_collection = database.get_collection("hostname_collection")
-
-# Default
 @api.get("/")
 async def root():
     return {
