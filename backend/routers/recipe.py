@@ -15,8 +15,8 @@ logger = logging.getLogger("backend.api.routers.recipes")
 
 
 router = APIRouter(
-    prefix = '/recipe',
-    tags = ['recipe']
+    prefix='/recipe',
+    tags=['recipe']
 )
 
 
@@ -38,8 +38,7 @@ async def get_recipe_by_url(request: Request, metric: bool = False, imperial: bo
         imperial=imperial,
         log=logging.getLevelName(logger.getEffectiveLevel()),
     )
-    
+
     resp = json.loads(App.main(args))
     await asyncio.gather(*[add_recipe(url, recipe) for url, recipe in resp.items()])
-
     return resp

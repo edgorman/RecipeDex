@@ -1,4 +1,3 @@
-import json
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +20,7 @@ api.add_middleware(
     allow_headers=["*"],
 )
 api.include_router(recipe_router)
+
 
 @api.get("/")
 async def root():

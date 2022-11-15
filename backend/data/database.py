@@ -37,7 +37,7 @@ async def add_recipe(url: str, recipe: dict):
     }
     try:
         recipe = await recipe_collection.insert_one(recipe_data)
-        new_recipe = await recipe_collection.find_one({"_id": recipe.inserted_id})
+        await recipe_collection.find_one({"_id": recipe.inserted_id})
     except Exception as e:
         logger.warning(f"Could not add recipe: '{recipe_data}', {str(e)}.")
 
