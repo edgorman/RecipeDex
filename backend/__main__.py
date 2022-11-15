@@ -12,8 +12,8 @@ from backend import __description__
 from backend.database.database import clear_recipes
 
 
-logger = logging.getLogger('backend')
 LOG_LEVELS = list(log_levels.values())[:-1]
+logger = logging.getLogger('backend')
 
 
 # Parse input arguments
@@ -28,7 +28,7 @@ args = parser.parse_args(sys.argv[1:])
 # Handle logging
 logger.setLevel(args.log)
 
-# Clear db if local
+# If flag set, clear database
 if args.resetdb:
     async def function(param) -> asyncio.coroutine:
         await param()
