@@ -14,9 +14,9 @@ These will last approximately 2 weeks but may shift on my availability and prior
 
 ### Sprint 2
 
-* Improve recipe and ingredient parsing using NLP
-* Develop metric conversion functionality
-* Develop ingredient scaling by the servings integer
+* ~~Improve recipe and ingredient parsing using NLP~~
+* ~~Develop metric conversion functionality~~
+* ~~Develop ingredient scaling by the servings integer~~
 
 ### Sprint 3
 
@@ -26,12 +26,12 @@ These will last approximately 2 weeks but may shift on my availability and prior
 
 ### Sprint 4
 
-* Enhance CI/CD via Github Actions
-* Deploy the application on a cloud platform
-  * This will likely be difficult so no other tasks
-
-### Sprint 5
-
 * Make the frontend look good
 * Possibly include ads on the website
 * Develop additional features for search
+
+### Sprint 5
+
+* Enhance CI/CD via Github Actions
+* Deploy the application on a cloud platform
+  * This will likely be difficult so no other tasks

@@ -5,7 +5,7 @@ import regex as re
 from pint import UnitRegistry
 
 ureg = UnitRegistry()
-nltk.download("stopwords")
+nltk.download("stopwords", quiet=True)
 logger = logging.getLogger("recipedex.ingredient")
 
 

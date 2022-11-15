@@ -1,18 +1,16 @@
-import json
 import logging
 from fastapi import FastAPI
-from fastapi import Request
-from argparse import Namespace
 from fastapi.middleware.cors import CORSMiddleware
 
-from recipedex import App
-from backend import __description__
-from backend import __version__
 from backend import __name__
+from backend import __version__
+from backend import __description__
+from backend.routers.recipe import router as recipe_router
 
 
 logger = logging.getLogger("backend.api")
 
+# Set up FastAPI service
 api = FastAPI()
 api.add_middleware(
     CORSMiddleware,
@@ -21,6 +19,7 @@ api.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+api.include_router(recipe_router)
 
 
 @api.get("/")
@@ -30,18 +29,3 @@ async def root():
         "version": __version__,
         "description": __description__
     }
-
-
-@api.get("/recipe/{request:path}")
-async def get_recipe_by_url(request: Request, metric: bool = False, imperial: bool = False):
-    urls = [request.url.path[8:]]
-    args = Namespace(
-        urls=urls,
-        serves=1,
-        metric=metric,
-        imperial=imperial,
-        log=logging.getLevelName(logger.getEffectiveLevel()),
-    )
-    resp = json.loads(App.main(args))
-
-    return resp
