@@ -1,5 +1,5 @@
-
 import json
+import nltk
 import logging
 import argparse
 import regex as re
@@ -40,6 +40,7 @@ class App:
                     'instructions': recipe.instructions_list(),
                     'image_url': recipe.image(),
                     'nutrients': recipe.nutrients(),
+                    'tags': [],
                 }
 
                 logger.info(f"Extracted recipe for '{recipes_dict[url]['name']}'")
@@ -81,14 +82,14 @@ class App:
 
                 # Convert to new unit system if set
                 if metric:
-                    ingredients_list = convert_to_system(ingredients_list, 'mks')
+                    ingredients_list = convert_to_system(ingredients_list, "mks")
                 if imperial:
-                    ingredients_list = convert_to_system(ingredients_list, 'imperial')
+                    ingredients_list = convert_to_system(ingredients_list, "imperial")
 
                 # Convert to new scale if set
                 if serves > 0:
-                    ingredients_list = scale_to_amount(ingredients_list, serves / recipe['servings'])
-                    recipe['servings'] = serves
+                    ingredients_list = scale_to_amount(ingredients_list, serves / recipe["servings"])
+                    recipe["servings"] = serves
 
                 # Update recipe with new recipes list
                 recipes_dict[url]["ingredients_list"] = ingredients_list
@@ -111,6 +112,13 @@ class App:
         '''
         for _, recipe in recipes_dict.items():
             try:
+                # Generate tags used in search
+                tags = [n.lower() for n in recipe["name"].split()]
+                tags.extend([j.lower() for j in sum([i['name'].split() for i in recipe["ingredients_list"]], [])])
+                tags.append(recipe["host"].lower())
+                tags = [t for t in tags if t not in nltk.corpus.stopwords.words("english") and not t.isnumeric()]
+                recipe["tags"] = tags
+
                 # TODO: Generate metadata here, may include
                 # * season (?)
                 # * tags (title of recipe with keywords removed)

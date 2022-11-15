@@ -32,6 +32,7 @@ from recipedex.app import App
                     "saturatedFatContent": "5 g", "sodiumContent": "266 mg", "sugarContent": "1 g",
                     "unsaturatedFatContent": "0 g"
                 },
+                "tags": [],
             }
         }
     ),
@@ -69,7 +70,8 @@ from recipedex.app import App
                     "saturatedFatContent": "14 grams saturated fat", "carbohydrateContent": "41 grams carbohydrates",
                     "sugarContent": "9 grams sugar", "fiberContent": "5 grams fiber",
                     "proteinContent": "33 grams protein", "sodiumContent": "0.5 milligram of sodium"
-                }
+                },
+                "tags": [],
             }
         }
     ),
@@ -125,7 +127,8 @@ from recipedex.app import App
                     "fiberContent": "3 grams fiber",
                     "proteinContent": "19 grams protein",
                     "sodiumContent": "1.9 milligram of sodium"
-                }
+                },
+                "tags": [],
             }
         }
     )
@@ -142,3 +145,28 @@ def test_parse_urls_error_handling():
     ]
 
     assert len(App.parse_urls(url_list)) == 1
+
+
+@pytest.mark.parametrize("recipes_dict,expected", [
+    (
+        {
+            "url": {
+                "host": "bbcgoodfood.com",
+                "name": "Pizza Margherita in 4 easy steps",
+                "ingredients_list": [
+                    {"optional": False, "name": "Eggs", "quantity": "2", "unit": "count", "comment": "beaten"},
+                    {"optional": False, "name": "Garlic", "quantity": "2", "unit": "cloves", "comment": "minced"},
+                    {"optional": False, "name": "Feta cheese", "quantity": "4", "unit": "ounces", "comment": ""},
+                    {"optional": False, "name": "Ground turkey", "quantity": "2", "unit": "pounds", "comment": ""},
+                    {"optional": False, "name": "Olive oil", "quantity": "4", "unit": "tbsp", "comment": ""},
+                ],
+            }
+        },
+        [
+            "pizza", "margherita", "easy", "steps", "eggs", "garlic", "feta", "cheese", "ground", "turkey", "olive",
+            "oil", "bbcgoodfood.com",
+        ]
+    )
+])
+def test_generate_metadata(recipes_dict, expected):
+    assert App.generate_metadata(recipes_dict)["url"]["tags"] == expected
