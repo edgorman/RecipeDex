@@ -3,10 +3,10 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend import __description__
-from backend import __version__
 from backend import __name__
-from backend.routers import recipes
+from backend import __version__
+from backend import __description__
+from backend.routers.recipe import router as recipe_router
 
 
 logger = logging.getLogger("backend.api")
@@ -20,7 +20,7 @@ api.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-api.include_router(recipes.router)
+api.include_router(recipe_router)
 
 @api.get("/")
 async def root():

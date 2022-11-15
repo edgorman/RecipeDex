@@ -1,15 +1,15 @@
-
 import sys
+import asyncio
 import uvicorn
 import logging
-import asyncio
 import argparse
 from logging import _levelToName as log_levels
 
 from backend import __name__
 from backend import __version__
 from backend import __description__
-from backend.database.database import clear_recipes
+from backend.data.database import call_function
+from backend.data.database import clear_recipes
 
 
 LOG_LEVELS = list(log_levels.values())[:-1]
@@ -30,9 +30,7 @@ logger.setLevel(args.log)
 
 # If flag set, clear database
 if args.resetdb:
-    async def function(param) -> asyncio.coroutine:
-        await param()
-    asyncio.run(function(clear_recipes))
+    asyncio.get_event_loop().run_until_complete(call_function(clear_recipes))
     logger.info("Clearing all recipes from database for local dev.")
 
 # Process arguments and run app

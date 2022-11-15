@@ -6,18 +6,13 @@ This is the [FastAPI](https://fastapi.tiangolo.com/) and [MongoDB](https://www.m
 Install the required python packages:
 
 ```
+python -m pip install recipedex/.
 python -m pip install backend/.
 ```
 
 If you're developing this package a handy line to reinstall is:
 ```
 python -m pip uninstall backend -y; python -m pip install backend/.
-```
-
-If python packages are added, update the setup.py file by using the following:
-
-```
-python -m pip freeze
 ```
 
 ## Usage

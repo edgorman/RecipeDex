@@ -14,12 +14,6 @@ If you're developing this package a handy line to reinstall is:
 python -m pip uninstall recipedex -y; python -m pip install recipedex/.
 ```
 
-If python packages are added, update the setup.py file by using the following:
-
-```
-python -m pip freeze
-```
-
 ## Usage
 
 ```
