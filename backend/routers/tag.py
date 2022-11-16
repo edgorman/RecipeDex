@@ -1,6 +1,9 @@
 import logging
 from fastapi import APIRouter
 
+from backend.data.model import ResponseModel
+from backend.data.database import get_tags
+
 
 logger = logging.getLogger("backend.api.routers.tag")
 
@@ -21,4 +24,4 @@ async def all():
 
 @router.get("/{tag_name}", response_description="Get all recipes for a given tag")
 async def get_recipe_by_tag(tag_name: str):
-    
+    pass

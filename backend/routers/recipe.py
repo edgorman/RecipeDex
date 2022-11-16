@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from recipedex import App
 from backend.data.model import ResponseModel
 from backend.data.database import add_recipe
-from backend.data.database import all_recipes
+from backend.data.database import get_recipes
 
 
 logger = logging.getLogger("backend.api.routers.recipe")
@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.get("/all", response_description="Get all scraped urls")
 async def all():
-    recipes = await all_recipes()
+    recipes = await get_recipes()
     if recipes:
         return ResponseModel(recipes, "Recipe data retrieved successfully")
     return ResponseModel(recipes, "Empty list returned")

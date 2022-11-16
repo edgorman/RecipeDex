@@ -1,7 +1,7 @@
 from pydantic import (
     BaseModel,
     constr,
-    conlist,
+    conset,
 )
 
 
@@ -36,16 +36,16 @@ class RecipeSchema(BaseModel):
 
 class TagSchema(BaseModel):
     tag: str = constr(to_lower=True)
-    recipe_ids: list = conlist(str, min_items=1)
+    recipe_ids: set = conset(str, min_items=1)
 
     class Config:
         schema_extra = {
             "example": {
                 "tag": "chicken",
-                "recipe_ids": [
-                    "51651651651",
-                    "75646846154",
-                ],
+                "recipe_ids": {
+                    "63753dcc352382d88723cb90",
+                    "63753dcc352382d88723cb91",
+                },
             }
         }
 

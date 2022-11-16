@@ -27,48 +27,63 @@ recipe_collection.create_index([("url", pymongo.DESCENDING)])
 
 async def get_recipe(key: str = "url", value: str = "") -> dict:
     try:
-        return await recipe_collection.find_one({key: value})
+        result = await recipe_collection.find_one({key: value})
+
+        if result:
+            return RecipeSchema.helper(result)
+        return None
     except Exception as e:
-        logger.warning(f"Could not find key '{key}' with value '{value}': {str(e)}.")
+        logger.error(f"Could not find key '{key}' with value '{value}': {str(e)}.")
 
 
 async def add_recipe(url: str, recipe: dict):
     try:
-        if not await recipe_collection.find_one({"url": url}):
+        if await get_recipe("url", url) is None:
             await recipe_collection.insert_one({
                 "url": url,
                 "name": recipe["name"],
             })
-    except Exception as e:
-        logger.warning(f"Could not add recipe '{url}': {str(e)}.")
 
+        recipe_id = (await get_recipe("url", url))["id"]
+    except Exception as e:
+        logger.error(f"Could not add recipe '{url}': {str(e)}.")
+        return
+
+    for tag in recipe["tags"]:
+        try:
+            await add_tag(tag, recipe_id)
+        except Exception as e:
+            logger.error(f"Could not add tags for recipe '{url}': {str(e)}.")
 
 async def delete_recipe(recipe_id: str):
     try:
         await recipe_collection.delete_one({"_id": ObjectId(recipe_id)})
     except Exception as e:
-        logger.warning(f"Could not delete recipe '{recipe_id}': '{str(e)}'.")
+        logger.error(f"Could not delete recipe '{recipe_id}': '{str(e)}'.")
 
 
-async def all_recipes() -> list:
-    try:
-        recipes = []
-        async for recipe in recipe_collection.find():
+async def get_recipes() -> list:
+    recipes = []
+    async for recipe in recipe_collection.find():
+        try:
             recipes.append(
                 RecipeSchema.helper(recipe)
             )
-        return recipes
-    except Exception as e:
-        logger.warning(f"Could not get all recipes: '{str(e)}'.")
+        except Exception as e:
+            logger.error(f"Could not get all recipes: '{str(e)}'.")
+            recipes.append({})
+    return recipes
+    
 
 
 async def clear_recipes():
-    try:
-        recipes = await all_recipes()
-        for recipe in recipes:
+    recipes = await get_recipes()
+
+    for recipe in recipes:
+        try:
             await delete_recipe(recipe["id"])
-    except Exception as e:
-        logger.warning(f"Could not clear all recipes: '{str(e)}'.")
+        except Exception as e:
+            logger.error(f"Could not clear all recipes: '{str(e)}'.")
 
 
 # Functions for tags collection
@@ -77,25 +92,30 @@ tag_collection.create_index([("tag", pymongo.DESCENDING)])
 
 async def get_tag(key: str = "tag", value: str = "") -> dict:
     try:
-        return await recipe_collection.find_one({key: value})
+        result = await tag_collection.find_one({key: value})
+
+        if result:
+            return TagSchema.helper(result)
+        return None
     except Exception as e:
-        logger.warning(f"Could not find key '{key}' with value '{value}': {str(e)}.")
+        logger.error(f"Could not find key '{key}' with value '{value}': {str(e)}.")
 
 
 async def add_tag(tag: str, recipe_id: str):
     try:
-        if not await tag_collection.find_one({"tag": tag}):
-            await recipe_collection.insert_one({
+        if await get_tag("tag", tag) is None:
+            await tag_collection.insert_one({
                 "tag": tag,
                 "recipe_ids": [recipe_id],
             })
         else:
-            await tag_collection.update(
+            await tag_collection.update_one(
                 {"tag": tag},
-                {"$push": {"recipe_ids": recipe_id},
-            })
+                {"$addToSet": {"recipe_ids": recipe_id}},
+                upsert = True
+            )
     except Exception as e:
-        logger.warning(f"Could not add recipe_id '{recipe_id}' to tag '{tag}': {str(e)}.")
+        logger.error(f"Could not add recipe_id '{recipe_id}' to tag '{tag}': {str(e)}.")
 
 
 async def delete_tag(tag_id: str):
@@ -105,20 +125,24 @@ async def delete_tag(tag_id: str):
         logger.warning(f"Could not delete tag '{tag_id}': '{str(e)}'.")
 
 
-async def all_tags() -> list:
-    try:
-        tags = []
-        async for tag in tag_collection.find():
+async def get_tags() -> list:
+    tags = []
+    async for tag in tag_collection.find():
+        try:
             tags.append(
                 TagSchema.helper(tag)
             )
-        return tags
-    except Exception as e:
-        logger.warning(f"Could not get all tags: '{str(e)}'.")
+        except Exception as e:
+            logger.warning(f"Could not get all tags: '{str(e)}'.")
+            tags.append({})
+    return tags
 
 
 async def clear_tags():
-    try:
-        pass
-    except Exception as e:
-        logger.warning(f"Could not clear all tags: '{str(e)}'.")
+    tags = await get_tags()
+
+    for tag in tags:
+        try:
+            await delete_tag(tag["id"])
+        except Exception as e:
+            logger.error(f"Could not clear all tags: '{str(e)}'.")
