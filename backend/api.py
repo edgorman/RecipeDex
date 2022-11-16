@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend import __name__
 from backend import __version__
 from backend import __description__
-from backend.routers.tag import router as tag_router
-from backend.routers.recipe import router as recipe_router
+from backend.routers.tags import router as tag_router
+from backend.routers.recipes import router as recipe_router
 
 
 logger = logging.getLogger("backend.api")

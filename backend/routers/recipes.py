@@ -11,26 +11,26 @@ from backend.data.database import add_recipe
 from backend.data.database import get_recipes
 
 
-logger = logging.getLogger("backend.api.routers.recipe")
+logger = logging.getLogger("backend.api.routers.recipes")
 
 
 router = APIRouter(
-    prefix='/recipe',
-    tags=['recipe']
+    prefix='/recipes',
+    tags=['recipes']
 )
 
 
-@router.get("/all", response_description="Get all scraped urls")
-async def all():
+@router.get("/", response_description="Get all recipes")
+async def get_all_recipes():
     recipes = await get_recipes()
     if recipes:
         return ResponseModel(recipes, "Recipe data retrieved successfully")
     return ResponseModel(recipes, "Empty list returned")
 
 
-@router.get("/{request:path}", response_description="Scrape a url")
+@router.get("/{request:path}", response_description="Scrape a recipe for a given url")
 async def get_recipe_by_url(request: Request, metric: bool = False, imperial: bool = False):
-    urls = [request.url.path[8:]]
+    urls = [request.url.path[9:]]
     args = Namespace(
         urls=urls,
         serves=0,

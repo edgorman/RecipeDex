@@ -21,7 +21,7 @@ class App extends React.Component {
   handleSubmit = (event) => {
     event.preventDefault();
 
-    fetch('http://127.0.0.1:5000/recipe/' + encodeURIComponent(this.state.url))
+    fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(this.state.url))
       .then((response) => response.json())
       .then((data) => {
         var recipe = data[this.state.url];

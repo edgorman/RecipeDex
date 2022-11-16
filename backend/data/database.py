@@ -25,7 +25,7 @@ async def call_function(func) -> asyncio.coroutine:
 recipe_collection = database.get_collection("recipe_collection")
 recipe_collection.create_index([("url", pymongo.DESCENDING)])
 
-async def get_recipe(key: str = "url", value: str = "") -> dict:
+async def get_recipe(key: str="url", value: str="") -> dict:
     try:
         result = await recipe_collection.find_one({key: value})
 
@@ -62,9 +62,11 @@ async def delete_recipe(recipe_id: str):
         logger.error(f"Could not delete recipe '{recipe_id}': '{str(e)}'.")
 
 
-async def get_recipes() -> list:
+async def get_recipes(key: str="url", value: str="") -> list:
     recipes = []
-    async for recipe in recipe_collection.find():
+    query = {} if value == "" else {key: value}
+
+    async for recipe in recipe_collection.find(query):
         try:
             recipes.append(
                 RecipeSchema.helper(recipe)
@@ -90,7 +92,7 @@ async def clear_recipes():
 tag_collection = database.get_collection("tag_collection")
 tag_collection.create_index([("tag", pymongo.DESCENDING)])
 
-async def get_tag(key: str = "tag", value: str = "") -> dict:
+async def get_tag(key: str="tag", value: str="") -> dict:
     try:
         result = await tag_collection.find_one({key: value})
 
@@ -125,9 +127,11 @@ async def delete_tag(tag_id: str):
         logger.warning(f"Could not delete tag '{tag_id}': '{str(e)}'.")
 
 
-async def get_tags() -> list:
+async def get_tags(key: str="tag", value: str="") -> list:
     tags = []
-    async for tag in tag_collection.find():
+    query = {} if value == "" else {key: value}
+
+    async for tag in tag_collection.find(query):
         try:
             tags.append(
                 TagSchema.helper(tag)
