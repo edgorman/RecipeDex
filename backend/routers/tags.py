@@ -16,12 +16,12 @@ router = APIRouter(
 
 @router.get("/", response_description="Get all tags")
 async def get_all_tags():
-    return await get_tags_by_key("")
+    return await get_tags()
 
 
 @router.get("/{tag_name}", response_description="Get all tags for a given key")
 async def get_tags_by_key(tag_name: str):
-    tags = await get_tags("tag", tag_name)
+    tags = await get_tags({"tag": tag_name})
     if tags:
         return ResponseModel(tags, "Tag data retrieved successfully")
     return ResponseModel(tags, "Empty list returned")

@@ -35,7 +35,7 @@ options:
 Example:
 
 ```
-python -m backend --port 5000 --reload --log DEBUG
+python -m backend --port 5000 --reload --resetdb --log DEBUG
 ```
 
 ## Testing

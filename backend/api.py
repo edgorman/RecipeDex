@@ -5,8 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend import __name__
 from backend import __version__
 from backend import __description__
-from backend.routers.tags import router as tag_router
-from backend.routers.recipes import router as recipe_router
+from backend.routers.tags import router as tags_router
+from backend.routers.search import router as search_router
+from backend.routers.recipes import router as recipes_router
 
 
 logger = logging.getLogger("backend.api")
@@ -20,8 +21,9 @@ api.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-api.include_router(tag_router)
-api.include_router(recipe_router)
+api.include_router(tags_router)
+api.include_router(search_router)
+api.include_router(recipes_router)
 
 
 @api.get("/")

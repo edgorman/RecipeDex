@@ -25,26 +25,26 @@ async def call_function(func) -> asyncio.coroutine:
 recipe_collection = database.get_collection("recipe_collection")
 recipe_collection.create_index([("url", pymongo.DESCENDING)])
 
-async def get_recipe(key: str="url", value: str="") -> dict:
+async def get_recipe(query: dict = {}) -> dict:
     try:
-        result = await recipe_collection.find_one({key: value})
+        result = await recipe_collection.find_one(query)
 
         if result:
             return RecipeSchema.helper(result)
         return None
     except Exception as e:
-        logger.error(f"Could not find key '{key}' with value '{value}': {str(e)}.")
+        logger.error(f"Could not find recipe with query '{query}': {str(e)}.")
 
 
 async def add_recipe(url: str, recipe: dict):
     try:
-        if await get_recipe("url", url) is None:
+        if await get_recipe({"url": url}) is None:
             await recipe_collection.insert_one({
                 "url": url,
                 "name": recipe["name"],
             })
 
-        recipe_id = (await get_recipe("url", url))["id"]
+        recipe_id = (await get_recipe({"url": url}))["id"]
     except Exception as e:
         logger.error(f"Could not add recipe '{url}': {str(e)}.")
         return
@@ -62,50 +62,42 @@ async def delete_recipe(recipe_id: str):
         logger.error(f"Could not delete recipe '{recipe_id}': '{str(e)}'.")
 
 
-async def get_recipes(key: str="url", value: str="") -> list:
+async def get_recipes(query: dict = {}) -> list:
     recipes = []
-    query = {} if value == "" else {key: value}
-
     async for recipe in recipe_collection.find(query):
         try:
-            recipes.append(
-                RecipeSchema.helper(recipe)
-            )
+            recipes.append(RecipeSchema.helper(recipe))
         except Exception as e:
-            logger.error(f"Could not get all recipes: '{str(e)}'.")
+            logger.error(f"Could not parse recipe '{recipe}': '{str(e)}'.")
             recipes.append({})
     return recipes
     
 
-
 async def clear_recipes():
-    recipes = await get_recipes()
-
-    for recipe in recipes:
-        try:
-            await delete_recipe(recipe["id"])
-        except Exception as e:
-            logger.error(f"Could not clear all recipes: '{str(e)}'.")
+    try:
+        recipe_collection.drop()
+    except Exception as e:
+        logger.error(f"Could not drop recipe collection: '{str(e)}'.")
 
 
 # Functions for tags collection
 tag_collection = database.get_collection("tag_collection")
 tag_collection.create_index([("tag", pymongo.DESCENDING)])
 
-async def get_tag(key: str="tag", value: str="") -> dict:
+async def get_tag(query: dict = {}) -> dict:
     try:
-        result = await tag_collection.find_one({key: value})
+        result = await tag_collection.find_one(query)
 
         if result:
             return TagSchema.helper(result)
         return None
     except Exception as e:
-        logger.error(f"Could not find key '{key}' with value '{value}': {str(e)}.")
+        logger.error(f"Could not find tag with query '{query}': {str(e)}.")
 
 
 async def add_tag(tag: str, recipe_id: str):
     try:
-        if await get_tag("tag", tag) is None:
+        if await get_tag({"tag": tag}) is None:
             await tag_collection.insert_one({
                 "tag": tag,
                 "recipe_ids": [recipe_id],
@@ -127,26 +119,19 @@ async def delete_tag(tag_id: str):
         logger.warning(f"Could not delete tag '{tag_id}': '{str(e)}'.")
 
 
-async def get_tags(key: str="tag", value: str="") -> list:
+async def get_tags(query: dict = {}) -> list:
     tags = []
-    query = {} if value == "" else {key: value}
-
     async for tag in tag_collection.find(query):
         try:
-            tags.append(
-                TagSchema.helper(tag)
-            )
+            tags.append(TagSchema.helper(tag))
         except Exception as e:
-            logger.warning(f"Could not get all tags: '{str(e)}'.")
+            logger.warning(f"Could not parse tag '{tag}': '{str(e)}'.")
             tags.append({})
     return tags
 
 
 async def clear_tags():
-    tags = await get_tags()
-
-    for tag in tags:
-        try:
-            await delete_tag(tag["id"])
-        except Exception as e:
-            logger.error(f"Could not clear all tags: '{str(e)}'.")
+    try:
+        tag_collection.drop()
+    except Exception as e:
+        logger.error(f"Could not drop tag collection: '{str(e)}'.")
