@@ -25,6 +25,7 @@ async def call_function(func) -> asyncio.coroutine:
 recipe_collection = database.get_collection("recipe_collection")
 recipe_collection.create_index([("url", pymongo.DESCENDING)])
 
+
 async def get_recipe(query: dict = {}) -> dict:
     try:
         result = await recipe_collection.find_one(query)
@@ -55,6 +56,7 @@ async def add_recipe(url: str, recipe: dict):
         except Exception as e:
             logger.error(f"Could not add tags for recipe '{url}': {str(e)}.")
 
+
 async def delete_recipe(recipe_id: str):
     try:
         await recipe_collection.delete_one({"_id": ObjectId(recipe_id)})
@@ -71,7 +73,7 @@ async def get_recipes(query: dict = {}) -> list:
             logger.error(f"Could not parse recipe '{recipe}': '{str(e)}'.")
             recipes.append({})
     return recipes
-    
+
 
 async def clear_recipes():
     try:
@@ -83,6 +85,7 @@ async def clear_recipes():
 # Functions for tags collection
 tag_collection = database.get_collection("tag_collection")
 tag_collection.create_index([("tag", pymongo.DESCENDING)])
+
 
 async def get_tag(query: dict = {}) -> dict:
     try:
@@ -105,8 +108,7 @@ async def add_tag(tag: str, recipe_id: str):
         else:
             await tag_collection.update_one(
                 {"tag": tag},
-                {"$addToSet": {"recipe_ids": recipe_id}},
-                upsert = True
+                {"$addToSet": {"recipe_ids": recipe_id}}
             )
     except Exception as e:
         logger.error(f"Could not add recipe_id '{recipe_id}' to tag '{tag}': {str(e)}.")

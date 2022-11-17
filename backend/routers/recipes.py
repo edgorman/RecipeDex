@@ -35,8 +35,8 @@ async def get_recipe_by_url(request: Request, unit: str | None = Query(default=N
     args = Namespace(
         urls=urls,
         serves=0,
-        metric=bool(unit=="metric"),
-        imperial=bool(unit=="imperial"),
+        metric=bool(unit == "metric"),
+        imperial=bool(unit == "imperial"),
         log=logging.getLevelName(logger.getEffectiveLevel()),
     )
 
