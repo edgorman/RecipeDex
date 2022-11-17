@@ -15,24 +15,32 @@ from recipedex.app import App
                 "time": 35,
                 "servings": 8,
                 "ingredients": [
-                    "2 eggs, beaten", "2 cloves garlic, minced", "4 ounces feta cheese",
-                    "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "2 pounds ground turkey"
+                    "cooking spray", "2 pounds ground turkey",
+                    "1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry", "4 ounces feta cheese",
+                    "2 large eggs, beaten", "2 cloves garlic, minced"
                 ],
                 "instructions": [
-                    "Preheat an outdoor grill for medium-high heat and lightly oil grate.",
-                    "While the grill is preheating, mix together eggs, garlic, feta cheese, spinach, and turkey in a "
-                    "large bowl until well combined; form into 8 patties.",
-                    "Cook on preheated grill until no longer pink in the center, 15 to 20 minutes."
-                ],
+                    "Preheat an outdoor grill for medium-high heat and lightly oil the grate.",
+                    "Mix together turkey, spinach, feta, eggs, and garlic in a large bowl until well combined; form "
+                    "into 8 patties.", "Cook patties on the preheated grill until no longer pink in the center, 15 to "
+                    "20 minutes. An instant-read thermometer inserted into the center of patties should read at least "
+                    "165 degrees F (74 degrees C)."
+                ], 
                 "image_url": "https://www.allrecipes.com/thmb/cpf6Rics5oHGq1TZ1df5fEaImwM=/1500x0/filters:no_upscale():"
                 "max_bytes(150000):strip_icc()/1360550-582be362ee99424bb4f363c2274a9d0d.jpg",
                 "nutrients": {
-                    "calories": "233 kcal", "carbohydrateContent": "2 g", "cholesterolContent": "143 mg",
-                    "fatContent": "13 g", "fiberContent": "1 g", "proteinContent": "27 g",
-                    "saturatedFatContent": "5 g", "sodiumContent": "266 mg", "sugarContent": "1 g",
+                    "calories": "233 kcal",
+                    "carbohydrateContent": "2 g",
+                    "cholesterolContent": "143 mg",
+                    "fiberContent": "1 g",
+                    "proteinContent": "27 g",
+                    "saturatedFatContent": "5 g",
+                    "sodiumContent": "266 mg",
+                    "sugarContent": "1 g",
+                    "fatContent": "13 g",
                     "unsaturatedFatContent": "0 g"
                 },
-                "tags": [],
+                "tags": []
             }
         }
     ),
