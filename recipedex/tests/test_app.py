@@ -25,7 +25,7 @@ from recipedex.app import App
                     "into 8 patties.", "Cook patties on the preheated grill until no longer pink in the center, 15 to "
                     "20 minutes. An instant-read thermometer inserted into the center of patties should read at least "
                     "165 degrees F (74 degrees C)."
-                ], 
+                ],
                 "image_url": "https://www.allrecipes.com/thmb/cpf6Rics5oHGq1TZ1df5fEaImwM=/1500x0/filters:no_upscale():"
                 "max_bytes(150000):strip_icc()/1360550-582be362ee99424bb4f363c2274a9d0d.jpg",
                 "nutrients": {
