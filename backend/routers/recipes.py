@@ -2,6 +2,7 @@ import json
 import asyncio
 import logging
 from argparse import Namespace
+from fastapi import Query
 from fastapi import Request
 from fastapi import APIRouter
 
@@ -15,27 +16,27 @@ logger = logging.getLogger("backend.api.routers.recipes")
 
 
 router = APIRouter(
-    prefix='/recipe',
-    tags=['recipe']
+    prefix='/recipes',
+    tags=['recipes']
 )
 
 
-@router.get("/all", response_description="Retrieve all scraped urls")
-async def all():
+@router.get("/", response_description="Get all recipes")
+async def get_all_recipes():
     recipes = await get_recipes()
     if recipes:
         return ResponseModel(recipes, "Recipe data retrieved successfully")
     return ResponseModel(recipes, "Empty list returned")
 
 
-@router.get("/{request:path}", response_description="Scrape a url")
-async def get_recipe_by_url(request: Request, metric: bool = False, imperial: bool = False):
-    urls = [request.url.path[8:]]
+@router.get("/{request:path}", response_description="Scrape a recipe for a given url")
+async def get_recipe_by_url(request: Request, unit: str | None = Query(default=None)):
+    urls = [request.url.path[9:]]
     args = Namespace(
         urls=urls,
         serves=0,
-        metric=metric,
-        imperial=imperial,
+        metric=bool(unit == "metric"),
+        imperial=bool(unit == "imperial"),
         log=logging.getLevelName(logger.getEffectiveLevel()),
     )
 

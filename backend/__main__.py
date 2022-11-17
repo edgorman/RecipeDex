@@ -9,6 +9,7 @@ from backend import __name__
 from backend import __version__
 from backend import __description__
 from backend.data.database import call_function
+from backend.data.database import clear_tags
 from backend.data.database import clear_recipes
 
 
@@ -30,8 +31,9 @@ logger.setLevel(args.log)
 
 # If flag set, clear database
 if args.resetdb:
+    asyncio.get_event_loop().run_until_complete(call_function(clear_tags))
     asyncio.get_event_loop().run_until_complete(call_function(clear_recipes))
-    logger.info("Clearing all recipes from database for local dev.")
+    logger.info("Clearing all recipes and tags from database for local dev.")
 
 # Process arguments and run app
 uvicorn.run("backend.api:api", port=int(args.port), log_level=args.log.lower(), reload=args.reload, use_colors=False)

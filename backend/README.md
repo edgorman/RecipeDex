@@ -18,7 +18,7 @@ python -m pip uninstall backend -y; python -m pip install backend/.
 ## Usage
 
 ```
-usage: backend [-h] [--port PORT] [--reload] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
+usage: backend [-h] [--port PORT] [--reload] [--resetdb] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
 
 Host the FastAPI and MongoDB backend for recipedex.
 
@@ -26,6 +26,7 @@ options:
   -h, --help            show this help message and exit
   --port PORT           the port to serve fastapi on
   --reload              reload on change (for dev)
+  --resetdb             reset database (for dev)
   --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
                         the log level
   --version             show program's version number and exit
@@ -34,7 +35,7 @@ options:
 Example:
 
 ```
-python -m backend --port 5000 --reload --log DEBUG
+python -m backend --port 5000 --reload --resetdb --log DEBUG
 ```
 
 ## Testing
@@ -44,5 +45,5 @@ Run the testing scripts in the base directory:
 ```
 python -m autopep8 backend/ --in-place --aggressive --recursive --max-line-length 120
 python -m flake8 backend/ --max-line-length=120
-python -m pytest -svv backend/tests/ --disable-pytest-warnings --cov=backend --cov-config=backend/tests/.coveragerc
+python -m pytest -svv backend/tests/
 ```

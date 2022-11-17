@@ -46,5 +46,4 @@ Run the testing scripts in the base directory:
 ```
 python -m autopep8 recipedex/ --in-place --aggressive --recursive --max-line-length 120
 python -m flake8 recipedex/ --max-line-length=120
-python -m pytest -svv recipedex/tests/ --disable-pytest-warnings --cov=recipedex --cov-config=recipedex/tests/.coveragerc
-```
+python -m pytest -svv recipedex/tests/
