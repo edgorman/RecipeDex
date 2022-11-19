@@ -8,7 +8,7 @@ class Metric extends React.Component {
   }
 
   handleChange(e) {
-    if (this.props.name == this.props.value) {
+    if (this.props.name === this.props.value) {
       this.props.onChange("default");
     }
     else {
@@ -17,7 +17,7 @@ class Metric extends React.Component {
   }
 
   render () {
-    const checked = this.props.name == this.props.value;
+    const checked = this.props.name === this.props.value;
     
     return (
       <div id="metric" className="form-check form-switch d-flex w-auto justify-content-center align-items-center">

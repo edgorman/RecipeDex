@@ -1,5 +1,5 @@
 import React from 'react';
-import Example from './Example';
+import Result from './Result';
 
 class Introduction extends React.Component {
   constructor(props) {
@@ -37,7 +37,7 @@ class Introduction extends React.Component {
               {
                 this.state.urls.map(function(url, idx){
                   return (
-                    <Example 
+                    <Result 
                       key={idx}
                       url={url} 
                       onSubmit={this.props.onUrlSubmit} />

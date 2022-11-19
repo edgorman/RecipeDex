@@ -10,7 +10,6 @@ class IngredientPanel extends React.Component {
     return (
       <div id="ingredientpanel" className="row">
         <div className="col-12">
-          <h5>Ingredients</h5>
           <ul className="list-group list-group-flush">
             {
               this.props.values.map(function(ingredient, idx){

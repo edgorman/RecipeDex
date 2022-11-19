@@ -9,7 +9,6 @@ class InstructionPanel extends React.Component {
   render () {
     return (
       <div id="instructionpanel" className="col-12 pb-4">
-        <h5>Instructions:</h5>
         <ul className="list-group list-group-flush">
           {
             this.props.values.map(function(instruction, idx){

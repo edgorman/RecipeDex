@@ -1,7 +1,7 @@
 import React from 'react';
-import './Example.css';
+import './Result.css';
 
-class Example extends React.Component {
+class Result extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,7 +42,7 @@ class Example extends React.Component {
             <img src={this.state.image} className="card-img-top" alt={this.state.image}/>
             <div className="card-body">
               <h5 className="card-title">{this.state.title}</h5>
-              <small className="card-text">{this.state.description}</small>
+              <p className="card-text">{this.state.description}</p>
             </div>
           </div>
         </div>
@@ -50,12 +50,24 @@ class Example extends React.Component {
     }
     else{
       return (
-        <div className="col">
+        <div className="example-recipe col">
           <div className="card">
             <div className="d-flex justify-content-center pt-5 pb-5">
               <div className="spinner-grow text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
+            </div>
+            <div className="card-body">
+              <h5 className="card-title placeholder-glow">
+                <span className="placeholder col-6"></span>
+              </h5>
+              <p className="card-text placeholder-glow">
+                <span className="placeholder col-7"></span>
+                <span className="placeholder col-4"></span>
+                <span className="placeholder col-4"></span>
+                <span className="placeholder col-6"></span>
+                <span className="placeholder col-8"></span>
+              </p>
             </div>
           </div>
         </div>
@@ -64,4 +76,4 @@ class Example extends React.Component {
   }
 }
 
-export default Example;
+export default Result;
