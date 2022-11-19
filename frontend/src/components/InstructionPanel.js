@@ -1,25 +1,30 @@
 import React from 'react';
 import Instruction from './Instruction';
-import Serving from './Serving';
-import Switch from './Switch';
 
-class RecipePanel extends React.Component {
+class InstructionPanel extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render () {
     return (
-      <div id="recipepanel" className="col-12 pb-4">
+      <div id="instructionpanel" className="col-12 pb-4">
         <h5>Instructions:</h5>
         <ul className="list-group list-group-flush">
-          <Instruction />
-          <Instruction />
-          <Instruction />
-          <Instruction />
-          <Instruction />
-          <Instruction />
-          <Instruction />
+          {
+            this.props.values.map(function(instruction, idx){
+              const key = "instruction-" + idx;
+              return (
+                <Instruction 
+                  key={key}
+                  value={instruction} />
+              )
+            })
+          }
         </ul>
       </div>
     )
   }
 }
 
-export default RecipePanel;
+export default InstructionPanel;

@@ -1,18 +1,21 @@
 import React from 'react';
 
 class Ingredient extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render () {
+    let ingredient = `${this.props.name}`;
+    if (this.props.unit !== ""){
+      ingredient += ` (${this.props.quantity} ${this.props.unit})`
+    }
+    if (this.props.comment !== ""){
+      ingredient += `, ${this.props.comment}`;
+    }
+
     return (
-      <div id="ingredient-1" className="pt-3 ps-2 pe-2">
-        <div className="input-group">
-          <input type="text" className="form-control" defaultValue="egg"/>
-          <span className="input-group-text">2</span>
-          <span className="input-group-text">count</span>
-        </div>
-        <div className="input-group">
-          <input type="text" className="form-control" defaultValue="beaten or whatever"/>
-        </div>
-      </div>
+      <li className="list-group-item">{ingredient}</li>
     )
   }
 }

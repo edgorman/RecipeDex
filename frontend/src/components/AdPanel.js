@@ -4,7 +4,7 @@ import Ad from './Ad';
 class AdPanel extends React.Component {
   render () {
     return (
-      <div id="adpanel" className="pt-5">
+      <div id="adpanel" className="pt-2">
         <Ad />
       </div>
     )

@@ -1,11 +1,13 @@
 import React from 'react';
 
 class Instruction extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render () {
     return (
-      <li className="list-group-item" key="1">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-      </li>
+      <li className="list-group-item">{this.props.value}</li>
     )
   }
 }
