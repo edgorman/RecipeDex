@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min";
 import Navbar from './components/Navbar';
 import Recipe from './components/Recipe';
 import Footer from './components/Footer';
+import Introduction from './components/Introduction';
 
 
 class RecipeDex extends React.Component {
@@ -13,6 +14,7 @@ class RecipeDex extends React.Component {
     this.state = {
       url: "",
       time: 0,
+      image: "",
       title: "",
       metric: "default",
       servings: 1,
@@ -21,7 +23,9 @@ class RecipeDex extends React.Component {
     };
 
     this.handleUrlSubmit = this.handleUrlSubmit.bind(this);
+    this.handleUrlChange = this.handleUrlChange.bind(this);
     this.handleTimeChange = this.handleTimeChange.bind(this);
+    this.handleImageChange = this.handleImageChange.bind(this);
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleMetricChange = this.handleMetricChange.bind(this);
     this.handleServingChange = this.handleServingChange.bind(this);
@@ -30,6 +34,8 @@ class RecipeDex extends React.Component {
   }
 
   handleUrlSubmit(value) {
+    this.handleUrlChange(value);
+
     fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(value))
       .then((response) => response.json())
       .then((data) => {
@@ -38,6 +44,7 @@ class RecipeDex extends React.Component {
         this.handleMetricChange("default");
         this.handleTimeChange(recipe_data.time);
         this.handleTitleChange(recipe_data.name);
+        this.handleImageChange(recipe_data.image_url);
         this.handleServingChange(recipe_data.servings);
         this.handleIngredientChange(recipe_data.ingredients_list);
         this.handleInstructionsChange(recipe_data.instructions);
@@ -47,12 +54,20 @@ class RecipeDex extends React.Component {
       });
   }
 
+  handleUrlChange(value){
+    this.setState({url: value});
+  }
+
   handleTimeChange(value){
     this.setState({time: value});
   }
 
   handleTitleChange(value){
     this.setState({title: value});
+  }
+
+  handleImageChange(value){
+    this.setState({image: value});
   }
 
   handleMetricChange(value){
@@ -72,23 +87,39 @@ class RecipeDex extends React.Component {
   }
 
   render() {
-    return (
-      <React.StrictMode>
-        <Navbar
-          url={this.state.url}
-          onUrlSubmit={this.handleUrlSubmit} />
-        <Recipe 
-          time={this.state.time}
-          title={this.state.title}
-          metric={this.state.metric}
-          servings={this.state.servings}
-          ingredients={this.state.ingredients}
-          instructions={this.state.instructions}
-          onMetricChange={this.handleMetricChange}
-          onServingChange={this.handleServingChange} />
-        <Footer />
-      </React.StrictMode>
-    );
+    if (this.state.title !== "") {
+      return (
+        <React.StrictMode>
+          <Navbar
+            url={this.state.url}
+            onUrlSubmit={this.handleUrlSubmit} />
+          <Recipe 
+            url={this.state.url}
+            time={this.state.time}
+            image={this.state.image}
+            title={this.state.title}
+            metric={this.state.metric}
+            servings={this.state.servings}
+            ingredients={this.state.ingredients}
+            instructions={this.state.instructions}
+            onMetricChange={this.handleMetricChange}
+            onServingChange={this.handleServingChange} />
+          <Footer />
+        </React.StrictMode>
+      );
+    }
+    else {
+      return (
+        <React.StrictMode>
+          <Navbar
+            url={this.state.url}
+            onUrlSubmit={this.handleUrlSubmit} />
+          <Introduction 
+            onUrlSubmit={this.handleUrlSubmit} />
+          <Footer />
+        </React.StrictMode>
+      );
+    }
   }
 }
 

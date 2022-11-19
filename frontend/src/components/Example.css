@@ -1,0 +1,18 @@
+.example-recipe{
+    cursor: pointer;
+}
+
+.example-recipe img{
+    max-height: 200px;
+    object-fit: fill;
+}
+
+@media (max-width: 576px) {
+    .example-recipe img{
+        object-fit: cover;
+    }
+}
+
+.spinner-grow{
+    animation-duration: 1s !important;
+}

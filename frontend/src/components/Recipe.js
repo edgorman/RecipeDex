@@ -1,19 +1,26 @@
 import React from 'react';
-import AdPanel from './AdPanel';
 import IngredientPanel from './IngredientPanel';
 import InstructionPanel from './InstructionPanel';
 import Serving from './Serving';
 import Metric from './Metric';
+import './Recipe.css';
 
 class Recipe extends React.Component {
   constructor(props) {
     super(props);
+
+    console.log(props);
   }
   
   render () {
     return (
       <div className="container pt-4 pb-4">
-        <h2 className="border-bottom pb-4">{this.props.title}</h2>
+        <h2 className="d-flex justify-content-between border-bottom pb-4">
+          {this.props.title}
+          <a target="_blank" href={this.props.url}>
+            <img className="recipe-image" src={this.props.image} alt={this.props.image}/>
+          </a>
+        </h2>
         <div className="row pt-3">
           <div className="col-lg-5">
             <div className="row">
@@ -34,9 +41,9 @@ class Recipe extends React.Component {
                   value={this.props.metric}
                   onChange={this.props.onMetricChange} />
               </div>
+              <IngredientPanel 
+                values={this.props.ingredients} />
             </div>
-            <IngredientPanel 
-              values={this.props.ingredients} />
           </div>
           <div className="col-lg-7">
             <div className="row">
