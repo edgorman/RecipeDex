@@ -40,7 +40,7 @@ class Introduction extends React.Component {
                     <Result 
                       key={idx}
                       url={url} 
-                      onSubmit={this.props.onUrlSubmit} />
+                      onSubmit={this.props.onSearchSubmit} />
                   )
                 }, this)  // This is an amazing solution
               }

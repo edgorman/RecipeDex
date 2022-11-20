@@ -14,7 +14,7 @@ class Recipe extends React.Component {
 
   refreshPage(e) {
     e.preventDefault();
-    this.props.onUrlSubmit(this.props.url);
+    this.props.onSearchSubmit(this.props.url);
   }
   
   render () {

@@ -17,30 +17,36 @@ class RecipeDex extends React.Component {
       tags: [],
       image: "",
       title: "",
+      search: "",
       metric: "default",
+      results: [],
       servings: 1,
       ingredients: [],
-      instructions: []
+      instructions: [],
     };
 
-    this.handleUrlSubmit = this.handleUrlSubmit.bind(this);
+    this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
+
     this.handleUrlChange = this.handleUrlChange.bind(this);
     this.handleTagsChange = this.handleTagsChange.bind(this);
     this.handleTimeChange = this.handleTimeChange.bind(this);
     this.handleImageChange = this.handleImageChange.bind(this);
     this.handleTitleChange = this.handleTitleChange.bind(this);
+    this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleMetricChange = this.handleMetricChange.bind(this);
     this.handleServingChange = this.handleServingChange.bind(this);
     this.handleIngredientChange = this.handleIngredientChange.bind(this);
     this.handleInstructionsChange = this.handleInstructionsChange.bind(this);
   }
 
-  handleUrlSubmit(value) {
+  handleSearchSubmit(value) {
     this.handleUrlChange(value);
-    this.handleMetricChange("default");
+    this.handleTagsChange([]);
     this.handleTimeChange(0);
-    this.handleTitleChange("");
     this.handleImageChange("");
+    this.handleTitleChange("");
+    this.handleSearchChange(value);
+    this.handleMetricChange("default");
     this.handleServingChange(0);
     this.handleIngredientChange([]);
     this.handleInstructionsChange([]);
@@ -49,13 +55,15 @@ class RecipeDex extends React.Component {
       fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(value))
         .then((response) => response.json())
         .then((data) => {
+          if (!(value in data)) {
+            throw new Error("Could not parse URL '"+value+"'.");
+          }
           const recipe_data = data[value];
-
-          this.handleMetricChange("default");
           this.handleTagsChange(recipe_data.tags);
           this.handleTimeChange(recipe_data.time);
-          this.handleTitleChange(recipe_data.name);
           this.handleImageChange(recipe_data.image_url);
+          this.handleTitleChange(recipe_data.name);
+          this.handleMetricChange("default");
           this.handleServingChange(recipe_data.servings);
           this.handleIngredientChange(recipe_data.ingredients_list);
           this.handleInstructionsChange(recipe_data.instructions);
@@ -68,6 +76,10 @@ class RecipeDex extends React.Component {
 
   handleUrlChange(value){
     this.setState({url: value});
+  }
+
+  handleSearchChange(value){
+    this.setState({search: value});
   }
 
   handleTagsChange(value){
@@ -107,8 +119,9 @@ class RecipeDex extends React.Component {
       return (
         <React.StrictMode>
           <Navbar
-            url={this.state.url}
-            onUrlSubmit={this.handleUrlSubmit} />
+            value={this.state.search}
+            onSearchSubmit={this.handleSearchSubmit}
+            onSearchChange={this.handleSearchChange} />
           <Recipe 
             url={this.state.url}
             tags={this.state.tags}
@@ -119,7 +132,7 @@ class RecipeDex extends React.Component {
             servings={this.state.servings}
             ingredients={this.state.ingredients}
             instructions={this.state.instructions}
-            onUrlSubmit={this.handleUrlSubmit}
+            onSearchSubmit={this.handleSearchSubmit}
             onMetricChange={this.handleMetricChange}
             onServingChange={this.handleServingChange} />
           <Footer />
@@ -130,10 +143,11 @@ class RecipeDex extends React.Component {
       return (
         <React.StrictMode>
           <Navbar
-            url={this.state.url}
-            onUrlSubmit={this.handleUrlSubmit} />
+            value={this.state.search}
+            onSearchSubmit={this.handleSearchSubmit}
+            onSearchChange={this.handleSearchChange} />
           <Introduction 
-            onUrlSubmit={this.handleUrlSubmit} />
+            onSearchSubmit={this.handleSearchSubmit} />
           <Footer />
         </React.StrictMode>
       );
