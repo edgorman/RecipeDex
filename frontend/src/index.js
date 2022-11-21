@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import Recipe from './components/Recipe';
 import Footer from './components/Footer';
 import Introduction from './components/Introduction';
-import ResultPanel from './components/ResultPanel';
+import Search from './components/Search';
 
 
 class RecipeDex extends React.Component {
@@ -31,7 +31,6 @@ class RecipeDex extends React.Component {
 
     this.getRecipe = this.getRecipe.bind(this);
     this.getRecents = this.getRecents.bind(this);
-    this.getResults = this.getResults.bind(this);
     this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
     this.handleRecipeChange = this.handleRecipeChange.bind(this);
@@ -59,7 +58,7 @@ class RecipeDex extends React.Component {
   }
 
   getRecents(){
-    const limit = this.state.recents.length;
+    const limit = 6;
     
     // TODO: query backend endpoint and get recents
     //       this will likely have the recipe details autofilled
@@ -81,14 +80,30 @@ class RecipeDex extends React.Component {
     }, this);
   }
 
-  getResults(){
-    const limit = 12;
-    // TODO: query backend endpoint and get results
-  }
-
   handleSearchChange(value){
     this.setState({search: value});
-    // TODO: query database endpoint and update results
+    const limit = 12;
+
+    fetch('http://127.0.0.1:5000/search/?t=' + value.split(" ").join("&t="))
+      .then((response) => response.json())
+      .then((data) => {
+        this.handleRecipeChange({url: ""});
+        this.setState({results: []});
+
+        if (data.data.length > 0) {
+          
+          data.data.forEach(async function(result) {
+            const recipe = await this.getRecipe(result.url);
+            this.handleResultsChange({
+              [result.url]: recipe
+            })
+          }, this);
+
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
   }
 
   async handleSearchSubmit(value) {
@@ -108,18 +123,20 @@ class RecipeDex extends React.Component {
     // TODO: other checks this is a valid URL
     if (value.length > 0) {
       const result = await this.getRecipe(value);
-
-      this.handleRecipeChange({
-        url: value,
-        time: result.time,
-        tags: result.tags,
-        unit: "default",
-        image: result.image_url,
-        title: result.name,
-        serving: result.servings,
-        ingredients: result.ingredients_list,
-        instructions: result.instructions
-      });
+      
+      if (Object.keys(result).length > 0) {
+        this.handleRecipeChange({
+          url: value,
+          time: result.time,
+          tags: result.tags,
+          unit: "default",
+          image: result.image_url,
+          title: result.name,
+          serving: result.servings,
+          ingredients: result.ingredients_list,
+          instructions: result.instructions
+        });
+      }
     }
   }
 
@@ -165,7 +182,7 @@ class RecipeDex extends React.Component {
                   onRecipeChange={this.handleRecipeChange} />
     }
     else if (this.state.search !== ""){
-      content = <ResultPanel
+      content = <Search
                   value={this.state.results}
                   onSearchSubmit={this.handleSearchSubmit} />
     }

@@ -8,7 +8,7 @@ from pydantic import (
 # Define the models used
 def ResponseModel(data, message):
     return {
-        "data": [data],
+        "data": data,
         "code": 200,
         "message": message,
     }
