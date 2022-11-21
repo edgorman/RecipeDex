@@ -7,12 +7,12 @@ class IngredientPanel extends React.Component {
   }
 
   render () {
-    return (
-      <div id="ingredientpanel" className="row">
-        <div className="col-12">
+    if (this.props.value.length > 0) {
+      return (
+        <div id="ingredientpanel" className="col-12">
           <ul className="list-group list-group-flush">
             {
-              this.props.values.map(function(ingredient, idx){
+              this.props.value.map(function(ingredient, idx){
                 const key = "ingredient-" + idx;
                 return (
                   <Ingredient 
@@ -21,13 +21,27 @@ class IngredientPanel extends React.Component {
                     quantity={ingredient.quantity}
                     unit={ingredient.unit}
                     comment={ingredient.comment} />
-                )
+                );
               })
             }
           </ul>
         </div>
-      </div>
-    )
+      );
+    }
+    else {
+      return (
+        <p className="card-text placeholder-wave">
+          <span className="placeholder col-9"></span>
+          <span className="placeholder col-7"></span>
+          <span className="placeholder col-8"></span>
+          <span className="placeholder col-9"></span>
+          <span className="placeholder col-5"></span>
+          <span className="placeholder col-8"></span>
+          <span className="placeholder col-7"></span>
+          <span className="placeholder col-6"></span>
+        </p>
+      );
+    }
   }
 }
 

@@ -1,20 +1,9 @@
 import React from 'react';
-import Result from './Result';
+import ResultPanel from './ResultPanel';
 
 class Introduction extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      urls: [
-        "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps",
-        "https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/",
-        "https://www.theclevercarrot.com/2014/01/sourdough-bread-a-beginners-guide/",
-        "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps",
-        "https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/",
-        "https://www.theclevercarrot.com/2014/01/sourdough-bread-a-beginners-guide/",
-      ]
-    }
   }
   
   render () {
@@ -33,18 +22,9 @@ class Introduction extends React.Component {
               Below are several recipes you can click to see an example of the website in action:
             </p>
             <br/>
-            <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-              {
-                this.state.urls.map(function(url, idx){
-                  return (
-                    <Result 
-                      key={idx}
-                      url={url} 
-                      onSubmit={this.props.onSearchSubmit} />
-                  )
-                }, this)  // This is an amazing solution
-              }
-            </div>
+            <ResultPanel
+              value={this.props.value}
+              onSearchSubmit={this.props.onSearchSubmit} />
           </div>
         </div>
       </div>
