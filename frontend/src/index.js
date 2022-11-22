@@ -64,7 +64,7 @@ class RecipeDex extends React.Component {
     //       this will likely have the recipe details autofilled
     //       for now we will use `getRecipe` to populate the info
     this.state.recents = {
-      "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps": {},
+      "https://www.bbcgoodfood.com/recipes/easy-microwave-brownies": {},
       "https://www.bbcgoodfood.com/recipes/keto-pizza": {},
       "https://www.bbcgoodfood.com/recipes/sourdough-pizza": {},
       "https://www.bbcgoodfood.com/recipes/easy-garlic-mayonnaise": {},
@@ -107,7 +107,6 @@ class RecipeDex extends React.Component {
   }
 
   async handleSearchSubmit(value) {
-    this.handleSearchChange(value);
     this.handleRecipeChange({
       url: "",
       time: -1,
@@ -122,6 +121,7 @@ class RecipeDex extends React.Component {
     
     // TODO: other checks this is a valid URL
     if (value.length > 0) {
+      this.setState({search: value});
       const result = await this.getRecipe(value);
       
       if (Object.keys(result).length > 0) {
@@ -136,6 +136,9 @@ class RecipeDex extends React.Component {
           ingredients: result.ingredients_list,
           instructions: result.instructions
         });
+      }
+      else{
+        this.handleSearchChange(value);
       }
     }
   }
