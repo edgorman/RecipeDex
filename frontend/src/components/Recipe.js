@@ -176,11 +176,14 @@ class Time extends React.Component {
   }
 
   render() {
-    if (this.props.value !== -1){
+    if (this.props.value > 0){
+      const hours = Math.floor(this.props.value / 60);
+      const minutes = Math.round(60 * ((this.props.value / 60) % 1));
+
       return (
         <p>
-          {this.props.value} mins 
-          (~{Math.round(this.props.value / 6) / 10} hours)
+          {hours !== 0 ? <span>{hours} hours</span> : <span></span>}
+          {minutes !== 0 ? <span> {minutes} minutes</span> : <span></span>}
         </p>
       );
     }
