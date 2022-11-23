@@ -40,6 +40,7 @@ class App:
                     'instructions': recipe.instructions_list(),
                     'image_url': recipe.image(),
                     'nutrients': recipe.nutrients(),
+                    'unit': "default",
                     'tags': [],
                 }
 
@@ -82,8 +83,10 @@ class App:
 
                 # Convert to new unit system if set
                 if metric:
+                    recipe["unit"] = "metric"
                     ingredients_list = convert_to_system(ingredients_list, "mks")
                 if imperial:
+                    recipe["unit"] = "imperial"
                     ingredients_list = convert_to_system(ingredients_list, "imperial")
 
                 # Convert to new scale if set
