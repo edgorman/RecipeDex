@@ -40,7 +40,8 @@ from recipedex.app import App
                     "fatContent": "13 g",
                     "unsaturatedFatContent": "0 g"
                 },
-                "tags": []
+                "unit": "default",
+                "tags": [],
             }
         }
     ),
@@ -79,6 +80,7 @@ from recipedex.app import App
                     "sugarContent": "9 grams sugar", "fiberContent": "5 grams fiber",
                     "proteinContent": "33 grams protein", "sodiumContent": "0.5 milligram of sodium"
                 },
+                "unit": "default",
                 "tags": [],
             }
         }
@@ -136,6 +138,7 @@ from recipedex.app import App
                     "proteinContent": "19 grams protein",
                     "sodiumContent": "1.9 milligram of sodium"
                 },
+                "unit": "default",
                 "tags": [],
             }
         }
