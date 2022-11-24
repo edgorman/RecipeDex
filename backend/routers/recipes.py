@@ -30,11 +30,11 @@ async def get_all_recipes():
 
 
 @router.get("/{request:path}", response_description="Scrape a recipe for a given url")
-async def get_recipe_by_url(request: Request, unit: str | None = Query(default=None)):
+async def get_recipe_by_url(request: Request, unit: str | None = "default", serves: int | None = 0):
     urls = [request.url.path[9:]]
     args = Namespace(
         urls=urls,
-        serves=0,
+        serves=serves,
         metric=bool(unit == "metric"),
         imperial=bool(unit == "imperial"),
         log=logging.getLevelName(logger.getEffectiveLevel()),

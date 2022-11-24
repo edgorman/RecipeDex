@@ -14,7 +14,7 @@ LOG_LEVELS = list(log_levels.values())[:-1]
 # Parse input arguments
 parser = argparse.ArgumentParser(prog=__name__, description=__description__)
 parser.add_argument("urls", nargs="+", help="the urls to parse")
-parser.add_argument("--serves", dest="serves", default=-1, type=int, help="scales the recipe to serve")
+parser.add_argument("--serves", dest="serves", default=0, type=int, help="scales the recipe to serve")
 parser.add_argument("--metric", dest="metric", action="store_true", help="force units to be metric")
 parser.add_argument("--imperial", dest="imperial", action="store_true", help="force units to be imperial")
 parser.add_argument("--log", dest="log", default="WARNING", choices=LOG_LEVELS, help="the log level")

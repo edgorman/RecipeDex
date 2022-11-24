@@ -20,18 +20,18 @@ These will last approximately 2 weeks but may shift on my availability and prior
 
 ### Sprint 3
 
-* Integrate MongoDB with backend
-* Develop search functionality to API
-* Develop views for search system
+* ~~Integrate MongoDB with backend~~
+* ~~Develop search functionality to API~~
+* ~~Develop views for search system~~
 
 ### Sprint 4
 
-* Make the frontend look good
+* Add functionality to serving/units buttons
+* Add rate limiting to endpoints
 * Possibly include ads on the website
-* Develop additional features for search
 
 ### Sprint 5
 
+* Improve testing in all components
 * Enhance CI/CD via Github Actions
 * Deploy the application on a cloud platform
-  * This will likely be difficult so no other tasks

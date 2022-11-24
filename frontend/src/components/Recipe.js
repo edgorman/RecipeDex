@@ -10,11 +10,18 @@ class Recipe extends React.Component {
     super(props);
 
     this.handleRefresh = this.handleRefresh.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
   }
 
   handleRefresh(e) {
     e.preventDefault();
-    this.props.onSearchSubmit(this.props.value.url);
+    this.props.onSearchSubmit(this.props.value.url, this.props.unit, this.props.serves);
+  }
+
+  handleUpdate(unit=null, serving=null){
+    unit = unit == null ? this.props.value.unit : unit
+    serving = serving == null ? this.props.value.serving : serving
+    this.props.onSearchSubmit(this.props.value.url, unit, serving);
   }
   
   render () {
@@ -39,13 +46,13 @@ class Recipe extends React.Component {
                 <h5>Servings</h5>
                 <Serving 
                   value={this.props.value.serving}
-                  onChange={this.props.onRecipeChange} />
+                  onUpdate={this.handleUpdate} />
               </div>
               <div className="col-sm-6 pb-4 text-center">
                 <h5>Units</h5>
                 <Units
                   value={this.props.value.unit}
-                  onChange={this.props.onRecipeChange} />
+                  onUpdate={this.handleUpdate} />
               </div>
               <div className="col-12 text-center">
                 <h5>Time</h5>
@@ -143,13 +150,13 @@ class Units extends React.Component {
       return (
         <div>
           <Unit 
-            name="Metric"
+            name="metric"
             value={this.props.value}
-            onChange={this.props.onChange} />
+            onUpdate={this.props.onUpdate} />
           <Unit 
-            name="Imperial"
-            value={this.props.metric}
-            onChange={this.props.onChange} />
+            name="imperial"
+            value={this.props.value}
+            onUpdate={this.props.onUpdate} />
         </div>
       );
     }
@@ -169,11 +176,14 @@ class Time extends React.Component {
   }
 
   render() {
-    if (this.props.value !== -1){
+    if (this.props.value > 0){
+      const hours = Math.floor(this.props.value / 60);
+      const minutes = Math.round(60 * ((this.props.value / 60) % 1));
+
       return (
         <p>
-          {this.props.value} mins 
-          (~{Math.round(this.props.value / 6) / 10} hours)
+          {hours !== 0 ? <span>{hours} hours</span> : <span></span>}
+          {minutes !== 0 ? <span> {minutes} minutes</span> : <span></span>}
         </p>
       );
     }

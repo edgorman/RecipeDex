@@ -13,7 +13,7 @@ class Serving extends React.Component {
 
   updateValue(value) {
     if (this.props.value !== value && 1 <= value && value <= 10) {
-      this.props.onChange(value);
+      this.props.onUpdate(null, value);
     }
   }
 

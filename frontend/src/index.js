@@ -40,15 +40,23 @@ class RecipeDex extends React.Component {
     this.getRecents();
   }
 
-  getRecipe(url){
+  getRecipe(url, unit=null, serving=null){
     return new Promise(resolve => {
-      fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(url))
+      let params = "";
+      params += unit !== null && serving != null ? "?" : "";
+      params += unit !== null ? "unit=" + encodeURIComponent(unit) : "";
+      params += unit !== null && serving != null ? "&" : "";
+      params += serving !== null ? "serves=" + encodeURIComponent(serving) : "";
+
+      fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(url) + params)
         .then((response) => response.json())
         .then((data) => {
-          if (!(url in data)) {
-            throw new Error("Could not parse URL '"+url+"'.");
+          if (url in data) {
+            resolve(data[url]);
           }
-          resolve(data[url]);
+          else {
+            console.log("Could not parse URL '"+url+"'.");
+          }
         })
         .catch((err) => {
           console.log(err.message);
@@ -106,30 +114,32 @@ class RecipeDex extends React.Component {
       });
   }
 
-  async handleSearchSubmit(value) {
-    this.handleRecipeChange({
-      url: "",
-      time: -1,
-      tags: [],
-      unit: "",
-      image: "",
-      title: "",
-      serving: -1,
-      ingredients: [],
-      instructions: []
-    });
+  async handleSearchSubmit(value, unit=null, serving=null) {
+    if (value !== this.state.recipe.url) {
+      this.handleRecipeChange({
+        url: "",
+        time: -1,
+        tags: [],
+        unit: "",
+        image: "",
+        title: "",
+        serving: -1,
+        ingredients: [],
+        instructions: []
+      });
+    }
     
     // TODO: other checks this is a valid URL
     if (value.length > 0) {
       this.setState({search: value});
-      const result = await this.getRecipe(value);
+      const result = await this.getRecipe(value, unit, serving);
       
       if (Object.keys(result).length > 0) {
         this.handleRecipeChange({
           url: value,
           time: result.time,
           tags: result.tags,
-          unit: "default",
+          unit: result.unit,
           image: result.image_url,
           title: result.name,
           serving: result.servings,
@@ -181,8 +191,7 @@ class RecipeDex extends React.Component {
     if (this.state.recipe.url !== "") {
       content = <Recipe 
                   value={this.state.recipe}
-                  onSearchSubmit={this.handleSearchSubmit}
-                  onRecipeChange={this.handleRecipeChange} />
+                  onSearchSubmit={this.handleSearchSubmit} />
     }
     else if (this.state.search !== ""){
       content = <Search
