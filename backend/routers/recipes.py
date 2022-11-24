@@ -1,10 +1,9 @@
 import json
 import asyncio
 import logging
-from argparse import Namespace
-from fastapi import Query
 from fastapi import Request
 from fastapi import APIRouter
+from argparse import Namespace
 
 from recipedex import App
 from backend.data.model import ResponseModel
