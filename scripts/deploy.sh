@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 
+# Update the version commit id
+sed -i "s/'.*'/'$(git log -1 --pretty=format:%h)'/g" frontend/src/components/Version.js
+
+# Spin up backend and frontend services in two tmux sessions
 tmux kill-server
 tmux new-session -d bash
 tmux split-window -h bash

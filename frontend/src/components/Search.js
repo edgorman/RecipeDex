@@ -16,6 +16,16 @@ class Search extends React.Component {
             <ResultPanel
               value={this.props.value}
               onSearchSubmit={this.props.onSearchSubmit} />
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5255512781190546" crossOrigin="anonymous"></script>
+            <ins className="adsbygoogle"
+              style={{display:"block"}}
+              data-ad-client="ca-pub-5255512781190546"
+              data-ad-slot="3758051723"
+              data-ad-format="auto"
+              data-full-width-responsive="true"/>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
           </div>
         </div>
       </div>

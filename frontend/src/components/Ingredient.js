@@ -7,8 +7,11 @@ class Ingredient extends React.Component {
 
   render () {
     let ingredient = `${this.props.name}`;
+    let quantity = this.props.quantity;
+    quantity = quantity.endsWith(".0") ? quantity.substring(0, quantity.length - 2) : quantity;
+
     if (this.props.unit !== ""){
-      ingredient += ` (${this.props.quantity} ${this.props.unit})`
+      ingredient += ` (${quantity} ${this.props.unit})`
     }
     if (this.props.comment !== ""){
       ingredient += `, ${this.props.comment}`;

@@ -7,21 +7,32 @@ class ResultPanel extends React.Component {
   }
 
   render () {
-    return (
-      <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-        {
-          Object.keys(this.props.value).map(function(key){
-            return (
-              <Result 
-                key={key}
-                url={key}
-                value={this.props.value[key]}
-                onSubmit={this.props.onSearchSubmit} />
-            )
-          }, this)  // This is an amazing solution
-        }
-      </div>
-    )
+    if (Object.keys(this.props.value).length > 0) {
+      return (
+        <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+          {
+            Object.keys(this.props.value).map(function(key){
+              return (
+                <Result 
+                  key={key}
+                  url={key}
+                  value={this.props.value[key]}
+                  onSubmit={this.props.onSearchSubmit} />
+              )
+            }, this)  // This is an amazing solution
+          }
+        </div>
+      )
+    }
+    else{
+      return (
+        <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+          <p>
+            0 results loaded.
+          </p>
+        </div>
+      )
+    }
   }
 }
 
