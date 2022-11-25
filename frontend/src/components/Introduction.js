@@ -22,9 +22,22 @@ class Introduction extends React.Component {
               Below are several recipes you can click to see an example of the website in action:
             </p>
             <br/>
+            <h2>Latest searches:</h2>
+            <br/>
             <ResultPanel
               value={this.props.value}
               onSearchSubmit={this.props.onSearchSubmit} />
+            <br/>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5255512781190546" crossOrigin="anonymous"></script>
+            <ins className="adsbygoogle"
+              style={{display:"block"}}
+              data-ad-client="ca-pub-5255512781190546"
+              data-ad-slot="3758051723"
+              data-ad-format="auto"
+              data-full-width-responsive="true"/>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
           </div>
         </div>
       </div>

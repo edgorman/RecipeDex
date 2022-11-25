@@ -40,7 +40,7 @@ class Serving extends React.Component {
       return (
         <form id="serving" className="input-group w-auto justify-content-center align-items-center" onSubmit={this.onSubmit}>
           <input type="button" value="-" onClick={this.decreaseValue} className="button-minus rounded-circle icon-shape icon-sm mx-1" data-field="quantity"/>
-          <input type="number" step="1" max="10" onBlur={this.onChange} onChange={this.onChange} value={this.props.value} name="quantity" className="quantity-field border-0 text-center w-25"/>
+          <input type="number" step="1" max="10" onBlur={this.onChange} onChange={this.onChange} value={this.props.value} name="quantity" className="quantity-field border-0 text-center w-50"/>
           <input type="button" value="+" onClick={this.increaseValue} className="button-plus rounded-circle icon-shape icon-sm " data-field="quantity"/>
         </form>
       );

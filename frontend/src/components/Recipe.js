@@ -15,6 +15,7 @@ class Recipe extends React.Component {
 
   handleRefresh(e) {
     e.preventDefault();
+    this.props.onSearchSubmit("");
     this.props.onSearchSubmit(this.props.value.url, this.props.unit, this.props.serves);
   }
 
@@ -42,22 +43,27 @@ class Recipe extends React.Component {
         <div className="row pt-4">
           <div className="col-lg-5">
             <div className="row">
-              <div className="col-sm-6 pb-4 text-center">
+              <div className="col-6 pb-4 text-center">
+                <h5>Time</h5>
+                <Time
+                  value={this.props.value.time} />
+              </div>
+              <div className="col-6 pb-4 text-center">
                 <h5>Servings</h5>
                 <Serving 
                   value={this.props.value.serving}
                   onUpdate={this.handleUpdate} />
               </div>
-              <div className="col-sm-6 pb-4 text-center">
-                <h5>Units</h5>
+              <div className="col-12 pb-4 text-center">
+                <h5>
+                  Units
+                  <small className="fs-6 ps-2">
+                    <i title="Unit conversions may struggle to find equivalents" className="bi bi-question-circle"></i>
+                  </small>
+                </h5>
                 <Units
                   value={this.props.value.unit}
                   onUpdate={this.handleUpdate} />
-              </div>
-              <div className="col-12 text-center">
-                <h5>Time</h5>
-                <Time
-                  value={this.props.value.time} />
               </div>
               <div className="col-12 pb-4">
                 <h5>Ingredients</h5>
@@ -75,6 +81,16 @@ class Recipe extends React.Component {
             <h5>Instructions:</h5>
             <InstructionPanel 
               value={this.props.value.instructions} />
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5255512781190546" crossOrigin="anonymous"></script>
+            <ins className="adsbygoogle"
+              style={{display:"block",textAlign:"center"}}
+              data-ad-layout="in-article"
+              data-ad-format="fluid"
+              data-ad-client="ca-pub-5255512781190546"
+              data-ad-slot="4384737681"/>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
           </div>
         </div>
       </div>
@@ -109,13 +125,13 @@ class TitleButtons extends React.Component {
   render() {
     if (this.props.url !== ""){
       return (
-        <div style={{maxHeight:"50px"}} className="d-flex justify-content-between align-items-center">
-          <a className="ms-4" target="_blank" href={this.props.url}>
+        <div style={{maxHeight: "50px"}} className="d-flex justify-content-between align-items-center">
+          <a style={{marginTop: "-5px"}} className="ms-4" target="_blank" href={this.props.url}>
             <img className="recipe-image" src={this.props.image} alt={this.props.image} title="Open original recipe in new tab"/>
           </a>
-          <button type="button" className="btn btn-secondary btn-sm ms-2 fs-5" disabled title="Report an error with this recipe">
+          {/* <button type="button" className="btn btn-secondary btn-sm ms-2 fs-5" disabled title="Report an error with this recipe">
             <i className="bi bi-exclamation-lg"></i>
-          </button>
+          </button> */}
           <button type="button" className="btn btn-primary btn-sm ms-2 fs-5" onClick={this.props.onRefresh} title="Refresh the values on this recipe">
             <i className="bi bi-arrow-clockwise"></i>
           </button>
@@ -181,7 +197,7 @@ class Time extends React.Component {
       const minutes = Math.round(60 * ((this.props.value / 60) % 1));
 
       return (
-        <p>
+        <p className="mb-0 pt-1">
           {hours !== 0 ? <span>{hours} hours</span> : <span></span>}
           {minutes !== 0 ? <span> {minutes} minutes</span> : <span></span>}
         </p>
