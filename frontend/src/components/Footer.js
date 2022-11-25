@@ -1,13 +1,17 @@
 import React from 'react';
+import version from './Version.js'
 
 class Footer extends React.Component {
+  
   render () {
+    const link = "https://github.com/edgorman/RecipeDex/commit/" + version;
+
     return (
       <div className="container pb-5">
         <br/>
         <small>RecipeDex © {new Date().getFullYear()}</small>
         <br/>
-        <a style={{fontSize:"12px"}} href="https://github.com/edgorman/RecipeDex/commit/76ed6a7">Last commit 76ed6a7 by edgorman</a>
+        <a target="_blank" style={{fontSize:"12px"}} href={link}>v.{version}</a>
       </div>
     )
   }

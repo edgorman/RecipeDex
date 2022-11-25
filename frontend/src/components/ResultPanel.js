@@ -28,7 +28,7 @@ class ResultPanel extends React.Component {
       return (
         <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
           <p>
-            No results, try entering a URL in the search bar and clicking search!
+            0 results loaded.
           </p>
         </div>
       )
