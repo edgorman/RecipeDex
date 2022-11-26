@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import pymongo
+import itertools
 import motor.motor_asyncio
 from pylru import lrucache
 from bson.objectid import ObjectId
@@ -28,10 +29,14 @@ async def check_cache(url: str) -> dict:
     else:
         return None
 
+
+async def recent_cache(limit: int = 6) -> dict:
+    return {key: cache[key] for key in list(cache.keys())[:limit]}
+
+
 # Functions for recipe collection
 recipe_collection = database.get_collection("recipe_collection")
 recipe_collection.create_index([("url", pymongo.DESCENDING)])
-
 
 async def get_recipe(query: dict = {}) -> dict:
     try:
@@ -54,6 +59,7 @@ async def add_recipe(url: str, recipe: dict):
 
         recipe_id = (await get_recipe({"url": url}))["id"]
         cache[url] = recipe
+        print(len(list(cache.keys())))
     except Exception as e:
         logger.error(f"Could not add recipe '{url}': {str(e)}.")
         return
@@ -93,7 +99,6 @@ async def clear_recipes():
 # Functions for tags collection
 tag_collection = database.get_collection("tag_collection")
 tag_collection.create_index([("tag", pymongo.DESCENDING)])
-
 
 async def get_tag(query: dict = {}) -> dict:
     try:

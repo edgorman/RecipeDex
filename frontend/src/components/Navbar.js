@@ -11,6 +11,7 @@ class Navbar extends React.Component {
     e.preventDefault();
     this.props.onSearchSubmit("");
     this.props.onSearchChange("");
+    this.props.onRefreshRecents();
   }
 
   render () {

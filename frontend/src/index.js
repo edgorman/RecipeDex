@@ -67,25 +67,15 @@ class RecipeDex extends React.Component {
 
   getRecents(){
     const limit = 6;
-    
-    // TODO: query backend endpoint and get recents
-    //       this will likely have the recipe details autofilled
-    //       for now we will use `getRecipe` to populate the info
-    this.state.recents = {
-      "https://www.bbcgoodfood.com/recipes/easy-microwave-brownies": {},
-      "https://www.bbcgoodfood.com/recipes/keto-pizza": {},
-      "https://www.bbcgoodfood.com/recipes/sourdough-pizza": {},
-      "https://www.bbcgoodfood.com/recipes/easy-garlic-mayonnaise": {},
-      "https://www.bbcgoodfood.com/recipes/easy-vegetarian-chilli": {},
-      "https://www.bbcgoodfood.com/recipes/easy-baba-ganoush": {},
-    }
 
-    Object.keys(this.state.recents).forEach(async function(url) {
-      const recipe = await this.getRecipe(url);
-      this.handleRecentsChange({
-        [url]: recipe
+    fetch('http://127.0.0.1:5000/recipes/recent?limit=' + limit)
+      .then((response) => response.json())
+      .then((data) => {
+        this.handleRecentsChange(data.data);
       })
-    }, this);
+      .catch((err) => {
+        console.log(err.message);
+      });
   }
 
   handleSearchChange(value){
@@ -210,7 +200,8 @@ class RecipeDex extends React.Component {
         <Navbar
           value={this.state.search}
           onSearchSubmit={this.handleSearchSubmit}
-          onSearchChange={this.handleSearchChange} />
+          onSearchChange={this.handleSearchChange} 
+          onRefreshRecents={this.getRecents} />
         {
           content
         }

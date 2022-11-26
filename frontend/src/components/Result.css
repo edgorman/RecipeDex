@@ -4,13 +4,7 @@
 
 .example-recipe img{
     max-height: 200px;
-    object-fit: contain;
-}
-
-@media (max-width: 576px) {
-    .example-recipe img{
-        object-fit: cover;
-    }
+    object-fit: cover;
 }
 
 .spinner-grow{
