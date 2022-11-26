@@ -31,7 +31,7 @@ async def check_cache(url: str) -> dict:
 
 
 async def recent_cache(limit: int = 6) -> dict:
-    return {key: cache[key] for key in list(cache.keys())[:limit]}
+    return {key: cache[key] for key in list(cache.keys())[:limit][::-1]}
 
 
 # Functions for recipe collection
@@ -59,7 +59,6 @@ async def add_recipe(url: str, recipe: dict):
 
         recipe_id = (await get_recipe({"url": url}))["id"]
         cache[url] = recipe
-        print(len(list(cache.keys())))
     except Exception as e:
         logger.error(f"Could not add recipe '{url}': {str(e)}.")
         return

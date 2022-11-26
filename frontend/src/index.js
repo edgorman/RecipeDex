@@ -18,7 +18,7 @@ class RecipeDex extends React.Component {
         url: "",
         time: -1,
         tags: [],
-        unit: "",
+        unit: "default",
         image: "",
         title: "",
         serving: -1,
@@ -105,12 +105,14 @@ class RecipeDex extends React.Component {
   }
 
   async handleSearchSubmit(value, unit=null, serving=null) {
+    console.log(value, unit, serving);
+
     if (value !== this.state.recipe.url) {
       this.handleRecipeChange({
         url: "",
         time: -1,
         tags: [],
-        unit: "",
+        unit: "default",
         image: "",
         title: "",
         serving: -1,

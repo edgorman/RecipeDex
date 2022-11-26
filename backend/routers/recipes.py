@@ -60,7 +60,13 @@ async def get_recipe_by_url(request: Request, unit: str | None = "default", serv
         resp = json.loads(App.main(args))
         await asyncio.gather(*[add_recipe(u, r) for u, r in resp.items()])
     else:
-        # TODO: check serving and unit matches cache, 
-        #       if not call app function manually
-        resp = {url: cache_resp}
+        if unit == cache_resp["unit"] and (serves == 0 or serves == cache_resp["servings"]):
+            resp =  {url: cache_resp}
+        else:
+            resp = App.extract_ingredients(
+                {url: cache_resp},
+                serves=serves,
+                metric=bool(unit == "metric"),
+                imperial=bool(unit == "imperial")
+            )
     return resp
