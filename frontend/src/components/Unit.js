@@ -20,8 +20,7 @@ class Unit extends React.Component {
   render () {
     const checked = this.props.name === this.props.value;
     const name = this.props.name.charAt(0).toUpperCase() + this.props.name.slice(1);
-    console.log(this.props.name + "-" + this.props.value);
-    
+
     return (
       <div id="unit" className="form-check form-switch d-flex w-auto justify-content-center align-items-center">
         <input className="form-check-input" type="checkbox" id={name} onChange={this.handleChange} checked={checked}/>

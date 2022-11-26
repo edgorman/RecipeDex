@@ -1,4 +1,5 @@
 import json
+import copy
 import asyncio
 import logging
 from fastapi import Request
@@ -60,11 +61,11 @@ async def get_recipe_by_url(request: Request, unit: str | None = "default", serv
         resp = json.loads(App.main(args))
         await asyncio.gather(*[add_recipe(u, r) for u, r in resp.items()])
     else:
-        if unit == cache_resp["unit"] and (serves == 0 or serves == cache_resp["servings"]):
+        if unit == cache_resp["unit"] and serves == cache_resp["servings"]:
             resp =  {url: cache_resp}
         else:
             resp = App.extract_ingredients(
-                {url: cache_resp},
+                {url: copy.deepcopy(cache_resp)},
                 serves=serves,
                 metric=bool(unit == "metric"),
                 imperial=bool(unit == "imperial")

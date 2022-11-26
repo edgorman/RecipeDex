@@ -7,12 +7,14 @@ import Recipe from './components/Recipe';
 import Footer from './components/Footer';
 import Introduction from './components/Introduction';
 import Search from './components/Search';
+import Error from './components/Error';
 
 
 class RecipeDex extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      errors: [],
       search: "",
       recipe: {
         url: "",
@@ -54,8 +56,11 @@ class RecipeDex extends React.Component {
           if (url in data) {
             resolve(data[url]);
           }
+          else if ("detail" in data){
+            this.handleErrorSubmit("You have reached the limit for requests, please wait for one minute before continuing.");
+          }
           else {
-            console.log("Could not parse URL '"+url+"'.");
+            this.handleErrorSubmit("Could not scrape a recipe from the URL: '" + url + "'");
           }
         })
         .catch((err) => {
@@ -76,6 +81,15 @@ class RecipeDex extends React.Component {
       .catch((err) => {
         console.log(err.message);
       });
+  }
+
+  handleErrorSubmit(value){
+    this.setState(prevState => ({
+      errors: [
+        ...prevState.errors,
+        value
+      ]
+    }));
   }
 
   handleSearchChange(value){
@@ -105,8 +119,6 @@ class RecipeDex extends React.Component {
   }
 
   async handleSearchSubmit(value, unit=null, serving=null) {
-    console.log(value, unit, serving);
-
     if (value !== this.state.recipe.url) {
       this.handleRecipeChange({
         url: "",
@@ -208,6 +220,19 @@ class RecipeDex extends React.Component {
           content
         }
         <Footer />
+        <div className="toast-container position-fixed top-0 end-0 p-3" style={{zIndex: "11"}}>
+          {
+            this.state.errors.map(function(error, idx){
+              const key = "error-" + idx;
+              return (
+                <Error 
+                  key={key}
+                  id={key}
+                  value={error} />
+              )
+            })
+          }
+        </div>
       </React.StrictMode>
     );
   }
