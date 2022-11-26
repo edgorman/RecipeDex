@@ -14,5 +14,6 @@ setup(
         "slowapi",
         "uvicorn",
         "motor",
+        "pylru",
     ]
 )

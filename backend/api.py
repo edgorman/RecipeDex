@@ -15,7 +15,6 @@ from backend.routers.recipes import router as recipes_router
 
 
 logger = logging.getLogger("backend.api")
-# limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
 
 # Set up FastAPI service
 api = FastAPI()

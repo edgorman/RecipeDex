@@ -1,5 +1,4 @@
 import logging
-from slowapi import Limiter
 from fastapi import Request
 from fastapi import APIRouter
 from bson.objectid import ObjectId
