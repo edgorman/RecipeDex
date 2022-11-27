@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import pymongo
-import itertools
 import motor.motor_asyncio
 from pylru import lrucache
 from bson.objectid import ObjectId
@@ -13,6 +12,8 @@ from backend.data.model import TagSchema
 logger = logging.getLogger("backend.api.database.database")
 
 # Asynchronous function template
+
+
 async def call_function(func) -> asyncio.coroutine:
     await func()
 
@@ -22,6 +23,7 @@ database = client.recipedex
 
 # Set up internal LRU cache
 cache = lrucache(64)
+
 
 async def check_cache(url: str) -> dict:
     if url in cache:
@@ -37,6 +39,7 @@ async def recent_cache(limit: int = 6) -> dict:
 # Functions for recipe collection
 recipe_collection = database.get_collection("recipe_collection")
 recipe_collection.create_index([("url", pymongo.DESCENDING)])
+
 
 async def get_recipe(query: dict = {}) -> dict:
     try:
@@ -98,6 +101,7 @@ async def clear_recipes():
 # Functions for tags collection
 tag_collection = database.get_collection("tag_collection")
 tag_collection.create_index([("tag", pymongo.DESCENDING)])
+
 
 async def get_tag(query: dict = {}) -> dict:
     try:

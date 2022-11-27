@@ -1,7 +1,5 @@
 import logging
 from fastapi import FastAPI
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 

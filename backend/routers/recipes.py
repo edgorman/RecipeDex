@@ -62,7 +62,7 @@ async def get_recipe_by_url(request: Request, unit: str | None = "default", serv
         await asyncio.gather(*[add_recipe(u, r) for u, r in resp.items()])
     else:
         if unit == cache_resp["unit"] and serves == cache_resp["servings"]:
-            resp =  {url: cache_resp}
+            resp = {url: cache_resp}
         else:
             resp = App.extract_ingredients(
                 {url: copy.deepcopy(cache_resp)},

@@ -3,7 +3,6 @@ from fastapi import Query
 from fastapi import Request
 from fastapi import APIRouter
 from bson.objectid import ObjectId
-from slowapi.util import get_remote_address
 
 from backend import limiter
 from backend.data.model import ResponseModel
