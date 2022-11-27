@@ -28,7 +28,7 @@ class Recipe extends React.Component {
   render () {
     return (
       <div className="container pt-4 pb-4">
-        <h2 className="d-flex justify-content-between border-bottom pb-3">
+        <h2 className="d-flex justify-content-between align-items-center border-bottom pb-3">
           {
             <Title 
               value={this.props.value.title} />
@@ -43,12 +43,12 @@ class Recipe extends React.Component {
         <div className="row pt-4">
           <div className="col-lg-5">
             <div className="row">
-              <div className="col-6 pb-4 text-center">
+              <div className="col-5 col-sm-6 pb-4 text-center">
                 <h5>Time</h5>
                 <Time
                   value={this.props.value.time} />
               </div>
-              <div className="col-6 pb-4 text-center">
+              <div className="col-7 col-sm-6 pb-4 text-center">
                 <h5>Servings</h5>
                 <Serving 
                   value={this.props.value.serving}
@@ -126,7 +126,7 @@ class TitleButtons extends React.Component {
     if (this.props.url !== ""){
       return (
         <div style={{maxHeight: "50px"}} className="d-flex justify-content-between align-items-center">
-          <a style={{marginTop: "-5px"}} className="ms-4" target="_blank" href={this.props.url}>
+          <a className="ms-4" target="_blank" href={this.props.url}>
             <img className="recipe-image" src={this.props.image} alt={this.props.image} title="Open original recipe in new tab"/>
           </a>
           {/* <button type="button" className="btn btn-secondary btn-sm ms-2 fs-5" disabled title="Report an error with this recipe">

@@ -76,6 +76,7 @@ class RecipeDex extends React.Component {
     fetch('http://127.0.0.1:5000/recipes/recent?limit=' + limit)
       .then((response) => response.json())
       .then((data) => {
+        this.setState({recents: []});
         this.handleRecentsChange(data.data);
       })
       .catch((err) => {
@@ -96,21 +97,19 @@ class RecipeDex extends React.Component {
     this.setState({search: value});
     const limit = 12;
 
-    fetch('http://127.0.0.1:5000/search/?t=' + value.split(" ").join("&t="))
+    fetch('http://127.0.0.1:5000/search/?limit=' + limit + '&t=' + value.split(" ").join("&t="))
       .then((response) => response.json())
       .then((data) => {
         this.handleRecipeChange({url: ""});
         this.setState({results: []});
 
         if (data.data.length > 0) {
-          
           data.data.forEach(async function(result) {
             const recipe = await this.getRecipe(result.url);
             this.handleResultsChange({
               [result.url]: recipe
             })
           }, this);
-
         }
       })
       .catch((err) => {
