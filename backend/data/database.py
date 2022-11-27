@@ -2,6 +2,7 @@ import asyncio
 import logging
 import pymongo
 import motor.motor_asyncio
+from pylru import lrucache
 from bson.objectid import ObjectId
 
 from backend.data.model import RecipeSchema
@@ -10,15 +11,29 @@ from backend.data.model import TagSchema
 
 logger = logging.getLogger("backend.api.database.database")
 
+# Asynchronous function template
+
+
+async def call_function(func) -> asyncio.coroutine:
+    await func()
 
 # Set up MongoDB connection and assign collections
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://127.0.0.1:27017")
 database = client.recipedex
 
+# Set up internal LRU cache
+cache = lrucache(64)
 
-# Asynchronous function template
-async def call_function(func) -> asyncio.coroutine:
-    await func()
+
+async def check_cache(url: str) -> dict:
+    if url in cache:
+        return cache[url]
+    else:
+        return None
+
+
+async def recent_cache(limit: int = 6) -> dict:
+    return {key: cache[key] for key in list(cache.keys())[:limit][::-1]}
 
 
 # Functions for recipe collection
@@ -46,6 +61,7 @@ async def add_recipe(url: str, recipe: dict):
             })
 
         recipe_id = (await get_recipe({"url": url}))["id"]
+        cache[url] = recipe
     except Exception as e:
         logger.error(f"Could not add recipe '{url}': {str(e)}.")
         return

@@ -7,18 +7,20 @@ import Recipe from './components/Recipe';
 import Footer from './components/Footer';
 import Introduction from './components/Introduction';
 import Search from './components/Search';
+import Error from './components/Error';
 
 
 class RecipeDex extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      errors: [],
       search: "",
       recipe: {
         url: "",
         time: -1,
         tags: [],
-        unit: "",
+        unit: "default",
         image: "",
         title: "",
         serving: -1,
@@ -54,8 +56,11 @@ class RecipeDex extends React.Component {
           if (url in data) {
             resolve(data[url]);
           }
+          else if ("detail" in data){
+            this.handleErrorSubmit("You have reached the limit for requests, please wait for one minute before continuing.");
+          }
           else {
-            console.log("Could not parse URL '"+url+"'.");
+            this.handleErrorSubmit("Could not scrape a recipe from the URL: '" + url + "'");
           }
         })
         .catch((err) => {
@@ -67,46 +72,44 @@ class RecipeDex extends React.Component {
 
   getRecents(){
     const limit = 6;
-    
-    // TODO: query backend endpoint and get recents
-    //       this will likely have the recipe details autofilled
-    //       for now we will use `getRecipe` to populate the info
-    this.state.recents = {
-      "https://www.bbcgoodfood.com/recipes/easy-microwave-brownies": {},
-      "https://www.bbcgoodfood.com/recipes/keto-pizza": {},
-      "https://www.bbcgoodfood.com/recipes/sourdough-pizza": {},
-      "https://www.bbcgoodfood.com/recipes/easy-garlic-mayonnaise": {},
-      "https://www.bbcgoodfood.com/recipes/easy-vegetarian-chilli": {},
-      "https://www.bbcgoodfood.com/recipes/easy-baba-ganoush": {},
-    }
 
-    Object.keys(this.state.recents).forEach(async function(url) {
-      const recipe = await this.getRecipe(url);
-      this.handleRecentsChange({
-        [url]: recipe
+    fetch('http://127.0.0.1:5000/recipes/recent?limit=' + limit)
+      .then((response) => response.json())
+      .then((data) => {
+        this.setState({recents: []});
+        this.handleRecentsChange(data.data);
       })
-    }, this);
+      .catch((err) => {
+        console.log(err.message);
+      });
+  }
+
+  handleErrorSubmit(value){
+    this.setState(prevState => ({
+      errors: [
+        ...prevState.errors,
+        value
+      ]
+    }));
   }
 
   handleSearchChange(value){
     this.setState({search: value});
     const limit = 12;
 
-    fetch('http://127.0.0.1:5000/search/?t=' + value.split(" ").join("&t="))
+    fetch('http://127.0.0.1:5000/search/?limit=' + limit + '&t=' + value.split(" ").join("&t="))
       .then((response) => response.json())
       .then((data) => {
         this.handleRecipeChange({url: ""});
         this.setState({results: []});
 
         if (data.data.length > 0) {
-          
           data.data.forEach(async function(result) {
             const recipe = await this.getRecipe(result.url);
             this.handleResultsChange({
               [result.url]: recipe
             })
           }, this);
-
         }
       })
       .catch((err) => {
@@ -120,7 +123,7 @@ class RecipeDex extends React.Component {
         url: "",
         time: -1,
         tags: [],
-        unit: "",
+        unit: "default",
         image: "",
         title: "",
         serving: -1,
@@ -210,11 +213,25 @@ class RecipeDex extends React.Component {
         <Navbar
           value={this.state.search}
           onSearchSubmit={this.handleSearchSubmit}
-          onSearchChange={this.handleSearchChange} />
+          onSearchChange={this.handleSearchChange} 
+          onRefreshRecents={this.getRecents} />
         {
           content
         }
         <Footer />
+        <div className="toast-container position-fixed top-0 end-0 p-3" style={{zIndex: "11"}}>
+          {
+            this.state.errors.map(function(error, idx){
+              const key = "error-" + idx;
+              return (
+                <Error 
+                  key={key}
+                  id={key}
+                  value={error} />
+              )
+            })
+          }
+        </div>
       </React.StrictMode>
     );
   }

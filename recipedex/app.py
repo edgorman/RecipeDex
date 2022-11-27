@@ -85,9 +85,11 @@ class App:
                 if metric:
                     recipe["unit"] = "metric"
                     ingredients_list = convert_to_system(ingredients_list, "mks")
-                if imperial:
+                elif imperial:
                     recipe["unit"] = "imperial"
                     ingredients_list = convert_to_system(ingredients_list, "imperial")
+                else:
+                    recipe["unit"] = "default"
 
                 # Convert to new scale if set
                 if serves > 0:
