@@ -10,6 +10,9 @@ sudo apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev l
 # Fix for systems with nvidia gpus
 sudo sed -i 's/quiet splash/quiet splash nouveau.modeset=0/g' /etc/default/grub
 
+# Fix for swapspace being empty
+sudo apt install swapspace -y
+
 # Install python 3.10.*
 cd /tmp
 sudo wget https://www.python.org/ftp/python/3.10.6/Python-3.10.6.tgz

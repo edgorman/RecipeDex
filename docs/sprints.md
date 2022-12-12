@@ -26,12 +26,18 @@ These will last approximately 2 weeks but may shift on my availability and prior
 
 ### Sprint 4
 
-* Add functionality to serving/units buttons
-* Add rate limiting to endpoints
-* Possibly include ads on the website
+* ~~Add functionality to serving/units buttons~~
+* ~~Add rate limiting to endpoints~~
+* ~~Possibly include ads on the website~~
 
 ### Sprint 5
 
 * Improve testing in all components
 * Enhance CI/CD via Github Actions
 * Deploy the application on a cloud platform
+
+### Sprint 6
+
+* Add shopping list view for ingredients
+* Redesign frontend
+* Consider other ease of use features
