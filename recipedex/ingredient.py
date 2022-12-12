@@ -101,83 +101,78 @@ class Ingredient:
         # Final operations on class variables
         self.name = self.name.lower().capitalize()
         self.comment = self.comment.lower()
+    
+    def __eq__(self, other):
+        '''
+            Defines the equality operator for two ingredient objects
 
+            Paremters:
+                other: Other object
+            
+            Returns:
+                boolean: Whether other equals self
+        '''
+        
+        return isinstance(other, Ingredient) and self.name == other.name and self.unit == other.unit and \
+               self.quantity == other.quantity and self.comment == other.comment and self.optional == other.optional
+    
+    def to_unit(unit: str):
+        '''
+            Convert to the new unit, updating the quantity if necessary
 
-def convert_to_unit(ingredient: dict, new_unit: str) -> dict:
-    '''
-        Convert the ingredient to the new unit, updating the quantity if necessary
+            Parameters:
+                unit: name of the unit to convert to
 
-        Parameters:
-            ingredient: dictionary containing ingredient unit and quantity
-            new_unit: the new unit to change the ingredient to
+            Returns:
+                None
+        '''
 
-        Returns:
-            ingredient: new dictionary with updated unit and quantity
-    '''
-    # Parse current ingredient using Pint package
-    curr = ureg.Quantity(float(ingredient["quantity"]), ingredient["unit"])
+        # Parse current ingredient using Pint package
+        quantity = ureg.Quantity(float(self.quantity), self.unit)
 
-    # Check if new unit can convert the old unit
-    assert curr.check(new_unit), f"Cannot convert from '{str(curr.units)}' to '{new_unit}'."
-    curr = curr.to(new_unit)
+        # Assert new unit can convert from old unit
+        assert quantity.check(unit), f"Cannot convert from '{str(quantity.units)}' to '{unit}'."
+        quantity = quantity.to(unit)
 
-    # Update dictionary and return with conversion
-    ingredient.update({
-        "quantity": str(round(curr.magnitude, 2)),
-        "unit": str(curr.units)
-    })
-    return ingredient
+        # Update this object's variables
+        self.quantity = str(round(quantity.magnitude, 2))
+        self.unit = str(quantity.units)
+    
+    def to_system(system: str):
+        '''
+            Convert to the new unit system, updating the quantity if necessary
 
+            Parameters:
+                system: name of the unit system to convert to
 
-def convert_to_system(ingredients: list, system: str) -> list:
-    '''
-        Convert the list of ingredients to the new unit system, updating the quantity if necessary
+            Returns:
+                None
+        '''
 
-        Parameters:
-            ingredients: list containing ingredients with unit and quantity
-            system: the new unit system to change the ingredients to
+        # Set new default unit system using pint package
+        self.ureg.default_system = system
+        
+        # Convert this ingredient to the new system
+        quantity = ureg.Quantity(float(self.quantity), self.unit)
+        quantity = quantity.to_base_units().to_reduced_units()
 
-        Returns:
-            ingredients: new list with updated units and quantities
-    '''
-    # Set new default unit system using pint package
-    ureg.default_system = system
+        # Update this object's variables
+        self.quantity = str(round(quantity.magnitude, 2))
+        self.unit = str(quantity.units)
+    
+    def to_scale(scale: float):
+        '''
+            Adjust quantity to the new scale, updating the unit if necessary
 
-    for i in range(len(ingredients)):
-        try:
-            # Convert ingredient
-            curr = ureg.Quantity(float(ingredients[i]["quantity"]), ingredients[i]["unit"])
-            curr = curr.to_base_units().to_reduced_units()
+            Parameters:
+                scale: amount to scale the quantity by
 
-            # Update ingredient dictionary
-            ingredients[i].update({
-                "quantity": str(round(curr.magnitude, 2)),
-                "unit": str(curr.units)
-            })
-        except Exception as e:
-            logger.warning(f"Could not convert ingredient {ingredients[i]} to unit system {system}: {str(e)}")
+            Returns:
+                None
+        '''
 
-    return ingredients
+        # Scale this ingredient
+        quantity = str(float(self.quantity) * scale)
 
-
-def scale_to_amount(ingredients: list, scale: float) -> list:
-    '''
-        Scale the list of ingredients by a factor of 'scale', updating the quantity if necessary
-
-        Parameters:
-            ingredients: list containing ingredients with unit and quantity
-            scale: the amount to scale the quantities by
-
-        Returns:
-            ingredients: new list with updated units and quantities
-    '''
-    for i in range(len(ingredients)):
-        try:
-            # Update ingredient dictionary
-            ingredients[i].update({
-                "quantity": str(float(ingredients[i]["quantity"]) * scale)
-            })
-        except Exception as e:
-            logger.warning(f"Could not scale ingredient {ingredients[i]} by a factor of {scale}: {str(e)}")
-
-    return ingredients
+        # Update this object's variables
+        self.quantity = str(round(quantity.magnitude, 2))
