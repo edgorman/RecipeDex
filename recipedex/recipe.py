@@ -1,3 +1,4 @@
+import json
 import nltk
 import logging
 import regex as re
@@ -5,15 +6,16 @@ from recipe_scrapers import scrape_me as parse_recipe
 
 from recipedex.ingredient import Ingredient
 
+nltk.download("stopwords", quiet=True)
+
 
 logger = logging.getLogger("recipedex.recipe")
 
 
-class Recipe:
-    nltk.download("stopwords", quiet=True)
+class Recipe(dict):
 
     def __init__(self, url: str = None, host: str = None, name: str = None, time: int = 0, unit: str = "default",
-                 servings: int = 0, ingredient_strs: list = [], instructions_strs: list = [], image: str = None,
+                 servings: int = 0, ingredient_strs: list = [], instruction_strs: list = [], image: str = None,
                  nutrients: dict = {}):
         '''
             Initialise a Recipe object by parsing the URL or by the values passed
@@ -26,70 +28,43 @@ class Recipe:
                 unit: The measurement system used in recipe
                 servings: Number of people this recipe serves
                 ingredient_strs: List of ingredients strings from webpage
-                instructions_strs: List of instructions string from webpage
+                instruction_strs: List of instructions string from webpage
                 image: Link to an image of the recipe (optional)
                 nutrients: Dictionary of nutrient information (optional)
             
             Returns:
                 None
         '''
+        super(Recipe, self).__init__(
+            url=url, host=host, name=name, time=time, unit=unit, servings=servings, ingredient_strs=ingredient_strs,
+            instruction_strs=instruction_strs, image=image, nutrients=nutrients, ingredients_list=[], tags=[]
+        )
         
         # If a url is given, parse the recipe directly
         if url is not None:
-            self.url = url
+            self["url"] = url
 
             try:
                 # Parse recipe using recipe_scrapers module
-                data = parse_recipe(self.url)
+                data = parse_recipe(self["url"])
 
-                self.host = data.host()
-                self.name = data.title()
-                self.time = data.total_time()
-                self.unit = unit
-                self.servings = int(re.search(r"(\d+)", data.yields()).group(1))
-                self.ingredients_strs = data.ingredients()
-                self.instructions_strs = data.instructions_list()
-                self.image = data.image()
-                self.nutrients = data.nutrients()
+                self["host"] = data.host()
+                self["name"] = data.title()
+                self["time"] = data.total_time()
+                self["unit"] = unit
+                self["servings"] = int(re.search(r"(\d+)", data.yields()).group(1))
+                self["ingredient_strs"] = data.ingredients()
+                self["instruction_strs"] = data.instructions_list()
+                self["image"] = data.image()
+                self["nutrients"] = data.nutrients()
             except Exception as e:
-                logger.warning(f"Failed extracting recipe '{self.url}': {str(e)}")
-
-        # Else use the init variables passsed
-        else:
-            self.url = url
-            self.host = host
-            self.name = name
-            self.time = time
-            self.unit = unit
-            self.servings = servings
-            self.ingredients_strs = ingredient_strs
-            self.instructions_strs = instructions_strs
-            self.image = image
-            self.nutrients = nutrients
+                raise Exception(f"Failed extracting recipe '{self['url']}': {str(e)}")
     
         # Extract ingredients to store as objects
-        self.ingredient_list = self.extract_ingredients()
+        self["ingredient_list"] = self.extract_ingredients(self["servings"], False, False)
         
         # Extract keywords to store in tags list
-        self.tags = self.extract_tags()
-    
-    def __eq__(self, other):
-        '''
-            Defines the equality operator for two recipe objects
-
-            Paremters:
-                other: Other object
-            
-            Returns:
-                boolean: Whether other equals self
-        '''
-        
-        return isinstance(other, Recipe) and self.url == other.url and self.host == other.host and \
-               self.name == other.name and self.time == other.time and self.unit == other.unit and \
-               self.servings == other.servings and self.ingredients_strs == other.ingredients_strs and \
-               self.instructions_strs == other.instructions_strs and self.image == other.image and \
-               self.nutrients == other.nutrients and self.ingredients_list == other.ingredients_list and \
-               self.tags == other.tags
+        self["tags"] = self.extract_tags()
     
     def extract_ingredients(self, serves, metric, imperial):
         '''
@@ -102,20 +77,20 @@ class Recipe:
         '''
 
         # Parse the ingredients into objects using Pint
-        ingredients = [Ingredient(i) for i in self.ingredient_strs]
+        ingredients = [Ingredient(i) for i in self["ingredient_strs"]]
 
         # Convert ingredients to unit system if set
         if metric:
-            ingredients = [i.convert_to_system("mks") for i in ingredients]
-            self.unit = "metric"
+            ingredients = [i.to_system("mks") for i in ingredients]
+            self["unit"] = "metric"
         elif imperial:
-            ingredients = [i.convert_to_system("imperial") for i in ingredients]
-            self.unit = "imperial"
+            ingredients = [i.to_system("imperial") for i in ingredients]
+            self["unit"] = "imperial"
 
         # Convert ingredients to servings if set
-        if serves > 0:
-            ingredients = [i.scale_to_amount(serves / self.servings) for i in ingredients]
-            self.servings = serves
+        if serves != self["servings"] and serves > 0:
+            ingredients = [i.to_scale(serves / self["servings"]) for i in ingredients]
+            self["servings"] = serves
         
         return ingredients
 
@@ -131,13 +106,13 @@ class Recipe:
         '''
 
         # Extract each word in the name field
-        tags = [n.lower() for n in self.name.split()]
+        tags = [n.lower() for n in self["name"].split()]
 
         # Extract tags from each ingredient object
-        tags.extend(sum([i.extract_tags() for i in self.ingredient_list], []))
+        tags.extend(sum([i.extract_tags() for i in self["ingredient_list"]], []))
 
         # Extract the host name
-        tags.append(self.host.lower())
+        tags.append(self["host"].lower())
 
         # Remove stop words that appear in the tags list
         def is_readable(tag):

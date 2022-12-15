@@ -103,38 +103,8 @@ def test_initialize(ingredient_str, expected):
     result = Ingredient(ingredient_str)
 
     for key, value in expected.items():
-        if getattr(result, key) != value:
-            warnings.warn(f"'{key}' contains '{getattr(result, key)}' value, expected '{value}'", AssertionWarning)
-
-
-@pytest.mark.parametrize("ingredient,other,expected", [
-    (
-        Ingredient("1 kg meat"),
-        Ingredient("1 kg meat"),
-        True
-    ),
-    (
-        Ingredient("1 kg meat"),
-        Ingredient("1 kg cheese"),
-        False
-    )
-])
-def test_equals(ingredient, other, expected):
-    assert (ingredient == other) == expected
-
-
-@pytest.mark.parametrize("ingredient,expected", [
-    (
-        Ingredient("1 kg meat"),
-        "name:Meat, unit:kg, quantity:1, comment:, optional:False"
-    ),
-    (
-        Ingredient("2.2 pounds cheese"),
-        "name:Cheese, unit:pounds, quantity:2.2, comment:, optional:False"
-    )
-])
-def test_str(ingredient, expected):
-    assert str(ingredient) == expected, f"{ingredient} != {expected}"
+        if result[key] != value:
+            warnings.warn(f"'{key}' contains '{result[key]}' value, expected '{value}'", AssertionWarning)
 
 
 @pytest.mark.parametrize("ingredient,new_unit,expected", [
@@ -183,3 +153,28 @@ def test_system_conversion(ingredient, new_system, expected):
 ])
 def test_scale_conversion(ingredient, new_scale, expected):
     assert ingredient.to_scale(new_scale) == expected, f"{ingredient} != {expected}"
+
+@pytest.mark.parametrize("ingredient,expected", [
+    (
+        Ingredient("2 cloves garlic, minced"),
+        ["garlic"]
+    ),
+    (
+        Ingredient("4 ounces feta cheese"),
+        ["feta", "cheese"]
+    ),
+    (
+        Ingredient("1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry"),
+        ["box", "frozen", "chopped", "spinach"]
+    ),
+    (
+        Ingredient("2 pounds ground turkey"),
+        ["ground", "turkey"]
+    ),
+    (
+        Ingredient("4 tbsp olive oil"),
+        ["olive", "oil"]
+    )
+])
+def test_tag_extraction(ingredient, expected):
+    assert ingredient.extract_tags() == expected
