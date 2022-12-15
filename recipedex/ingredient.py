@@ -3,6 +3,8 @@ import logging
 import regex as re
 from pint import UnitRegistry
 
+nltk.download("stopwords", quiet=True)
+
 
 logger = logging.getLogger("recipedex.ingredient")
 
@@ -26,11 +28,10 @@ STOP_WORDS = nltk.corpus.stopwords.words('english') + [
     "medium",
     "large"
 ]
+UREG = UnitRegistry()
 
 
 class Ingredient:
-    nltk.download("stopwords", quiet=True)
-    self.ureg = UnitRegistry()
 
     def __init__(self, value: str):
         '''
@@ -116,7 +117,19 @@ class Ingredient:
         return isinstance(other, Ingredient) and self.name == other.name and self.unit == other.unit and \
                self.quantity == other.quantity and self.comment == other.comment and self.optional == other.optional
     
-    def to_unit(unit: str):
+    def __str__(self):
+        '''
+            Print a readable version of the ingredient object
+
+            Parameters:
+                None
+            Returns:
+                str: String representation
+        '''
+
+        return ", ".join([f"{k}:{getattr(self, k)}" for k in ["name", "unit", "quantity", "comment", "optional"]])
+    
+    def to_unit(self, unit: str):
         '''
             Convert to the new unit, updating the quantity if necessary
 
@@ -128,7 +141,7 @@ class Ingredient:
         '''
 
         # Parse current ingredient using Pint package
-        quantity = ureg.Quantity(float(self.quantity), self.unit)
+        quantity = UREG.Quantity(float(self.quantity), self.unit)
 
         # Assert new unit can convert from old unit
         assert quantity.check(unit), f"Cannot convert from '{str(quantity.units)}' to '{unit}'."
@@ -137,8 +150,10 @@ class Ingredient:
         # Update this object's variables
         self.quantity = str(round(quantity.magnitude, 2))
         self.unit = str(quantity.units)
+
+        return self
     
-    def to_system(system: str):
+    def to_system(self, system: str):
         '''
             Convert to the new unit system, updating the quantity if necessary
 
@@ -150,17 +165,19 @@ class Ingredient:
         '''
 
         # Set new default unit system using pint package
-        self.ureg.default_system = system
+        UREG.default_system = system
         
         # Convert this ingredient to the new system
-        quantity = ureg.Quantity(float(self.quantity), self.unit)
+        quantity = UREG.Quantity(float(self.quantity), self.unit)
         quantity = quantity.to_base_units().to_reduced_units()
 
         # Update this object's variables
         self.quantity = str(round(quantity.magnitude, 2))
         self.unit = str(quantity.units)
+
+        return self
     
-    def to_scale(scale: float):
+    def to_scale(self, scale: float):
         '''
             Adjust quantity to the new scale, updating the unit if necessary
 
@@ -171,8 +188,7 @@ class Ingredient:
                 None
         '''
 
-        # Scale this ingredient
-        quantity = str(float(self.quantity) * scale)
+        # Scale this ingredient and update this object's variables
+        self.quantity = str(round(float(self.quantity) * scale, 2))
 
-        # Update this object's variables
-        self.quantity = str(round(quantity.magnitude, 2))
+        return self

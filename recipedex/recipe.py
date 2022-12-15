@@ -14,7 +14,7 @@ class Recipe:
 
     def __init__(self, url: str = None, host: str = None, name: str = None, time: int = 0, unit: str = "default",
                  servings: int = 0, ingredient_strs: list = [], instructions_strs: list = [], image: str = None,
-                 nutrients: dict = {}, tags: list = []):
+                 nutrients: dict = {}):
         '''
             Initialise a Recipe object by parsing the URL or by the values passed
 
@@ -29,7 +29,6 @@ class Recipe:
                 instructions_strs: List of instructions string from webpage
                 image: Link to an image of the recipe (optional)
                 nutrients: Dictionary of nutrient information (optional)
-                tags: Keywords used to search for this recipe
             
             Returns:
                 None
@@ -46,8 +45,8 @@ class Recipe:
                 self.host = data.host()
                 self.name = data.title()
                 self.time = data.total_time()
-                self.unit = "default"
-                self.servings = int(re.search(r"(\d+)", recipe.yields()).group(1))
+                self.unit = unit
+                self.servings = int(re.search(r"(\d+)", data.yields()).group(1))
                 self.ingredients_strs = data.ingredients()
                 self.instructions_strs = data.instructions_list()
                 self.image = data.image()
@@ -61,9 +60,9 @@ class Recipe:
             self.host = host
             self.name = name
             self.time = time
-            self.unit = "default"
+            self.unit = unit
             self.servings = servings
-            self.ingredients_strs = ingredients_strs
+            self.ingredients_strs = ingredient_strs
             self.instructions_strs = instructions_strs
             self.image = image
             self.nutrients = nutrients
@@ -73,6 +72,24 @@ class Recipe:
         
         # Extract keywords to store in tags list
         self.tags = self.extract_tags()
+    
+    def __eq__(self, other):
+        '''
+            Defines the equality operator for two recipe objects
+
+            Paremters:
+                other: Other object
+            
+            Returns:
+                boolean: Whether other equals self
+        '''
+        
+        return isinstance(other, Recipe) and self.url == other.url and self.host == other.host and \
+               self.name == other.name and self.time == other.time and self.unit == other.unit and \
+               self.servings == other.servings and self.ingredients_strs == other.ingredients_strs and \
+               self.instructions_strs == other.instructions_strs and self.image == other.image and \
+               self.nutrients == other.nutrients and self.ingredients_list == other.ingredients_list and \
+               self.tags == other.tags
     
     def extract_ingredients(self, serves, metric, imperial):
         '''
