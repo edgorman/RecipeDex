@@ -14,30 +14,22 @@ logger = logging.getLogger("recipedex.recipe")
 
 class Recipe(dict):
 
-    def __init__(self, url: str = None, host: str = None, name: str = None, time: int = 0, unit: str = "default",
-                 servings: int = 0, ingredient_strs: list = [], instruction_strs: list = [], image: str = None,
-                 nutrients: dict = {}):
+    def __init__(self, url: str, serves: int = 0, metric: bool = False, imperial: bool = False):
         '''
             Initialise a Recipe object by parsing the URL or by the values passed
 
             Parameters:
                 url: Link to the recipe webpage
-                host: Name of the website
-                name: Name of the recipe
-                time: Time taken to perform recipe
-                unit: The measurement system used in recipe
-                servings: Number of people this recipe serves
-                ingredient_strs: List of ingredients strings from webpage
-                instruction_strs: List of instructions string from webpage
-                image: Link to an image of the recipe (optional)
-                nutrients: Dictionary of nutrient information (optional)
+                serves: How many the recipe serves
+                metric: Whether to convert to metric system
+                imperial: Whether to convert to imperial system
             
             Returns:
                 None
         '''
         super(Recipe, self).__init__(
-            url=url, host=host, name=name, time=time, unit=unit, servings=servings, ingredient_strs=ingredient_strs,
-            instruction_strs=instruction_strs, image=image, nutrients=nutrients, ingredients_list=[], tags=[]
+            url=url, host="", name="", time=0, unit="", servings=0, ingredient_strs=[], instruction_strs=[], image="",
+            nutrients={}, ingredients_list=[], tags=[]
         )
         
         # If a url is given, parse the recipe directly
@@ -51,7 +43,6 @@ class Recipe(dict):
                 self["host"] = data.host()
                 self["name"] = data.title()
                 self["time"] = data.total_time()
-                self["unit"] = unit
                 self["servings"] = int(re.search(r"(\d+)", data.yields()).group(1))
                 self["ingredient_strs"] = data.ingredients()
                 self["instruction_strs"] = data.instructions_list()
@@ -61,7 +52,7 @@ class Recipe(dict):
                 raise Exception(f"Failed extracting recipe '{self['url']}': {str(e)}")
     
         # Extract ingredients to store as objects
-        self["ingredient_list"] = self.extract_ingredients(self["servings"], False, False)
+        self["ingredient_list"] = self.extract_ingredients(serves, metric, imperial)
         
         # Extract keywords to store in tags list
         self["tags"] = self.extract_tags()
@@ -86,6 +77,8 @@ class Recipe(dict):
         elif imperial:
             ingredients = [i.to_system("imperial") for i in ingredients]
             self["unit"] = "imperial"
+        else:
+            self["unit"] = "default"
 
         # Convert ingredients to servings if set
         if serves != self["servings"] and serves > 0:
