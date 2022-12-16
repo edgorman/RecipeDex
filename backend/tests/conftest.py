@@ -85,3 +85,23 @@ def mock_recipe():
             {"name": "Basil leaves", "unit": "handful", "quantity": "1", "comment": "", "optional": True}
         ]
     }
+
+
+@pytest.fixture(autouse=True, scope="function")
+def mock_tags():
+    return [
+        {
+            "tag": "chicken",
+            "recipe_ids": [
+                "63753dcc352382d88723cb90",
+                "63753dcc352382d88723cb91",
+            ]
+        },
+        {
+            "tag": "beef",
+            "recipe_ids": [
+                "63753dcc352382d88723cb90",
+                "63753dcc352382d88723cb91",
+            ]
+        },
+    ]

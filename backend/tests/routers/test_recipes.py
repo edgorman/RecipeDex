@@ -5,8 +5,7 @@ from unittest.mock import AsyncMock
 
 @pytest.mark.asyncio
 async def test_get_all_recipes(mocker, client, mock_index):
-    get_recipes = AsyncMock(return_value=mock_index)
-    mocker.patch("backend.routers.recipes.get_recipes", side_effect=get_recipes)
+    mocker.patch("backend.routers.recipes.get_recipes", side_effect=AsyncMock(return_value=mock_index))
 
     async with client as c:
         response = await c.get("/recipes/")
@@ -21,8 +20,7 @@ async def test_get_all_recipes(mocker, client, mock_index):
 
 @pytest.mark.asyncio
 async def test_get_recent_recipes(mocker, client, mock_index):
-    recent_cache = AsyncMock(return_value=mock_index)
-    mocker.patch("backend.routers.recipes.recent_cache", side_effect=recent_cache)
+    mocker.patch("backend.routers.recipes.recent_cache", side_effect=AsyncMock(return_value=mock_index))
 
     async with client as c:
         response = await c.get("/recipes/recent")
@@ -37,10 +35,8 @@ async def test_get_recent_recipes(mocker, client, mock_index):
 
 @pytest.mark.asyncio
 async def test_get_recipe_by_url(mocker, client, mock_recipe):
-    add_recipe = AsyncMock()
-    mocker.patch("backend.routers.recipes.add_recipe", side_effect=add_recipe)
-    check_cache = AsyncMock(return_value=None)
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=check_cache)
+    mocker.patch("backend.routers.recipes.add_recipe", side_effect=AsyncMock())
+    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=None))
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -56,8 +52,7 @@ async def test_get_recipe_by_url(mocker, client, mock_recipe):
 
 @pytest.mark.asyncio
 async def test_get_recipe_by_cache(mocker, client, mock_recipe):
-    check_cache = AsyncMock(return_value=mock_recipe)
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=check_cache)
+    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=mock_recipe))
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -73,8 +68,7 @@ async def test_get_recipe_by_cache(mocker, client, mock_recipe):
 
 @pytest.mark.asyncio
 async def test_get_recipe_and_scale(mocker, client, mock_recipe):
-    check_cache = AsyncMock(return_value=mock_recipe)
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=check_cache)
+    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=mock_recipe))
 
     async with client as c:
         url = quote(mock_recipe["url"])
