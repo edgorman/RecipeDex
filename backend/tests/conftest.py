@@ -9,7 +9,7 @@ def client():
     return AsyncClient(app=api, base_url="http://test")
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True, scope="function")
 def mock_index():
     return [
         {"url": "test", "name": "this"},
@@ -17,7 +17,7 @@ def mock_index():
     ]
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True, scope="function")
 def mock_recipe():
     return {
         "url": "https://www.bbcgoodfood.com/recipes/pizza-margherita-4-easy-steps",
