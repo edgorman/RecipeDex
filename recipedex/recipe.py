@@ -14,7 +14,7 @@ logger = logging.getLogger("recipedex.recipe")
 
 class Recipe(dict):
 
-    def __init__(self, url: str, serves: int = 0, metric: bool = False, imperial: bool = False):
+    def __init__(self, url: str, serves: int = 0, metric: bool = False, imperial: bool = False, **kwargs):
         '''
             Initialise a Recipe object by parsing the URL or by the values passed
 
@@ -23,21 +23,21 @@ class Recipe(dict):
                 serves: How many the recipe serves
                 metric: Whether to convert to metric system
                 imperial: Whether to convert to imperial system
+                kwargs: Key-value mappings for recipe fields
             
             Returns:
                 None
         '''
-        super(Recipe, self).__init__(
-            url=url, host="", name="", time=0, unit="", servings=0, ingredient_strs=[], instruction_strs=[], image="",
-            nutrients={}, ingredients_list=[], tags=[]
-        )
-        
-        # If a url is given, parse the recipe directly
-        if url is not None:
-            self["url"] = url
-
+        # If no kew-value mappings are passed
+        if len(kwargs) == 0:
+            # Initialise object with default values
+            super(Recipe, self).__init__(
+                url=url, host="", name="", time=0, unit="", servings=0, ingredient_strs=[], instruction_strs=[],
+                image="", nutrients={}, ingredient_list=[], tags=[]
+            )
+            
+            # Parse recipe using recipe_scrapers module
             try:
-                # Parse recipe using recipe_scrapers module
                 data = parse_recipe(self["url"])
 
                 self["host"] = data.host()
@@ -50,7 +50,11 @@ class Recipe(dict):
                 self["nutrients"] = data.nutrients()
             except Exception as e:
                 raise Exception(f"Failed extracting recipe '{self['url']}': {str(e)}")
-    
+
+        # Else use the key-value mappings
+        else:
+            super(Recipe, self).__init__(url=url, **kwargs)
+        
         # Extract ingredients to store as objects
         self["ingredient_list"] = self.extract_ingredients(serves, metric, imperial)
         
@@ -66,7 +70,6 @@ class Recipe(dict):
             Returns:
                 ingredients: List of ingredient objects
         '''
-
         # Parse the ingredients into objects using Pint
         ingredients = [Ingredient(i) for i in self["ingredient_strs"]]
 
@@ -97,7 +100,6 @@ class Recipe(dict):
             Returns:
                 tags: List of keywords from properties
         '''
-
         # Extract each word in the name field
         tags = [n.lower() for n in self["name"].split()]
 

@@ -21,6 +21,7 @@ setup(
         "pytest",
         "pytest-cov",
         "pytest-asyncio",
+        "pytest-mock",
         "recipe-scrapers"
     ]
 )

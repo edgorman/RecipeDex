@@ -113,7 +113,6 @@ class Ingredient(dict):
             Returns:
                 None
         '''
-
         # Parse current ingredient using Pint package
         quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
 
@@ -137,7 +136,6 @@ class Ingredient(dict):
             Returns:
                 None
         '''
-
         # Set new default unit system using pint package
         UREG.default_system = system
         
@@ -161,7 +159,6 @@ class Ingredient(dict):
             Returns:
                 None
         '''
-
         # Scale this ingredient and update this object's variables
         self["quantity"] = str(round(float(self["quantity"]) * scale, 2))
 
@@ -177,7 +174,6 @@ class Ingredient(dict):
             Returns:
                 tags: List of keywords from properties
         '''
-
         # Extract each word in the name field
         tags = [n.lower() for n in self["name"].split()]
 
