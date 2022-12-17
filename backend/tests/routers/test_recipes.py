@@ -36,7 +36,7 @@ async def test_get_recent_recipes(mocker, client, mock_index):
 @pytest.mark.asyncio
 async def test_get_recipe_by_url(mocker, client, mock_recipe):
     mocker.patch("backend.routers.recipes.add_recipe", side_effect=AsyncMock())
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=None))
+    mocker.patch("backend.routers.recipes.check_cache", return_value=None)
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -52,7 +52,7 @@ async def test_get_recipe_by_url(mocker, client, mock_recipe):
 
 @pytest.mark.asyncio
 async def test_get_recipe_by_cache(mocker, client, mock_recipe):
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=mock_recipe))
+    mocker.patch("backend.routers.recipes.check_cache", return_value=mock_recipe)
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -68,7 +68,7 @@ async def test_get_recipe_by_cache(mocker, client, mock_recipe):
 
 @pytest.mark.asyncio
 async def test_get_recipe_and_scale(mocker, client, mock_recipe):
-    mocker.patch("backend.routers.recipes.check_cache", side_effect=AsyncMock(return_value=mock_recipe))
+    mocker.patch("backend.routers.recipes.check_cache", return_value=mock_recipe)
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -81,7 +81,7 @@ async def test_get_recipe_and_scale(mocker, client, mock_recipe):
             float(mock_recipe["ingredient_list"][i]["quantity"]) * 2,
             2
         ))
-    
+
     assert response.status_code == 200
     assert response.json() == {
         "code": 200,

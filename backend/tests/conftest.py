@@ -69,7 +69,7 @@ def mock_recipe():
             "leaves", "bbcgoodfood.com"
         ],
         "ingredient_list": [
-            {"name": "Strong bread flour", "unit": "g", "quantity": "300", "comment": "", "optional": False}, 
+            {"name": "Strong bread flour", "unit": "g", "quantity": "300", "comment": "", "optional": False},
             {"name": "Instant yeast", "unit": "tsp", "quantity": "1", "comment": "from a sachet or a tub", "optional":
              False},
             {"name": "Salt", "unit": "tsp", "quantity": "1", "comment": "", "optional": False},
@@ -79,7 +79,7 @@ def mock_recipe():
             {"name": "Fresh basil", "unit": "handful", "quantity": "1", "comment": "or 1 tsp dried", "optional": False},
             {"name": "Clove", "unit": "garlic", "quantity": "1", "comment": "crushed", "optional": False},
             {"name": "Ball mozzarella", "unit": "g", "quantity": "125", "comment": "sliced", "optional": False},
-            {"name": "Grated", "unit": "handful", "quantity": "1", "comment": 
+            {"name": "Grated", "unit": "handful", "quantity": "1", "comment":
              "or shaved parmesan or vegetarian alternative", "optional": False},
             {"name": "Cherry tomatoes", "unit": "handful", "quantity": "1", "comment": "halved", "optional": False},
             {"name": "Basil leaves", "unit": "handful", "quantity": "1", "comment": "", "optional": True}

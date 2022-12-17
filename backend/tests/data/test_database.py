@@ -1,5 +1,3 @@
-import pytest
-
 
 def test_check_cache():
     pass

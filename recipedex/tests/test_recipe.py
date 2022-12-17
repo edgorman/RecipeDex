@@ -114,6 +114,7 @@ def test_initialize(url, expected):
     for key, value in expected.items():
         assert result[key] == value, f"'{key}' contains '{result[key]}' value, expected '{value}'"
 
+
 @pytest.mark.parametrize("kwargs,expected", [
     (
         {

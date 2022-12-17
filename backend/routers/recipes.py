@@ -77,5 +77,5 @@ async def get_recipe_by_url(request: Request, unit: str | None = "default", serv
                 imperial=bool(unit == "imperial"),
                 **recipe[url]
             )
-    
+
     return ResponseModel(recipe, "Recipe data retrieved successfully")

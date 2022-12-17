@@ -9,7 +9,7 @@ from backend import __name__
 async def test_root(client):
     async with client as c:
         response = await c.get("/")
-    
+
     assert response.status_code == 200
     assert response.json() == {
         "name": __name__,

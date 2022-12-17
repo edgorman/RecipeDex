@@ -1,4 +1,3 @@
-import json
 import nltk
 import logging
 import regex as re
@@ -102,7 +101,7 @@ class Ingredient(dict):
         # Final operations on class variables
         self["name"] = self["name"].lower().capitalize()
         self["comment"] = self["comment"].lower()
-    
+
     def to_unit(self, unit: str):
         '''
             Convert to the new unit, updating the quantity if necessary
@@ -128,7 +127,7 @@ class Ingredient(dict):
             logger.warning(f"Could not convert unit '{self['unit']}' to unit '{unit}'.")
 
         return self
-    
+
     def to_system(self, system: str):
         '''
             Convert to the new unit system, updating the quantity if necessary
@@ -142,7 +141,7 @@ class Ingredient(dict):
         try:
             # Set new default unit system using pint package
             UREG.default_system = system
-            
+
             # Convert this ingredient to the new system
             quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
             quantity = quantity.to_base_units().to_reduced_units()
@@ -154,7 +153,7 @@ class Ingredient(dict):
             logger.warning(f"Could not convert unit '{self['unit']}' to unit system '{system}'.")
 
         return self
-    
+
     def to_scale(self, scale: float):
         '''
             Adjust quantity to the new scale, updating the unit if necessary
@@ -176,7 +175,7 @@ class Ingredient(dict):
 
             Parameters:
                 None
-            
+
             Returns:
                 tags: List of keywords from properties
         '''

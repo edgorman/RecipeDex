@@ -1,5 +1,3 @@
-import pytest
-
 from backend.data.model import ResponseModel
 
 

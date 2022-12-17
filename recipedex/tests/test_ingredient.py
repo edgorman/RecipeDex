@@ -154,6 +154,7 @@ def test_system_conversion(ingredient, new_system, expected):
 def test_scale_conversion(ingredient, new_scale, expected):
     assert ingredient.to_scale(new_scale) == expected, f"{ingredient} != {expected}"
 
+
 @pytest.mark.parametrize("ingredient,expected", [
     (
         Ingredient("2 cloves garlic, minced"),

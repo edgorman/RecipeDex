@@ -1,4 +1,3 @@
-import json
 import nltk
 import logging
 import regex as re
@@ -24,7 +23,7 @@ class Recipe(dict):
                 metric: Whether to convert to metric system
                 imperial: Whether to convert to imperial system
                 kwargs: Key-value mappings for recipe fields
-            
+
             Returns:
                 None
         '''
@@ -35,7 +34,7 @@ class Recipe(dict):
                 url=url, host="", name="", time=0, unit="", servings=0, ingredient_strs=[], instruction_strs=[],
                 image="", nutrients={}, ingredient_list=[], tags=[]
             )
-            
+
             # Parse recipe using recipe_scrapers module
             try:
                 data = parse_recipe(self["url"])
@@ -54,13 +53,13 @@ class Recipe(dict):
         # Else use the key-value mappings
         else:
             super(Recipe, self).__init__(url=url, **kwargs)
-        
+
         # Extract ingredients to store as objects
         self["ingredient_list"] = self.extract_ingredients(serves, metric, imperial)
-        
+
         # Extract keywords to store in tags list
         self["tags"] = self.extract_tags()
-    
+
     def extract_ingredients(self, serves, metric, imperial):
         '''
             Extract the ingredients from the ingredient strings
@@ -87,7 +86,7 @@ class Recipe(dict):
         if serves != self["servings"] and serves > 0:
             ingredients = [i.to_scale(serves / self["servings"]) for i in ingredients]
             self["servings"] = serves
-        
+
         return ingredients
 
     def extract_tags(self):
@@ -96,7 +95,7 @@ class Recipe(dict):
 
             Parameters:
                 None
-            
+
             Returns:
                 tags: List of keywords from properties
         '''

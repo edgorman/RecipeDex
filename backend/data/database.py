@@ -12,6 +12,8 @@ from backend.data.model import TagSchema
 logger = logging.getLogger("backend.api.database.database")
 
 # Asynchronous function template
+
+
 async def call_function(func, *args) -> asyncio.coroutine:
     return await func(*args)
 
