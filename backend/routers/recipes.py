@@ -44,10 +44,10 @@ async def get_recent_recipes(request: Request, limit: int | None = 6):
 
 
 @router.get("/{request:path}", response_description="Scrape a recipe for a given url")
-@limiter.limit("30/minute", cost=lambda request: int(check_cache(request) is None))
+@limiter.limit("30/minute", cost=lambda request: int(check_cache(request.url.path[9:]) is None))
 async def get_recipe_by_url(request: Request, unit: str | None = "default", serves: int | None = 0):
     url = request.url.path[9:]
-    cache = await check_cache(url)
+    cache = check_cache(url)
 
     # If cache does not contain the url
     if cache is None:

@@ -22,11 +22,10 @@ class App:
         '''
         logger.setLevel(args.log)
 
-        response = {k: {} for k in args.urls}
+        response = []
         for url in args.urls:
-
             try:
-                response[url] = Recipe(url, args.serves, args.metric, args.imperial)
+                response.append(Recipe(url, args.serves, args.metric, args.imperial))
                 logger.info(f"Successfully parsed url '{url}'")
             except Exception as e:
                 logger.warning(f"Could not parse url '{url}': '{str(e)}'")

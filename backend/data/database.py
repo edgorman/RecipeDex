@@ -12,8 +12,8 @@ from backend.data.model import TagSchema
 logger = logging.getLogger("backend.api.database.database")
 
 # Asynchronous function template
-async def call_function(func) -> asyncio.coroutine:
-    await func()
+async def call_function(func, *args) -> asyncio.coroutine:
+    return await func(*args)
 
 # Set up MongoDB connection and assign collections
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://127.0.0.1:27017")
@@ -23,7 +23,7 @@ database = client.recipedex
 cache = lrucache(64)
 
 
-async def check_cache(url: str) -> dict:
+def check_cache(url: str) -> dict:
     if url in cache:
         return cache[url]
     else:
