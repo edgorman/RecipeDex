@@ -28,5 +28,5 @@ async def get_recipes_by_search(request: Request, limit: int | None = 12, t: lis
     recipes = await get_recipes({"_id": {"$in": object_ids}})
 
     if recipes:
-        return ResponseModel(recipes, "Recipe data retrieved successfully")
+        return ResponseModel(recipes, "Search data retrieved successfully")
     return ResponseModel(recipes, "Empty list returned")

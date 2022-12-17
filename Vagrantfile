@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "dev-vm"
   
   config.vm.provider :virtualbox do |vb|
-    vb.memory = 4096
+    vb.memory = 8192
     vb.cpus = 2
 	vb.name = "RecipeDexVM"
 	vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/.", "1"]

@@ -3,14 +3,10 @@ import pytest
 import warnings
 
 from recipedex.tests.conftest import AssertionWarning
-from recipedex.tests.conftest import dict_diff
-from recipedex.ingredient import parse_ingredient
-from recipedex.ingredient import convert_to_unit
-from recipedex.ingredient import convert_to_system
-from recipedex.ingredient import scale_to_amount
+from recipedex.ingredient import Ingredient
 
 
-@pytest.mark.parametrize("ingredient,expected", [
+@pytest.mark.parametrize("ingredient_str,expected", [
     (
         "2 eggs, beaten",
         {"optional": False, "name": "Eggs", "quantity": "2", "unit": "count", "comment": "beaten"}
@@ -103,64 +99,83 @@ from recipedex.ingredient import scale_to_amount
          "comment": "peeled, cut into small strips"}
     )
 ])
-def test_parse_ingredient(ingredient, expected):
-    result = parse_ingredient(ingredient)
+def test_initialize(ingredient_str, expected):
+    result = Ingredient(ingredient_str)
 
-    for key, value in result.items():
-        assert value is not None, f"'{key}' contains 'None' value, {result}"
-    if result != expected:
-        assert result.keys() == expected.keys()
-        warnings.warn(dict_diff(result, expected), AssertionWarning)
+    for key, value in expected.items():
+        if result[key] != value:
+            warnings.warn(f"'{key}' contains '{result[key]}' value, expected '{value}'", AssertionWarning)
 
 
 @pytest.mark.parametrize("ingredient,new_unit,expected", [
     (
-        {"quantity": "1", "unit": "kg"},
+        Ingredient("1 kg meat"),
         "pound",
-        {"quantity": "2.2", "unit": "pound"}
+        Ingredient("2.2 pound meat")
     ),
     (
-        {"quantity": "1", "unit": "cups"},
+        Ingredient("1 cup flour"),
         "liter",
-        {"quantity": "0.24", "unit": "liter"}
+        Ingredient("0.24 liter flour")
     )
 ])
-def test_convert_to_unit(ingredient, new_unit, expected):
-    assert convert_to_unit(ingredient, new_unit) == expected
+def test_unit_conversion(ingredient, new_unit, expected):
+    assert ingredient.to_unit(new_unit) == expected, f"{ingredient} != {expected}"
 
 
-@pytest.mark.parametrize("ingredient,system,expected", [
+@pytest.mark.parametrize("ingredient,new_system,expected", [
     (
-        [{"quantity": "1", "unit": "kg"}],
+        Ingredient("1 kg meat"),
         "imperial",
-        [{"quantity": "2.2", "unit": "pound"}]
+        Ingredient("2.2 pound meat")
     ),
     (
-        [{"quantity": "2.20462", "unit": "pounds"}],
+        Ingredient("2.20462 pounds meat"),
         "mks",
-        [{"quantity": "1.0", "unit": "kilogram"}]
+        Ingredient("1.0 kilogram meat")
     )
 ])
-def test_convert_to_system(ingredient, system, expected):
-    assert convert_to_system(ingredient, system) == expected
+def test_system_conversion(ingredient, new_system, expected):
+    assert ingredient.to_system(new_system) == expected, f"{ingredient} != {expected}"
 
 
-@pytest.mark.parametrize("ingredient,scale,expected", [
+@pytest.mark.parametrize("ingredient,new_scale,expected", [
     (
-        [{"quantity": "1", "unit": "kg"}],
+        Ingredient("1 kg meat"),
         1,
-        [{"quantity": "1.0", "unit": "kg"}]
+        Ingredient("1.0 kg meat")
     ),
     (
-        [{"quantity": "27", "unit": "grams"}],
-        5,
-        [{"quantity": "135.0", "unit": "grams"}]
-    ),
-    (
-        [{"quantity": "135", "unit": "pounds"}],
+        Ingredient("135 pounds meat"),
         0.2,
-        [{"quantity": "27.0", "unit": "pounds"}]
+        Ingredient("27.0 pounds meat")
     )
 ])
-def test_scale_to_amount(ingredient, scale, expected):
-    assert scale_to_amount(ingredient, scale) == expected
+def test_scale_conversion(ingredient, new_scale, expected):
+    assert ingredient.to_scale(new_scale) == expected, f"{ingredient} != {expected}"
+
+
+@pytest.mark.parametrize("ingredient,expected", [
+    (
+        Ingredient("2 cloves garlic, minced"),
+        ["garlic"]
+    ),
+    (
+        Ingredient("4 ounces feta cheese"),
+        ["feta", "cheese"]
+    ),
+    (
+        Ingredient("1 (10 ounce) box frozen chopped spinach, thawed and squeezed dry"),
+        ["box", "frozen", "chopped", "spinach"]
+    ),
+    (
+        Ingredient("2 pounds ground turkey"),
+        ["ground", "turkey"]
+    ),
+    (
+        Ingredient("4 tbsp olive oil"),
+        ["olive", "oil"]
+    )
+])
+def test_tag_extraction(ingredient, expected):
+    assert ingredient.extract_tags() == expected

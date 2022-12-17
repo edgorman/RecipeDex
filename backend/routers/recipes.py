@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from argparse import Namespace
 
 from recipedex import App
+from recipedex.recipe import Recipe
 from backend import limiter
 from backend.data.model import ResponseModel
 from backend.data.database import add_recipe
@@ -42,14 +43,15 @@ async def get_recent_recipes(request: Request, limit: int | None = 6):
     return ResponseModel(recents, "Empty list returned")
 
 
-# TODO: Uncomment cost function when slowapi v0.1.7 is released
 @router.get("/{request:path}", response_description="Scrape a recipe for a given url")
-@limiter.limit("30/minute")  # , cost=lambda request: int(await check_cache(url) is None))
+@limiter.limit("30/minute", cost=lambda request: int(check_cache(request.url.path[9:]) is None))
 async def get_recipe_by_url(request: Request, unit: str | None = "default", serves: int | None = 0):
     url = request.url.path[9:]
-    cache_resp = await check_cache(url)
+    cache = check_cache(url)
 
-    if cache_resp is None:
+    # If cache does not contain the url
+    if cache is None:
+        # Parse the recipe using the RecipeDex module
         args = Namespace(
             urls=[url],
             serves=serves,
@@ -57,17 +59,23 @@ async def get_recipe_by_url(request: Request, unit: str | None = "default", serv
             imperial=bool(unit == "imperial"),
             log=logging.getLevelName(logger.getEffectiveLevel()),
         )
+        recipe = {url: json.loads(App.main(args))[0]}
 
-        resp = json.loads(App.main(args))
-        await asyncio.gather(*[add_recipe(u, r) for u, r in resp.items()])
+        # Add this recipe to the database for fast indexing
+        await asyncio.gather(*[add_recipe(u, r) for u, r in recipe.items()])
+
+    # Else the cache does contain the url
     else:
-        if unit == cache_resp["unit"] and serves == cache_resp["servings"]:
-            resp = {url: cache_resp}
-        else:
-            resp = App.extract_ingredients(
-                {url: copy.deepcopy(cache_resp)},
+        recipe = {url: copy.deepcopy(cache)}
+
+        # If the cached data does not match the request
+        if unit != cache["unit"] or (serves > 0 and serves != cache["servings"]):
+            # Generate new recipe using existing values
+            recipe[url] = Recipe(
                 serves=serves,
                 metric=bool(unit == "metric"),
-                imperial=bool(unit == "imperial")
+                imperial=bool(unit == "imperial"),
+                **recipe[url]
             )
-    return resp
+
+    return ResponseModel(recipe, "Recipe data retrieved successfully")

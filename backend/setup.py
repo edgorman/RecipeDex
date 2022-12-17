@@ -11,9 +11,10 @@ setup(
     install_requires=[
         "recipedex",
         "fastapi",
-        "slowapi",
+        "slowapi==0.1.7",
         "uvicorn",
         "motor",
         "pylru",
+        "httpx"
     ]
 )

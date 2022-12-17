@@ -25,10 +25,10 @@ async def get_all_tags(request: Request):
     return ResponseModel(tags, "Empty list returned")
 
 
-@router.get("/{tag_name}", response_description="Get all tags for a given key")
+@router.get("/{name}", response_description="Get all tags for a given key")
 @limiter.exempt
-async def get_tags_by_key(request: Request, tag_name: str):
-    tags = await get_tags({"tag": tag_name})
+async def get_tags_by_key(request: Request, name: str):
+    tags = await get_tags({"tag": name})
     if tags:
         return ResponseModel(tags, "Tag data retrieved successfully")
     return ResponseModel(tags, "Empty list returned")

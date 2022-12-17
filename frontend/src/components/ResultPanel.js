@@ -15,7 +15,6 @@ class ResultPanel extends React.Component {
               return (
                 <Result 
                   key={key}
-                  url={key}
                   value={this.props.value[key]}
                   onSubmit={this.props.onSearchSubmit} />
               )
