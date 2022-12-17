@@ -14,5 +14,5 @@ async def test_get_recipes_by_search(mocker, client, mock_tags, mock_index):
     assert response.json() == {
         "code": 200,
         "data": mock_index,
-        "message": "Recipe data retrieved successfully"
+        "message": "Search data retrieved successfully"
     }
