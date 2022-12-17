@@ -53,8 +53,10 @@ class RecipeDex extends React.Component {
       fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(url) + params)
         .then((response) => response.json())
         .then((data) => {
-          if (url in data) {
-            resolve(data[url]);
+          console.log(data);
+
+          if (url in data.data) {
+            resolve(data.data[url]);
           }
           else if ("detail" in data){
             this.handleErrorSubmit("You have reached the limit for requests, please wait for one minute before continuing.");
@@ -143,11 +145,11 @@ class RecipeDex extends React.Component {
           time: result.time,
           tags: result.tags,
           unit: result.unit,
-          image: result.image_url,
+          image: result.image,
           title: result.name,
           serving: result.servings,
-          ingredients: result.ingredients_list,
-          instructions: result.instructions
+          ingredients: result.ingredient_list,
+          instructions: result.instruction_strs
         });
       }
       else{

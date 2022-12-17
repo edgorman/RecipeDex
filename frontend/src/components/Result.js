@@ -10,17 +10,19 @@ class Result extends React.Component {
 
   handleClick(e){
     e.preventDefault();
-    this.props.onSubmit(this.props.url);
+    this.props.onSubmit(this.props.value.url);
   }
   
   render () {
-    if ("name" in this.props.value && "instructions" in this.props.value) {
-      const description = this.props.value.instructions.join(" ").substring(0, 150)
+    console.log(this.props);
+
+    if ("name" in this.props.value && "instruction_strs" in this.props.value) {
+      const description = this.props.value.instruction_strs.join(" ").substring(0, 150)
 
       return (
         <div className="example-recipe col" onClick={this.handleClick}>
           <div className="card">
-            <img src={this.props.value.image_url} className="card-img-top" alt={this.props.value.name}/>
+            <img src={this.props.value.image} className="card-img-top" alt={this.props.value.name}/>
             <div className="card-body">
               <h5 className="card-title">{this.props.value.name}</h5>
               <p className="card-text">{description}...</p>

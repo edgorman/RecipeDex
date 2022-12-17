@@ -113,16 +113,19 @@ class Ingredient(dict):
             Returns:
                 None
         '''
-        # Parse current ingredient using Pint package
-        quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
+        try:
+            # Parse current ingredient using Pint package
+            quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
 
-        # Assert new unit can convert from old unit
-        assert quantity.check(unit), f"Cannot convert from '{str(quantity.units)}' to '{unit}'."
-        quantity = quantity.to(unit)
+            # Assert new unit can convert from old unit
+            assert quantity.check(unit), f"Cannot convert from '{str(quantity.units)}' to '{unit}'."
+            quantity = quantity.to(unit)
 
-        # Update this object's variables
-        self["quantity"] = str(round(quantity.magnitude, 2))
-        self["unit"] = str(quantity.units)
+            # Update this object's variables
+            self["quantity"] = str(round(quantity.magnitude, 2))
+            self["unit"] = str(quantity.units)
+        except:  # noqa: E722
+            logger.warning(f"Could not convert unit '{self['unit']}' to unit '{unit}'.")
 
         return self
     
@@ -136,16 +139,19 @@ class Ingredient(dict):
             Returns:
                 None
         '''
-        # Set new default unit system using pint package
-        UREG.default_system = system
-        
-        # Convert this ingredient to the new system
-        quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
-        quantity = quantity.to_base_units().to_reduced_units()
+        try:
+            # Set new default unit system using pint package
+            UREG.default_system = system
+            
+            # Convert this ingredient to the new system
+            quantity = UREG.Quantity(float(self["quantity"]), self["unit"])
+            quantity = quantity.to_base_units().to_reduced_units()
 
-        # Update this object's variables
-        self["quantity"] = str(round(quantity.magnitude, 2))
-        self["unit"] = str(quantity.units)
+            # Update this object's variables
+            self["quantity"] = str(round(quantity.magnitude, 2))
+            self["unit"] = str(quantity.units)
+        except:  # noqa: E722
+            logger.warning(f"Could not convert unit '{self['unit']}' to unit system '{system}'.")
 
         return self
     

@@ -26,6 +26,8 @@ class Recipe extends React.Component {
   }
   
   render () {
+    console.log(this.props);
+    
     return (
       <div className="container pt-4 pb-4">
         <h2 className="d-flex justify-content-between align-items-center border-bottom pb-3">
