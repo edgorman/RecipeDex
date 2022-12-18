@@ -15,6 +15,7 @@ setup(
         "uvicorn",
         "motor",
         "pylru",
-        "httpx"
+        "httpx",
+        "python-dotenv"
     ]
 )
