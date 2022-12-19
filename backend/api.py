@@ -38,6 +38,7 @@ api.include_router(recipes_router)
 async def startup():
     api.state.db = Database(os.getenv('database_url'))
 
+
 @api.get("/")
 async def root():
     return {

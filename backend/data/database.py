@@ -12,6 +12,8 @@ from backend.data.model import TagSchema
 logger = logging.getLogger("backend.api.database.database")
 
 # Asynchronous function template
+
+
 async def call_function(func, *args) -> asyncio.coroutine:
     return await func(*args)
 
@@ -81,7 +83,6 @@ class Database:
         except Exception as e:
             logger.error(f"Could not delete recipe '{recipe_id}': '{str(e)}'.")
 
-
     async def get_recipes(self, query: dict = {}) -> list:
         recipes = []
         async for recipe in self.recipe_collection.find(query):
@@ -91,7 +92,6 @@ class Database:
                 logger.error(f"Could not parse recipe '{recipe}': '{str(e)}'.")
                 recipes.append({})
         return recipes
-
 
     async def clear_recipes(self):
         try:
@@ -110,7 +110,6 @@ class Database:
         except Exception as e:
             logger.error(f"Could not find tag with query '{query}': {str(e)}.")
 
-
     async def add_tag(self, tag: str, recipe_id: str):
         try:
             if await self.get_tag({"tag": tag}) is None:
@@ -126,13 +125,11 @@ class Database:
         except Exception as e:
             logger.error(f"Could not add recipe_id '{recipe_id}' to tag '{tag}': {str(e)}.")
 
-
     async def delete_tag(self, tag_id: str):
         try:
             await self.tag_collection.delete_one({"_id": ObjectId(tag_id)})
         except Exception as e:
             logger.warning(f"Could not delete tag '{tag_id}': '{str(e)}'.")
-
 
     async def get_tags(self, query: dict = {}) -> list:
         tags = []
@@ -143,7 +140,6 @@ class Database:
                 logger.warning(f"Could not parse tag '{tag}': '{str(e)}'.")
                 tags.append({})
         return tags
-
 
     async def clear_tags(self):
         try:

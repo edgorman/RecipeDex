@@ -62,10 +62,13 @@ Add the SSH Target from your ssh config file
 
 ## Deployment
 
-Deploying the service locally is as simple as:
+To deploy the service locally read both __README.md__ files in `frontend` and `backend`.
+
+To deploy the service in production you must setup a free account with mongodb to use their cloud database. Once complete, enter the following information into `backend/.env`
 
 ```
-./scripts/deploy.sh
+db_username: <database username>
+db_password: <database password>
 ```
 
-Deploying the service to the cloud might be as simple, still TBD...
+TODO: May need to update gcp app.yaml with user credentials.
