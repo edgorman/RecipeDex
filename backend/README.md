@@ -43,7 +43,6 @@ db_username: <database username>
 db_password: <database password>
 ```
 
-
 ## Testing
 
 Run the testing scripts in the base directory:
