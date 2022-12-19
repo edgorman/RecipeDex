@@ -18,15 +18,14 @@ python -m pip uninstall backend -y; python -m pip install backend/.
 ## Usage
 
 ```
-usage: backend [-h] [--port PORT] [--reload] [--resetdb] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
+usage: backend [-h] [--port PORT] [--prod] [--log {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
 
 Host the FastAPI and MongoDB backend for recipedex.
 
 options:
   -h, --help            show this help message and exit
   --port PORT           the port to serve fastapi on
-  --reload              reload on change (for dev)
-  --resetdb             reset database (for dev)
+  --prod                use production environment
   --log {CRITICAL,ERROR,WARNING,INFO,DEBUG}
                         the log level
   --version             show program's version number and exit
@@ -35,7 +34,13 @@ options:
 Example:
 
 ```
-python -m backend --port 5000 --reload --resetdb --log DEBUG
+python -m backend --log DEBUG
+```
+
+If you use the __production flag__ you must include a `.env` file in `backend/` containing the following:
+```
+db_username: <database username>
+db_password: <database password>
 ```
 
 ## Testing

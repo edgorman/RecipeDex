@@ -1,3 +1,3 @@
-const version = 'd767c55';
+const version = '11d1cff';
 
 export default version;

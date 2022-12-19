@@ -1,12 +1,9 @@
 import pytest
 from urllib.parse import quote
-from unittest.mock import AsyncMock
 
 
 @pytest.mark.asyncio
-async def test_get_all_recipes(mocker, client, mock_index):
-    mocker.patch("backend.routers.recipes.get_recipes", side_effect=AsyncMock(return_value=mock_index))
-
+async def test_get_all_recipes(client, mock_index):
     async with client as c:
         response = await c.get("/recipes/")
 
@@ -19,9 +16,7 @@ async def test_get_all_recipes(mocker, client, mock_index):
 
 
 @pytest.mark.asyncio
-async def test_get_recent_recipes(mocker, client, mock_index):
-    mocker.patch("backend.routers.recipes.recent_cache", side_effect=AsyncMock(return_value=mock_index))
-
+async def test_get_recent_recipes(client, mock_index):
     async with client as c:
         response = await c.get("/recipes/recent")
 
@@ -34,9 +29,8 @@ async def test_get_recent_recipes(mocker, client, mock_index):
 
 
 @pytest.mark.asyncio
-async def test_get_recipe_by_url(mocker, client, mock_recipe):
-    mocker.patch("backend.routers.recipes.add_recipe", side_effect=AsyncMock())
-    mocker.patch("backend.routers.recipes.check_cache", return_value=None)
+async def test_get_recipe_by_url(client, mock_recipe):
+    # TODO: Use client that returns None object for check_cache
 
     async with client as c:
         url = quote(mock_recipe["url"])
@@ -51,9 +45,7 @@ async def test_get_recipe_by_url(mocker, client, mock_recipe):
 
 
 @pytest.mark.asyncio
-async def test_get_recipe_by_cache(mocker, client, mock_recipe):
-    mocker.patch("backend.routers.recipes.check_cache", return_value=mock_recipe)
-
+async def test_get_recipe_by_cache(client, mock_recipe):
     async with client as c:
         url = quote(mock_recipe["url"])
         response = await c.get(f"/recipes/{url}")
@@ -67,9 +59,7 @@ async def test_get_recipe_by_cache(mocker, client, mock_recipe):
 
 
 @pytest.mark.asyncio
-async def test_get_recipe_and_scale(mocker, client, mock_recipe):
-    mocker.patch("backend.routers.recipes.check_cache", return_value=mock_recipe)
-
+async def test_get_recipe_and_scale(client, mock_recipe):
     async with client as c:
         url = quote(mock_recipe["url"])
         serves = mock_recipe["servings"] * 2

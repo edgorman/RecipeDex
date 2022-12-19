@@ -1,11 +1,21 @@
 import pytest
 from httpx import AsyncClient
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+
 
 from backend.api import api
 
 
 @pytest.fixture(autouse=True, scope="function")
-def client():
+def client(mock_index, mock_recipe, mock_tags):
+    api.state.db = AsyncMock()
+    api.state.db.get_recipes = AsyncMock(return_value=mock_index)
+    api.state.db.recent_cache = AsyncMock(return_value=mock_index)
+    api.state.db.add_recipe = AsyncMock()
+    api.state.db.check_cache = MagicMock(return_value=mock_recipe)
+    api.state.db.get_tags = AsyncMock(return_value=mock_tags)
+
     return AsyncClient(app=api, base_url="http://test")
 
 

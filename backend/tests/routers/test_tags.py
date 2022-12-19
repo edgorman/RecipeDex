@@ -1,11 +1,8 @@
 import pytest
-from unittest.mock import AsyncMock
 
 
 @pytest.mark.asyncio
-async def test_get_all_recipes(mocker, client, mock_tags):
-    mocker.patch("backend.routers.tags.get_tags", side_effect=AsyncMock(return_value=mock_tags))
-
+async def test_get_all_recipes(client, mock_tags):
     async with client as c:
         response = await c.get("/tags/")
 
@@ -18,9 +15,7 @@ async def test_get_all_recipes(mocker, client, mock_tags):
 
 
 @pytest.mark.asyncio
-async def test_get_tags_by_key(mocker, client, mock_tags):
-    mocker.patch("backend.routers.tags.get_tags", side_effect=AsyncMock(return_value=mock_tags))
-
+async def test_get_tags_by_key(client, mock_tags):
     async with client as c:
         response = await c.get("/tags/?name=test")
 

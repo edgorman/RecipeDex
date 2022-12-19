@@ -53,8 +53,6 @@ class RecipeDex extends React.Component {
       fetch('http://127.0.0.1:5000/recipes/' + encodeURIComponent(url) + params)
         .then((response) => response.json())
         .then((data) => {
-          console.log(data);
-
           if (url in data.data) {
             resolve(data.data[url]);
           }

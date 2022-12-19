@@ -14,8 +14,6 @@ class Result extends React.Component {
   }
   
   render () {
-    console.log(this.props);
-
     if ("name" in this.props.value && "instruction_strs" in this.props.value) {
       const description = this.props.value.instruction_strs.join(" ").substring(0, 150)
 
