@@ -1,26 +1,5 @@
-### Nodejs ###
-# dependencies
-node_modules
-.pnp
-.pnp.js
-
-# testing
-coverage
-
-# production
-build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
+# Created by https://www.toptal.com/developers/gitignore/api/python,react
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,react
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -184,14 +163,30 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-### Vagrant ###
-# General
-.vagrant/
+### Python Patch ###
+# Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
+poetry.toml
 
-# Log files (if you are creating logs in debug mode, uncomment this)
-# *.log
+# ruff
+.ruff_cache/
 
-### Vagrant Patch ###
-*.box
+# LSP config files
+pyrightconfig.json
 
-# End of https://www.toptal.com/developers/gitignore/api/vagrant,python
+### react ###
+.DS_*
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
+package-lock.json
+
+*.sublime*
+
+psd
+thumb
+sketch
+
+# End of https://www.toptal.com/developers/gitignore/api/python,react
