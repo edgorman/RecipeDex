@@ -17,7 +17,7 @@ on:
         default: 'Manually triggered workflow'
 
 jobs:
-  build:
+  test-and-lint:
     runs-on: ubuntu-latest
 
     steps:
