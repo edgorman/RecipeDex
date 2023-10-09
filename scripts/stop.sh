@@ -1,4 +1,4 @@
 #!/bin/bash
 
 path="`dirname -- "$0"`/.."
-docker-compose -f "$path/docker-compose.yaml" stop
+docker-compose -f "$path/infra/docker-compose.yaml" stop
