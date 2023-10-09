@@ -1,6 +1,5 @@
 #!/bin/bash
 
 path="`dirname -- "$0"`/.."
-echo $path
-echo 'docker-compose -f "'$path'/infra/docker-compose.yaml" up -d --wait'
+echo $(ls -al)
 docker-compose -f "$path/infra/docker-compose.yaml" up -d --wait
