@@ -1,0 +1,33 @@
+# This workflow will test and lint the 
+
+name: Test and Lint CI
+
+on:
+  push:
+    branches: [ main, develop ]
+
+  pull_request:
+    branches: [ main, develop ]
+
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Test and Lint CI'
+        required: false
+        default: 'Manually triggered workflow'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: "Create docker containers"
+      run: ./scripts/create.sh
+
+    - name: "Test docker containers"
+      run: ./scripts/test.sh
+
+    - name: "Lint docker containers"
+      run: ./scripts/lint.sh
