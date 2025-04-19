@@ -1,8 +1,0 @@
-# required pacakges
-recipedex/.
-api/.
-
-# test and linting
-pytest
-flake8
-black
