@@ -1,6 +1,0 @@
-[run]
-omit = 
-    recipedex/tests/*
-    recipedex/__init__.py
-    recipedex/__main__.py
-    recipedex/setup.py
