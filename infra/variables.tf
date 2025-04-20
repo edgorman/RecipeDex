@@ -13,7 +13,7 @@ variable "gcp_project_zone" {
   sensitive = true
 }
 
-variable "gcp_terraform_service_account_credentials" {
+variable "gcp_terraform_cloud_service_account_credentials" {
   type      = string
   sensitive = true
 }
