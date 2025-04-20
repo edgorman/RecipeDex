@@ -27,6 +27,12 @@ provider "google-beta" {
   zone    = var.gcp_project_zone
 }
 
+resource "google_project_service" "cloudresourcemanager" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "cloudresourcemanager.googleapis.com"
+}
+
 resource "google_project_service" "serviceusage" {
   provider = google-beta
   project  = var.gcp_project_id
@@ -44,6 +50,7 @@ resource "google_project_service" "firebase" {
 #   project  = var.gcp_project_id
 
 #   depends_on = [
+#     google_project_service.cloudresourcemanager
 #     google_project_service.serviceusage,
 #     google_project_service.firebase,
 #   ]
