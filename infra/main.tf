@@ -16,32 +16,32 @@ terraform {
 }
 
 provider "google" {
-  project     = var.gcp_project_id
-  region      = var.gcp_project_region
-  zone        = var.gcp_project_zone
+  project = var.gcp_project_id
+  region  = var.gcp_project_region
+  zone    = var.gcp_project_zone
 }
 
 provider "google-beta" {
-  project     = var.gcp_project_id
-  region      = var.gcp_project_region
-  zone        = var.gcp_project_zone
+  project = var.gcp_project_id
+  region  = var.gcp_project_region
+  zone    = var.gcp_project_zone
 }
 
 resource "google_project_service" "serviceusage" {
-  provider           = google-beta.no_user_project_override
-  project            = var.gcp_project_id
-  service            = "serviceusage.googleapis.com"
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "serviceusage.googleapis.com"
 }
 
 resource "google_project_service" "firebase" {
-  provider           = google-beta
-  service            = "firebase.googleapis.com"
-  project            = var.gcp_project_id
+  provider = google-beta
+  service  = "firebase.googleapis.com"
+  project  = var.gcp_project_id
 }
 
 resource "google_firebase_project" "default" {
   provider = google-beta
-  project = var.gcp_project_id
+  project  = var.gcp_project_id
 
   depends_on = [
     google_project_service.serviceusage,
