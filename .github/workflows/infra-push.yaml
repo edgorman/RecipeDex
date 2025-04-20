@@ -34,16 +34,16 @@ jobs:
       - id: upload
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: ${{ env.TF_DIRECTORY }}
-          speculative: true
+          workspace: ${{ secrets.TF_WORKSPACE }}
+          directory: ${{ secrets.TF_DIRECTORY }}
+          speculative: false
 
       - id: create
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: ${{ secrets.TF_WORKSPACE }}
           configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
-          plan_only: true
+          plan_only: false
 
       - id: plan
         uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
