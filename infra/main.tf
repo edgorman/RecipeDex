@@ -5,6 +5,14 @@ terraform {
       version = "5.10.0"
     }
   }
+
+  cloud {
+    # can't be stored as secret
+    organization = "recipedex"
+    workspaces {
+      tags = ["gcp"]
+    }
+  }
 }
 
 provider "google" {

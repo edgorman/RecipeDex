@@ -1,0 +1,58 @@
+name: Infra Push Event
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
+  TF_DIRECTORY: "./infra"
+
+  TF_VAR_gcp_project_id: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+  TF_VAR_gcp_project_region: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
+  TF_VAR_gcp_project_zone: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
+  TF_VAR_gcp_terraform_cloud_service_account_credentials: ${{ secrets.TF_VAR_GCP_TERRAFORM_CLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    environment: ${{ inputs.environment }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+      
+      - id: upload
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.TF_DIRECTORY }}
+          speculative: true
+
+      - id: create
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
+          plan_only: true
+
+      - id: plan
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
+        with:
+          plan: ${{ fromJSON(steps.create.outputs.payload).data.relationships.plan.data.id }}
+    
+      - id: apply
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.create.outputs.payload).data.attributes.actions.IsConfirmable
+        with:
+          run: ${{ steps.create.outputs.run_id }}
+          comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
