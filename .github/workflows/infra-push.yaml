@@ -58,8 +58,8 @@ jobs:
           run: ${{ steps.create.outputs.run_id }}
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
 
-  delete-deployments:
-    uses: ./.github/workflows/delete-deployments.yaml
+  delete-deployment:
+    uses: ./.github/workflows/delete-deployment.yaml
     needs: terraform-apply
     if: ${{ always() }}
     with:

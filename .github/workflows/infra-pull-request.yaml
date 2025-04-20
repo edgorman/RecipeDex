@@ -85,8 +85,8 @@ jobs:
                 body: output
             });
 
-  delete-deployments:
-    uses: ./.github/workflows/delete-deployments.yaml
+  delete-deployment:
+    uses: ./.github/workflows/delete-deployment.yaml
     needs: terraform-plan
     if: ${{ always() }}
     with:
