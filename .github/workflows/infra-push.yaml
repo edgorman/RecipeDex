@@ -22,7 +22,7 @@ env:
 jobs:
   terraform-apply:
     name: Terraform Apply
-    environment: ${{ github.event.pull_request.base.ref == 'main' && 'prod' || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
     runs-on: ubuntu-latest
     permissions:
@@ -57,3 +57,10 @@ jobs:
         with:
           run: ${{ steps.create.outputs.run_id }}
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
+
+  delete-deployment:
+    uses: ./.github/workflows/delete-deployment.yaml
+    needs: terraform-apply
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.sha }}
