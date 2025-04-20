@@ -39,19 +39,22 @@ resource "google_project_service" "serviceusage" {
   service  = "serviceusage.googleapis.com"
 }
 
-# resource "google_project_service" "firebase" {
-#   provider = google-beta
-#   service  = "firebase.googleapis.com"
-#   project  = var.gcp_project_id
-# }
+resource "google_project_service" "firebase" {
+  provider = google-beta
+  service  = "firebase.googleapis.com"
+  project  = var.gcp_project_id
 
-# resource "google_firebase_project" "default" {
-#   provider = google-beta
-#   project  = var.gcp_project_id
+  depends_on = [ 
+    google_project_service.cloudresourcemanager,
+    google_project_service.serviceusage
+  ]
+}
 
-#   depends_on = [
-#     google_project_service.cloudresourcemanager
-#     google_project_service.serviceusage,
-#     google_project_service.firebase,
-#   ]
-# }
+resource "google_firebase_project" "default" {
+  provider = google-beta
+  project  = var.gcp_project_id
+
+  depends_on = [
+    google_project_service.firebase,
+  ]
+}
