@@ -68,10 +68,7 @@ jobs:
                 return comment.user.type === 'Bot' && comment.body.includes('Terraform Cloud Plan Output')
             });
             const output = `#### Terraform Cloud Plan Output
-                \`\`\`
                 Plan: ${{ steps.plan.outputs.add }} to add, ${{ steps.plan.outputs.change }} to change, ${{ steps.plan.outputs.destroy }} to destroy.
-                \`\`\`
-                [Terraform Cloud Plan](${{ steps.create.outputs.run_link }})
                 `;
             // Delete previous comment so PR timeline makes sense
             if (botComment) {
@@ -88,8 +85,11 @@ jobs:
                 body: output
             });
 
-      - id: delete
-        uses: actions/github-script@v6
+  delete-deployments:
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    steps:
+      - uses: actions/github-script@v6
         env:
           GITHUB_SHA_HEAD: ${{ github.event.pull_request.head.sha }}
         with:
