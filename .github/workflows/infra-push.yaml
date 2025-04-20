@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - "./infra"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}

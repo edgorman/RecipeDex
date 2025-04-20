@@ -21,3 +21,12 @@ provider "google" {
   zone        = var.gcp_project_zone
   credentials = var.gcp_terraform_cloud_service_account_credentials
 }
+
+resource "google_project_service" "firebase" {
+  service = "firebase.googleapis.com"
+  project = var.gcp_project_id
+}
+
+resource "google_firebase_project" "default" {
+  project = var.gcp_project_id
+}
