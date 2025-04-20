@@ -13,6 +13,7 @@ env:
   TF_DIRECTORY: "./infra"
   TF_LOCAL_DIRECTORY: "./infra"
 
+  # All TF_VARs must be quoted with `"`
   TF_VAR_gcp_project_id: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
   TF_VAR_gcp_project_region: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
   TF_VAR_gcp_project_zone: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
@@ -85,3 +86,31 @@ jobs:
                 repo: context.repo.repo,
                 body: output
             });
+
+      - id: delete
+        uses: actions/github-script@v6
+        env:
+          GITHUB_SHA_HEAD: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const { GITHUB_SHA_HEAD } = process.env
+            const deployments = await github.rest.repos.listDeployments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: GITHUB_SHA_HEAD
+            });
+            await Promise.all(
+              deployments.data.map(async (deployment) => {
+                await github.rest.repos.createDeploymentStatus({ 
+                  owner: context.repo.owner, 
+                  repo: context.repo.repo, 
+                  deployment_id: deployment.id, 
+                  state: 'inactive' 
+                });
+                return github.rest.repos.deleteDeployment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id
+                });
+              })
+            );
