@@ -1,7 +1,7 @@
 name: Infra Push Event
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - develop
@@ -20,7 +20,7 @@ env:
 jobs:
   terraform-apply:
     name: Terraform Apply
-    environment: ${{ inputs.environment }}
+    environment: ${{ github.event.pull_request.base.ref == 'main' && 'prod' || 'dev' }}
 
     runs-on: ubuntu-latest
     permissions:
