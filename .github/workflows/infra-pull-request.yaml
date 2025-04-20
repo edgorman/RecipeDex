@@ -1,0 +1,119 @@
+name: Infra Pull Request Event
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
+  TF_DIRECTORY: "./infra"
+  TF_LOCAL_DIRECTORY: "./infra"
+
+  # All TF_VARs must be quoted with `"`
+  TF_VAR_gcp_project_id: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+  TF_VAR_gcp_project_region: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
+  TF_VAR_gcp_project_zone: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
+  TF_VAR_gcp_terraform_cloud_service_account_credentials: ${{ secrets.TF_VAR_GCP_TERRAFORM_CLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    environment: ${{ github.event.pull_request.base.ref == 'main' && 'prod' || 'dev' }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+      
+      - id: upload
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.TF_DIRECTORY }}
+          speculative: true
+
+      - id: create
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
+          plan_only: true
+
+      - id: plan
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
+        with:
+          plan: ${{ fromJSON(steps.create.outputs.payload).data.relationships.plan.data.id }}
+    
+      - id: output
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+            });
+            const botComment = comments.find(comment => {
+                return comment.user.type === 'Bot' && comment.body.includes('Terraform Cloud Plan Output')
+            });
+            const output = `#### Terraform Cloud Plan Output
+                Plan: ${{ steps.plan.outputs.add }} to add, ${{ steps.plan.outputs.change }} to change, ${{ steps.plan.outputs.destroy }} to destroy.
+                `;
+            // Delete previous comment so PR timeline makes sense
+            if (botComment) {
+                github.rest.issues.deleteComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: botComment.id,
+                });
+            }
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+            });
+
+  delete-deployments:
+    name: Delete Deployments
+    needs: terraform-plan
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        env:
+          GITHUB_SHA_HEAD: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const { GITHUB_SHA_HEAD } = process.env
+            const deployments = await github.rest.repos.listDeployments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: GITHUB_SHA_HEAD
+            });
+            await Promise.all(
+              deployments.data.map(async (deployment) => {
+                await github.rest.repos.createDeploymentStatus({ 
+                  owner: context.repo.owner, 
+                  repo: context.repo.repo, 
+                  deployment_id: deployment.id, 
+                  state: 'inactive' 
+                });
+                return github.rest.repos.deleteDeployment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id
+                });
+              })
+            );
