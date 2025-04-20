@@ -39,11 +39,11 @@ resource "google_project_service" "serviceusage" {
   service  = "serviceusage.googleapis.com"
 }
 
-resource "google_project_service" "firebase" {
-  provider = google-beta
-  service  = "firebase.googleapis.com"
-  project  = var.gcp_project_id
-}
+# resource "google_project_service" "firebase" {
+#   provider = google-beta
+#   service  = "firebase.googleapis.com"
+#   project  = var.gcp_project_id
+# }
 
 # resource "google_firebase_project" "default" {
 #   provider = google-beta
