@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - "./infra"
+      - "infra/**"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
