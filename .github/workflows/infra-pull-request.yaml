@@ -86,8 +86,10 @@ jobs:
             });
 
   delete-deployments:
-    runs-on: ubuntu-latest
+    name: Delete Deployments
     needs: terraform-plan
+
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
         env:
