@@ -22,7 +22,7 @@ env:
 jobs:
   terraform-plan:
     name: Terraform Plan
-    environment: ${{ github.event.pull_request.base.ref == 'main' && 'prod' || 'dev' }}
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
 
     runs-on: ubuntu-latest
     permissions:

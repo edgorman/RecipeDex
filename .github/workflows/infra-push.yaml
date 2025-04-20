@@ -22,7 +22,7 @@ env:
 jobs:
   terraform-apply:
     name: Terraform Apply
-    environment: ${{ github.event.pull_request.base.ref == 'main' && 'prod' || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
     runs-on: ubuntu-latest
     permissions:
