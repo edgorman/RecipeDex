@@ -38,6 +38,9 @@ override.tf.json
 terraform.rc
 
 ### Node ###
+# Build directory
+app/build
+
 # Logs
 logs
 *.log
