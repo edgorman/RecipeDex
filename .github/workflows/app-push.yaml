@@ -1,0 +1,44 @@
+name: App Push Event
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "app/**"
+      - ".github/workflows/app-push.yaml"
+
+jobs:
+  build-app:
+    name: Build App
+    uses: ./.github/workflows/build-app.yaml
+
+  deploy-live:
+    name: Deploy Live
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    needs: build-app
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app
+          path: .
+
+      - id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          channelId: live
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+  delete-deployment:
+    name: Delete Deployment
+    uses: ./.github/workflows/delete-deployment.yaml
+
+    needs: deploy-live
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.sha }}
