@@ -19,22 +19,18 @@ jobs:
       - id: checkout
         uses: actions/checkout@v3
       
-      - id: install
+      - id: setup
         uses: actions/setup-node@v3
         with:
           node-version: 23.11
-      
-      - id: lint
-        run: |
-          npm run lint --prefix app
 
-      - id: test
+      - id: run
         run: |
-          CI=true npm run test --prefix app
-      
-      - id: build
-        run: |
-          npm run build --prefix app
+          cd app
+          npm install
+          npm run lint
+          CI=true npm run test
+          npm run build
       
       - id: upload
         uses: actions/upload-artifact@v4
