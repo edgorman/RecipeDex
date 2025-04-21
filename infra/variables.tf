@@ -13,7 +13,7 @@ variable "gcp_project_zone" {
   sensitive = true
 }
 
-variable "gcp_terraform_cloud_service_account_credentials" {
+variable "GOOGLE_CREDENTIALS" {
   type      = string
   sensitive = true
 }

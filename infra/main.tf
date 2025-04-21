@@ -16,8 +16,45 @@ terraform {
 }
 
 provider "google" {
-  project     = var.gcp_project_id
-  region      = var.gcp_project_region
-  zone        = var.gcp_project_zone
-  credentials = var.gcp_terraform_cloud_service_account_credentials
+  project = var.gcp_project_id
+  region  = var.gcp_project_region
+  zone    = var.gcp_project_zone
+}
+
+provider "google-beta" {
+  project = var.gcp_project_id
+  region  = var.gcp_project_region
+  zone    = var.gcp_project_zone
+}
+
+resource "google_project_service" "cloudresourcemanager" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "cloudresourcemanager.googleapis.com"
+}
+
+resource "google_project_service" "serviceusage" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "serviceusage.googleapis.com"
+}
+
+resource "google_project_service" "firebase" {
+  provider = google-beta
+  service  = "firebase.googleapis.com"
+  project  = var.gcp_project_id
+
+  depends_on = [ 
+    google_project_service.cloudresourcemanager,
+    google_project_service.serviceusage
+  ]
+}
+
+resource "google_firebase_project" "default" {
+  provider = google-beta
+  project  = var.gcp_project_id
+
+  depends_on = [
+    google_project_service.firebase,
+  ]
 }

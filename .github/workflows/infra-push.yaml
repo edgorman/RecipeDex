@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra-push.yaml"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
@@ -17,7 +20,7 @@ env:
   TF_VAR_gcp_project_id: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
   TF_VAR_gcp_project_region: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
   TF_VAR_gcp_project_zone: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
-  TF_VAR_gcp_terraform_cloud_service_account_credentials: ${{ secrets.TF_VAR_GCP_TERRAFORM_CLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
+  # GOOGLE_CREDENTIALS must be set in terraform ui
 
 jobs:
   terraform-apply:
