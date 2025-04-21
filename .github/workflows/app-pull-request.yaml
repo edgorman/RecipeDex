@@ -11,7 +11,13 @@ on:
 
 jobs:
   deploy-preview:
+    name: Deploy Preview
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: app
 
     steps:
       - id: checkout
@@ -21,6 +27,16 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           expires: 1d
-          projectId: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          entryPoint: app
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+  delete-deployment:
+    name: Delete Deployment
+    uses: ./.github/workflows/delete-deployment.yaml
+
+    needs: deploy-preview
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}

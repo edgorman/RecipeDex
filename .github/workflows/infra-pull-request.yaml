@@ -89,7 +89,9 @@ jobs:
             });
 
   delete-deployment:
+    name: Delete Deployment
     uses: ./.github/workflows/delete-deployment.yaml
+
     needs: terraform-plan
     if: ${{ always() }}
     with:

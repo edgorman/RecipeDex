@@ -11,9 +11,15 @@ on:
 
 jobs:
   deploy-live:
+    name: Terraform Apply
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+
+    defaults:
+      run:
+        working-directory: app
 
     steps:
       - id: checkout
@@ -23,5 +29,15 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           channelId: live
-          projectId: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          entryPoint: app
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+  delete-deployment:
+    name: Delete Deployment
+    uses: ./.github/workflows/delete-deployment.yaml
+
+    needs: deploy-live
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.sha }}
