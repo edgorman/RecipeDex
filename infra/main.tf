@@ -58,3 +58,10 @@ resource "google_firebase_project" "default" {
     google_project_service.firebase,
   ]
 }
+
+resource "google_firebase_web_app" "default" {
+  provider = google-beta
+  project  = google_firebase_project.default.project
+
+  display_name = var.firebase_app_name
+}
