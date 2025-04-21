@@ -10,26 +10,51 @@ on:
       - ".github/workflows/app-push.yaml"
 
 jobs:
-  deploy-live:
-    name: Deploy Live
-    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+  build-app:
+    name: Build App
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-
-    defaults:
-      run:
-        working-directory: app
 
     steps:
       - id: checkout
         uses: actions/checkout@v3
+      
+      - id: setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23.11
+
+      - id: run
+        run: |
+          cd app
+          npm install
+          npm run lint
+          CI=true npm run test
+          npm run build
+      
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: app/build
+
+  deploy-live:
+    name: Deploy Live
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    needs: build-app
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app
+          path: .
 
       - id: deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           channelId: live
-          entryPoint: app
           projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
 
