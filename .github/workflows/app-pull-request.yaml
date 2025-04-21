@@ -1,0 +1,26 @@
+name: App Pull Request Event
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "app/**"
+      - ".github/workflows/app-pull-request.yaml"
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          expires: 1d
+          projectId: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
