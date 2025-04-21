@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy-live:
-    name: Terraform Apply
+    name: Deploy Live
     environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
     permissions:
