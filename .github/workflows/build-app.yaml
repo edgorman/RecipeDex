@@ -1,0 +1,43 @@
+name: Build App
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '23.11'
+        type: string
+    outputs:
+      artifact-name:
+        description: 'The name of the uploaded artifact'
+        value: app
+
+jobs:
+  build-app:
+    name: Build App
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - id: run
+        run: |
+          cd app
+          npm install
+          npm run lint
+          CI=true npm run test
+          npm run build
+
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: app/build
