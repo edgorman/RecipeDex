@@ -65,3 +65,6 @@ resource "google_firebase_web_app" "default" {
 
   display_name = var.firebase_app_name
 }
+
+# Note: enabling authentication in firebase must be done through firebase console
+# see https://firebase.google.com/codelabs/firebase-terraform#5

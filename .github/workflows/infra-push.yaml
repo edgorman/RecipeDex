@@ -62,7 +62,9 @@ jobs:
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
 
   delete-deployment:
+    name: Delete Deployment
     uses: ./.github/workflows/delete-deployment.yaml
+
     needs: terraform-apply
     if: ${{ always() }}
     with:
