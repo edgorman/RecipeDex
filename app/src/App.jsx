@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-// import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
 import { Container, Box, Typography } from '@material-ui/core';
+import { getAuth, onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+
 import { Header } from './components/Header/Header';
 import { Recipe } from './components/Recipe/Recipe';
 import { Chat } from './components/Chat/Chat';
@@ -23,27 +26,44 @@ const sampleRecipe = {
   ]
 };
 
-const sampleUser = {
-  id: "123",
-  name: "Edward",
-  email: "user@example.com"
+const firebaseConfig = require('./config/firebase.json');
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
+const firebaseAuth = getAuth();
+const googleProvider = new GoogleAuthProvider();
 
 export default function App() {
-  // const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
   const [recipe, setRecipe] = useState(null);
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState([]);
 
-  const handleLogin = () => {
-    if (user !== null) {
-      // navigate("/user");
-      setUser(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          displayName: firebaseUser.displayName,
+          email: firebaseUser.email,
+          uid: firebaseUser.uid,
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    if (user) {
+      await signOut(firebaseAuth);
     } else {
-      // navigate("/login");
-      setUser(sampleUser);
+      try {
+        await signInWithPopup(firebaseAuth, googleProvider);
+      } catch (error) {
+        console.error("Login failed:", error);
+      }
     }
   };
 
@@ -72,34 +92,27 @@ export default function App() {
 
   return (
     <Container className="container" maxWidth="sm">
-      <Header 
-        user={user}
-        onLogin={handleLogin}
-      />
+      <Header user={user} onLogin={handleLogin} />
       <Box className="content" justifyContent={recipe ? "flex-start" : "center"}>
         {recipe ? (
-          <Recipe 
-            recipe={recipe} 
+          <Recipe
+            recipe={recipe}
             onIngredientChange={handleIngredientChange}
             onInstructionChange={handleInstructionChange}
           />
         ) : (
           <>
             <Typography variant="subtitle1">
-              Welcome {user ? (
-                `back ${user.name}!`
-              ) : (
-                "to RecipeDex!"
-              )}
+              Welcome {user ? (`back ${user.displayName}!`) : ("to RecipeDex!")}
             </Typography>
-            <br/>
+            <br />
             <Typography variant="subtitle1">
-              Ask to generate a recipe,<br/>or import one from a URL or image.
+              Ask to generate a recipe,<br />or import one from a URL or image.
             </Typography>
           </>
         )}
       </Box>
-      <Chat 
+      <Chat
         chatInput={chatInput}
         onInputChange={setChatInput}
         onSend={handleSend}
