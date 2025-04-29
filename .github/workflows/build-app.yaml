@@ -28,12 +28,18 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
 
-      - id: run
+      - id: config
         run: |
           cd app
+          echo "${{ secrets.FIREBASE_APP_CONFIG }}" > firebase-config.json
+
+      - id: run
+        env:
+          CI: true
+        run: |
           npm install
           npm run lint
-          CI=true npm run test
+          npm run test
           npm run build
 
       - id: upload

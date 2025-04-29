@@ -1,3 +1,6 @@
+### Firebase ###
+app/firebase-config.json
+
 ### Terraform ###
 # .lock files
 *.lock.hcl
