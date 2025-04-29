@@ -31,7 +31,7 @@ jobs:
       - id: config
         run: |
           cd app
-          echo "${{ secrets.FIREBASE_APP_CONFIG }}" > firebase-config.json
+          echo "${{ secrets.FIREBASE_APP_CONFIG }}" > src/config/firebase.json
 
       - id: run
         env:
