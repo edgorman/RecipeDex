@@ -7,8 +7,8 @@ import {
   IconButton,
   ListItemText,
   ListItemIcon,
-} from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
+} from '@material-ui/core';
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
 
 export function Ingredients({ recipe, onIngredientChange }) {
   const [open, setOpen] = useState(true);

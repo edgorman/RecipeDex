@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, TextField, IconButton } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import { Box, TextField, IconButton } from '@material-ui/core';
+import SendIcon from '@material-ui/icons/Send';
 import { Message } from './Message';
 
 export function Chat({ chatInput, onInputChange, onSend, messages }) {

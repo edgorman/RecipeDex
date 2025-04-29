@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router-dom";
-import { Container, Box, Typography } from '@mui/material';
+import { Container, Box, Typography } from '@material-ui/core';
 import { Header } from './components/Header/Header';
 import { Recipe } from './components/Recipe/Recipe';
 import { Chat } from './components/Chat/Chat';
@@ -48,8 +48,6 @@ export default function App() {
   };
 
   const handleSend = () => {
-    console.log("message");
-
     if (chatInput.trim()) {
       setMessages(prev => [...prev, { sender: "user", text: chatInput }]);
       setChatInput("");
@@ -87,14 +85,15 @@ export default function App() {
           />
         ) : (
           <>
-            <Typography variant="h7">
+            <Typography variant="subtitle1">
               Welcome {user ? (
                 `back ${user.name}!`
               ) : (
                 "to RecipeDex!"
               )}
             </Typography>
-            <Typography variant="h7" marginTop={5}>
+            <br/>
+            <Typography variant="subtitle1">
               Ask to generate a recipe,<br/>or import one from a URL or image.
             </Typography>
           </>
