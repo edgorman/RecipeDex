@@ -41,6 +41,7 @@ jobs:
           CI: true
         run: |
           cd app
+          npm cache clean --force
           npm install
           npm run lint
           npm run test
