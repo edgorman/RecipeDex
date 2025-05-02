@@ -34,7 +34,7 @@ jobs:
       - id: config
         run: |
           mkdir -p app/src/config
-          echo "${{ secrets.FIREBASE_APP_CONFIG }}" > app/src/config/firebase.json
+          echo '${{ secrets.FIREBASE_APP_CONFIG }}' > app/src/config/firebase.json
 
       - id: run
         env:
