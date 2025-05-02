@@ -13,6 +13,8 @@ jobs:
   build-app:
     name: Build App
     uses: ./.github/workflows/build-app.yaml
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
 
   deploy-live:
     name: Deploy Live

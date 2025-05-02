@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography } from '@material-ui/core';
 import { Tags } from './Tags';
 import { Ingredients } from './Ingredients';
 import { Instructions } from './Instructions';
