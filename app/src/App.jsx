@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Container, Box, Typography } from '@material-ui/core';
-import { getAuth, onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider, getRedirectResult } from 'firebase/auth';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
@@ -40,19 +40,25 @@ export default function App() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
-      if (firebaseUser) {
-        setUser({
-          displayName: firebaseUser.displayName,
-          email: firebaseUser.email,
-          uid: firebaseUser.uid,
+    getRedirectResult(firebaseAuth)
+      .catch((error) => {
+        console.error("Error getting redirect result:", error);
+      })
+      .finally(() => {
+        const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+          if (firebaseUser) {
+            setUser({
+              displayName: firebaseUser.displayName,
+              email: firebaseUser.email,
+              uid: firebaseUser.uid,
+            });
+          } else {
+            setUser(null);
+          }
         });
-      } else {
-        setUser(null);
-      }
-    });
 
-    return () => unsubscribe();
+        return () => unsubscribe();
+      });
   }, []);
 
   const handleLogin = async () => {
@@ -60,7 +66,7 @@ export default function App() {
       await signOut(firebaseAuth);
     } else {
       try {
-        await signInWithPopup(firebaseAuth, googleProvider);
+        await signInWithRedirect(firebaseAuth, googleProvider);
       } catch (error) {
         console.error("Login failed:", error);
       }
