@@ -1,134 +1,64 @@
 import { useEffect, useState } from 'react';
-import { Container, Box, Typography } from '@material-ui/core';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
-  getRedirectResult,
   onAuthStateChanged,
-  signInWithRedirect,
-  signOut,
   GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
 } from 'firebase/auth';
 
-import { Header } from './components/Header/Header';
-import { Recipe } from './components/Recipe/Recipe';
-import { Chat } from './components/Chat/Chat';
-import './App.css';
-
-const sampleRecipe = {
-  name: "Potato Leek Frittata",
-  description: "A simple and delicious frittata made with potatoes and leeks.",
-  serves: 4,
-  prepTime: "15 minutes",
-  cookTime: "30 minutes",
-  totalTime: "45 minutes",
-  difficulty: "Easy",
-  cuisine: "French",
-  dietaryRestrictions: ["Vegetarian", "Gluten-Free"],
-  ingredients: ["1 potato", "1 leek", "5 eggs"],
-  instructions: [
-    "cut the potato", "cut the leek", "fry it all", "profit",
-    "cut the potato", "cut the leek", "fry it all", "profit"
-  ]
-};
-
+// TODO: Replace with your Firebase project config
 const firebaseConfig = require('./config/firebase.json');
-firebaseConfig.authDomain = "localhost:3000";
-const firebaseApp = initializeApp(firebaseConfig);
-const firebaseAuth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
+firebaseConfig.authDomain = 'recipedex-dev--pr73-feat-firebase-auth-wfv9krld.web.app';
 
-export default function App() {
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+export default function FirebaseAuthRedirect() {
   const [user, setUser] = useState(null);
-  const [recipe, setRecipe] = useState(null);
-  const [chatInput, setChatInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [error, setError] = useState(null);
 
+  // Handle redirect result on mount
   useEffect(() => {
-    getRedirectResult(firebaseAuth)
-      .catch((error) => {
-        console.error("Error getting redirect result:", error);
-      })
-      .finally(() => {
-        const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
-          if (firebaseUser) {
-            setUser({
-              displayName: firebaseUser.displayName,
-              email: firebaseUser.email,
-              uid: firebaseUser.uid,
-            });
-          } else {
-            setUser(null);
-          }
-        });
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
 
-        return () => unsubscribe();
-      });
+    // Also check for redirect errors
+    getRedirectResult(auth).catch((err) => {
+      if (err) setError(err);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleLogin = async () => {
-    if (user) {
-      await signOut(firebaseAuth);
-    } else {
-      try {
-        await signInWithRedirect(firebaseAuth, googleProvider);
-      } catch (error) {
-        console.error("Login failed:", error);
-      }
-    }
+  const handleLogin = () => {
+    signInWithRedirect(auth, provider);
   };
 
-  const handleSend = () => {
-    if (chatInput.trim()) {
-      setMessages(prev => [...prev, { sender: "user", text: chatInput }]);
-      setChatInput("");
-      setTimeout(() => {
-        setRecipe(sampleRecipe);
-        setMessages(prev => [...prev, { sender: "ai", text: "Here's a suggestion to tweak your recipe." }]);
-      }, 1000);
-    }
-  };
-
-  const handleIngredientChange = (index, value) => {
-    const newIngredients = [...recipe.ingredients];
-    newIngredients[index] = value;
-    setRecipe({ ...recipe, ingredients: newIngredients });
-  };
-
-  const handleInstructionChange = (index, value) => {
-    const newInstructions = [...recipe.instructions];
-    newInstructions[index] = value;
-    setRecipe({ ...recipe, instructions: newInstructions });
+  const handleLogout = () => {
+    signOut(auth);
   };
 
   return (
-    <Container className="container" maxWidth="sm">
-      <Header user={user} onLogin={handleLogin} />
-      <Box className="content" justifyContent={recipe ? "flex-start" : "center"}>
-        {recipe ? (
-          <Recipe
-            recipe={recipe}
-            onIngredientChange={handleIngredientChange}
-            onInstructionChange={handleInstructionChange}
-          />
-        ) : (
-          <>
-            <Typography variant="subtitle1">
-              Welcome {user ? (`back ${user.displayName}!`) : ("to RecipeDex!")}
-            </Typography>
-            <br />
-            <Typography variant="subtitle1">
-              Ask to generate a recipe,<br />or import one from a URL or image.
-            </Typography>
-          </>
-        )}
-      </Box>
-      <Chat
-        chatInput={chatInput}
-        onInputChange={setChatInput}
-        onSend={handleSend}
-        messages={messages.slice(-2)}
-      />
-    </Container>
+    <div className="p-4 max-w-sm mx-auto border rounded">
+      {error && <p className="text-red-500">Error: {error.message}</p>}
+      {user ? (
+        <div>
+          <p>Welcome, {user.displayName}</p>
+          <button onClick={handleLogout} className="mt-2 px-4 py-2 bg-gray-200 rounded">
+            Logout
+          </button>
+        </div>
+      ) : (
+        <button onClick={handleLogin} className="px-4 py-2 bg-blue-500 text-white rounded">
+          Sign in with Google
+        </button>
+      )}
+    </div>
   );
 }
