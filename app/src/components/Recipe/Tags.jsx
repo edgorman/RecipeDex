@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Chip } from '@material-ui/core';
 
 export function Tags({ recipe }) {

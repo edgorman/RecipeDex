@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, TextField, IconButton } from '@material-ui/core';
 import SendIcon from '@material-ui/icons/Send';
 import { Message } from './Message';
