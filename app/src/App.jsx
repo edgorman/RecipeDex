@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Container, Box, Typography } from '@material-ui/core';
-import { getAuth, onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider, getRedirectResult } from 'firebase/auth';
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  getRedirectResult,
+  onAuthStateChanged,
+  signInWithRedirect,
+  signOut,
+  GoogleAuthProvider,
+} from 'firebase/auth';
 
 import { Header } from './components/Header/Header';
 import { Recipe } from './components/Recipe/Recipe';
@@ -27,10 +33,9 @@ const sampleRecipe = {
 };
 
 const firebaseConfig = require('./config/firebase.json');
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-const firebaseAuth = getAuth();
+firebaseConfig.authDomain = "localhost:3000";
+const firebaseApp = initializeApp(firebaseConfig);
+const firebaseAuth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
 export default function App() {
