@@ -1,4 +1,4 @@
-name: Infra Pull Request Event
+name: Infrastructure Pull Request Event
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - "infra/**"
+      - "infrastructure/**"
       - ".github/workflows/infra-pull-request.yaml"
 
 env:

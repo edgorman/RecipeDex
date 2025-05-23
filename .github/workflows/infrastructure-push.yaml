@@ -1,4 +1,4 @@
-name: Infra Push Event
+name: Infrastructure Push Event
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - "infra/**"
+      - "infrastructure/**"
       - ".github/workflows/infra-push.yaml"
 
 env:
