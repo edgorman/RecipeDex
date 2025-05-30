@@ -7,7 +7,7 @@ on:
       - develop
     paths:
       - "infrastructure/**"
-      - ".github/workflows/infra-push.yaml"
+      - ".github/workflows/infrastructure-push.yaml"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
@@ -61,9 +61,9 @@ jobs:
           run: ${{ steps.create.outputs.run_id }}
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
 
-  delete-deployment:
-    name: Delete Deployment
-    uses: ./.github/workflows/delete-deployment.yaml
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
 
     needs: terraform-apply
     if: ${{ always() }}

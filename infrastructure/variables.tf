@@ -17,3 +17,8 @@ variable "GOOGLE_CREDENTIALS" {
   type      = string
   sensitive = true
 }
+
+variable "firebase_app_name" {
+  type    = string
+  default = "RecipeDex"
+}
