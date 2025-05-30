@@ -10,16 +10,16 @@ on:
       - ".github/workflows/frontend-push.yaml"
 
 jobs:
-  build-frontend:
-    name: Build Frontend
-    uses: ./.github/workflows/build-frontend.yaml
+  frontend-build:
+    name: Frontend Build
+    uses: ./.github/workflows/frontend-build.yaml
     secrets:
       FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
 
   deploy-live:
     name: Deploy Live
     environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
-    needs: build-frontend
+    needs: frontend-build
     runs-on: ubuntu-latest
 
     steps:

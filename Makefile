@@ -12,16 +12,16 @@ frontend-clean: ## clean the frontend
 
 .PHONY: frontend-lint
 frontend-lint: ## lint the frontend
-	@npm --prefix frontend lint
+	@npm --prefix frontend run lint
 
 .PHONY: frontend-test
 frontend-test: ## test the frontend
-	@npm --prefix frontend test
+	@npm --prefix frontend run test
 
 .PHONY: frontend-build
 frontend-build: ## build the frontend
-	@npm --prefix frontend build
+	@npm --prefix frontend run build
 
 .PHONY: frontend-run
 frontend-run: ## run the frontend
-	@npm --prefix frontend start
+	@npm --prefix frontend run start
