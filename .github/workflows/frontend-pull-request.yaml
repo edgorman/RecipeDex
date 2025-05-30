@@ -1,0 +1,47 @@
+name: Frontend Pull Request Event
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-pull-request.yaml"
+
+jobs:
+  frontend-build:
+    name: Frontend Build
+    uses: ./.github/workflows/frontend-build.yaml
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+
+  deploy-preview:
+    name: Deploy Preview
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    needs: frontend-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: .
+
+      - id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          expires: 1d
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+
+    needs: deploy-preview
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}
