@@ -42,11 +42,7 @@ terraform.rc
 
 ### Node ###
 # Build directory
-<<<<<<< HEAD
-app/build
-=======
 frontend/build
->>>>>>> develop
 
 # Logs
 logs
