@@ -1,0 +1,46 @@
+name: Frontend Push Event
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-push.yaml"
+
+jobs:
+  build-frontend:
+    name: Build Frontend
+    uses: ./.github/workflows/build-frontend.yaml
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+
+  deploy-live:
+    name: Deploy Live
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    needs: build-frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: .
+
+      - id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          channelId: live
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+
+    needs: deploy-live
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.sha }}

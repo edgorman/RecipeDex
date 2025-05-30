@@ -7,7 +7,7 @@ on:
       - develop
     paths:
       - "infrastructure/**"
-      - ".github/workflows/infra-pull-request.yaml"
+      - ".github/workflows/infrastructure-pull-request.yaml"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
@@ -88,9 +88,9 @@ jobs:
                 body: output
             });
 
-  delete-deployment:
-    name: Delete Deployment
-    uses: ./.github/workflows/delete-deployment.yaml
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
 
     needs: terraform-plan
     if: ${{ always() }}
