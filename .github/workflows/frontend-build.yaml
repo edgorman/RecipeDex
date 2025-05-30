@@ -1,0 +1,53 @@
+name: Frontend Build Workflow
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '23.11'
+        type: string
+    secrets:
+      FIREBASE_APP_CONFIG:
+        required: true
+    outputs:
+      artifact-name:
+        description: 'The name of the uploaded artifact'
+        value: frontend
+
+jobs:
+  frontend-build:
+    name: Frontend Build
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - id: config
+        run: |
+          mkdir -p frontend/src/config
+          echo '${{ secrets.FIREBASE_APP_CONFIG }}' > frontend/src/config/firebase.json
+
+      - id: run
+        env:
+          CI: true
+        run: |
+          make frontend-clean
+          make frontend-install
+          make frontend-lint
+          make frontend-test
+          make frontend-build
+
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: frontend/build

@@ -1,4 +1,4 @@
-name: Delete Deployments
+name: GitHub Cleanup
 
 on:
   workflow_call:

@@ -1,3 +1,6 @@
+### Firebase ###
+frontend/src/config/firebase.json
+
 ### Terraform ###
 # .lock files
 *.lock.hcl
@@ -39,7 +42,11 @@ terraform.rc
 
 ### Node ###
 # Build directory
+<<<<<<< HEAD
 app/build
+=======
+frontend/build
+>>>>>>> develop
 
 # Logs
 logs
