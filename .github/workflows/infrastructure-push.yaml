@@ -1,4 +1,4 @@
-name: Infra Push Event
+name: Infrastructure Push Event
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
       - main
       - develop
     paths:
-      - "infra/**"
-      - ".github/workflows/infra-push.yaml"
+      - "infrastructure/**"
+      - ".github/workflows/infrastructure-push.yaml"
 
 env:
   TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
-  TF_DIRECTORY: "./infra"
-  TF_LOCAL_DIRECTORY: "./infra"
+  TF_DIRECTORY: "./infrastructure"
+  TF_LOCAL_DIRECTORY: "./infrastructure"
 
   # All TF_VARs must be quoted with `"`
   TF_VAR_gcp_project_id: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
@@ -61,9 +61,9 @@ jobs:
           run: ${{ steps.create.outputs.run_id }}
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
 
-  delete-deployment:
-    name: Delete Deployment
-    uses: ./.github/workflows/delete-deployment.yaml
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
 
     needs: terraform-apply
     if: ${{ always() }}

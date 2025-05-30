@@ -1,4 +1,4 @@
-name: Build App
+name: Frontend Build Workflow
 
 on:
   workflow_call:
@@ -14,11 +14,11 @@ on:
     outputs:
       artifact-name:
         description: 'The name of the uploaded artifact'
-        value: app
+        value: frontend
 
 jobs:
-  build-app:
-    name: Build App
+  frontend-build:
+    name: Frontend Build
     environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
 
@@ -33,22 +33,21 @@ jobs:
 
       - id: config
         run: |
-          mkdir -p app/src/config
-          echo '${{ secrets.FIREBASE_APP_CONFIG }}' > app/src/config/firebase.json
+          mkdir -p frontend/src/config
+          echo '${{ secrets.FIREBASE_APP_CONFIG }}' > frontend/src/config/firebase.json
 
       - id: run
         env:
           CI: true
         run: |
-          cd app
-          npm cache clean --force
-          npm install
-          npm run lint
-          npm run test
-          npm run build
+          make frontend-clean
+          make frontend-install
+          make frontend-lint
+          make frontend-test
+          make frontend-build
 
       - id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: app
-          path: app/build
+          name: frontend
+          path: frontend/build

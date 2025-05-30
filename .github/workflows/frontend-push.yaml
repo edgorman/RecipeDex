@@ -1,4 +1,4 @@
-name: App Push Event
+name: Frontend Push Event
 
 on:
   push:
@@ -6,27 +6,27 @@ on:
       - main
       - develop
     paths:
-      - "app/**"
-      - ".github/workflows/app-push.yaml"
+      - "frontend/**"
+      - ".github/workflows/frontend-push.yaml"
 
 jobs:
-  build-app:
-    name: Build App
-    uses: ./.github/workflows/build-app.yaml
+  build-frontend:
+    name: Build Frontend
+    uses: ./.github/workflows/build-frontend.yaml
     secrets:
       FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
 
   deploy-live:
     name: Deploy Live
     environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
-    needs: build-app
+    needs: build-frontend
     runs-on: ubuntu-latest
 
     steps:
       - id: download-artifact
         uses: actions/download-artifact@v4
         with:
-          name: app
+          name: frontend
           path: .
 
       - id: deploy
@@ -36,9 +36,9 @@ jobs:
           projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
 
-  delete-deployment:
-    name: Delete Deployment
-    uses: ./.github/workflows/delete-deployment.yaml
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
 
     needs: deploy-live
     if: ${{ always() }}
