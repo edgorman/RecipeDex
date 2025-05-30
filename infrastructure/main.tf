@@ -21,14 +21,50 @@ provider "google" {
   zone    = var.gcp_project_zone
 }
 
+provider "google-beta" {
+  project = var.gcp_project_id
+  region  = var.gcp_project_region
+  zone    = var.gcp_project_zone
+}
+
 resource "google_project_service" "cloudresourcemanager" {
-  provider = google
+  provider = google-beta
   project  = var.gcp_project_id
   service  = "cloudresourcemanager.googleapis.com"
 }
 
 resource "google_project_service" "serviceusage" {
-  provider = google
+  provider = google-beta
   project  = var.gcp_project_id
   service  = "serviceusage.googleapis.com"
 }
+
+resource "google_project_service" "firebase" {
+  provider = google-beta
+  service  = "firebase.googleapis.com"
+  project  = var.gcp_project_id
+
+  depends_on = [ 
+    google_project_service.cloudresourcemanager,
+    google_project_service.serviceusage
+  ]
+}
+
+resource "google_firebase_project" "default" {
+  provider = google-beta
+  project  = var.gcp_project_id
+
+  depends_on = [
+    google_project_service.firebase,
+  ]
+}
+
+resource "google_firebase_web_app" "default" {
+  provider = google-beta
+  project  = google_firebase_project.default.project
+
+  display_name = var.firebase_app_name
+}
+
+# Note: enabling authentication in firebase must be done through firebase console
+# see https://firebase.google.com/codelabs/firebase-terraform#5
