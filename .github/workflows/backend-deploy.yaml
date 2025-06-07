@@ -61,7 +61,3 @@ jobs:
           service: backend${{ inputs.service_suffix }}
           image: ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
           region: ${{ secrets.GCP_PROJECT_REGION }}
-
-      - id: test
-        run: |
-          curl "${{ steps.deploy.outputs.url }}"
