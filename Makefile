@@ -25,3 +25,12 @@ frontend-build: ## build the frontend
 .PHONY: frontend-run
 frontend-run: ## run the frontend
 	@npm --prefix frontend run start
+
+.PHONY: backend-install
+backend-install: ## install the backend
+	@python -m pip install -r backend/requirements.txt
+	@python -m pip install -e backend/.
+
+.PHONY: backend-run-agent
+backend-run-agent: ## run the backend agents
+	@adk web backend/internal
