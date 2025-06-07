@@ -30,4 +30,4 @@ jobs:
       - id: cleanup
         run: |
           SERVICE_NAME="backend-pr-${{ github.event.pull_request.base.sha }}"
-          gcloud run services delete "$SERVICE_NAME" --region="${{ secrets.TF_VAR_GCP_PROJECT_REGION }}" --quiet || echo "Service $SERVICE_NAME not found or already deleted."
+          gcloud run services delete "$SERVICE_NAME" --region="${{ secrets.GCP_PROJECT_REGION }}" --quiet || echo "Service $SERVICE_NAME not found or already deleted."
