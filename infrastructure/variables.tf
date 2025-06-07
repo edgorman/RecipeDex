@@ -23,7 +23,7 @@ variable "firebase_app_name" {
   default = "RecipeDex"
 }
 
-variable "backend_service_name" {
+variable "artifact_registry_repository_name" {
   type    = string
-  default = "backend"
+  default = "recipedex"
 }
