@@ -2,7 +2,6 @@ FROM python:3.13.4-alpine3.22
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT 8080
 
 WORKDIR /app
 
@@ -18,6 +17,4 @@ COPY . ./
 RUN adduser -D appuser
 USER appuser
 
-EXPOSE 8080
-
-CMD exec uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+CMD ["uvicorn", "internal.service.service:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
