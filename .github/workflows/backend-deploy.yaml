@@ -52,14 +52,14 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev
           docker load -i backend.tar
-          docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
-          docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
+          docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
+          docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
 
       - id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: backend${{ inputs.service_suffix }}
-          image: ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
+          image: ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
           region: ${{ secrets.GCP_PROJECT_REGION }}
 
       - id: test
