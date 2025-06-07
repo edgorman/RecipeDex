@@ -1,3 +1,3 @@
 
 def test_example():
-    assert True == True
+    assert True is True
