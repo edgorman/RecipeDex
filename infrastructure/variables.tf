@@ -22,3 +22,8 @@ variable "firebase_app_name" {
   type    = string
   default = "RecipeDex"
 }
+
+variable "backend_service_name" {
+  type    = string
+  default = "backend"
+}
