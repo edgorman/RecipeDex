@@ -81,8 +81,15 @@ resource "google_project_service" "vertexai" {
 }
 
 resource "google_project_service" "run_api" {
-  service = "run.googleapis.com"
-  disable_on_destroy = false
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "run.googleapis.com"
+}
+
+resource "google_project_service" "artifactregistry" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "artifactregistry.googleapis.com"
 }
 
 resource "google_artifact_registry_repository" "backend_docker" {
@@ -90,4 +97,7 @@ resource "google_artifact_registry_repository" "backend_docker" {
   location      = var.gcp_project_region
   repository_id = var.backend_service_name
   format        = "DOCKER"
+  depends_on    = [
+    google_project_service.artifactregistry
+  ]
 }
