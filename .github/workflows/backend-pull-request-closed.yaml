@@ -35,7 +35,7 @@ jobs:
   github-cleanup:
     name: GitHub Cleanup
     uses: ./.github/workflows/github-cleanup.yaml
-    needs: deploy-preview
+    needs: cleanup-preview
     if: ${{ always() }}
     with:
       github_sha_head: ${{ github.event.pull_request.head.sha }}
