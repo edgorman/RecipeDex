@@ -1,0 +1,40 @@
+name: Backend Pull Request Event
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-pull-request.yaml"
+
+jobs:
+  backend-test:
+    name: Backend Test
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13' 
+
+      - id: test
+        run: |
+          make backend-install
+          make backend-lint
+          make backend-test
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+
+    needs: deploy-preview
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}

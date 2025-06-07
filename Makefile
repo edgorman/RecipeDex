@@ -31,6 +31,14 @@ backend-install: ## install the backend
 	@python -m pip install -r backend/requirements.txt
 	@python -m pip install -e backend/.
 
+.PHONY: backend-lint
+backend-lint: ## lint the backend
+	@python -m flake8 backend/. --exclude .venv
+
+.PHONY: backend-test
+backend-test: ## test the backend
+	@python -m pytest backend/tests -svv
+
 .PHONY: backend-run-agent
 backend-run-agent: ## run the backend agents
 	@adk web backend/internal

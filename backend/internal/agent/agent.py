@@ -1,6 +1,8 @@
 from google.adk.agents import LlmAgent
 
-from internal.config.agent import ROOT_NAME, ROOT_MODEL, ROOT_DESCRIPTION, ROOT_PROMPT
+from internal.config.agent import (
+    ROOT_NAME, ROOT_MODEL, ROOT_DESCRIPTION, ROOT_PROMPT
+)
 
 
 root_agent = LlmAgent(
