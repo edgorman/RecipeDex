@@ -68,3 +68,36 @@ resource "google_firebase_web_app" "default" {
 
 # Note: enabling authentication in firebase must be done through firebase console
 # see https://firebase.google.com/codelabs/firebase-terraform#5
+
+resource "google_project_service" "vertexai" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "aiplatform.googleapis.com"
+
+  depends_on = [
+    google_project_service.cloudresourcemanager,
+    google_project_service.serviceusage
+  ]
+}
+
+resource "google_project_service" "run_api" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "run.googleapis.com"
+}
+
+resource "google_project_service" "artifactregistry" {
+  provider = google-beta
+  project  = var.gcp_project_id
+  service  = "artifactregistry.googleapis.com"
+}
+
+resource "google_artifact_registry_repository" "backend_docker" {
+  provider      = google-beta
+  location      = var.gcp_project_region
+  repository_id = var.backend_service_name
+  format        = "DOCKER"
+  depends_on    = [
+    google_project_service.artifactregistry
+  ]
+}
