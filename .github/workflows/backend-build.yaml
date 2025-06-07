@@ -1,0 +1,42 @@
+name: Backend Build
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        required: false
+        default: '3.13'
+        type: string
+    outputs:
+      artifact-name:
+        description: 'The name of the uploaded artifact'
+        value: backend
+
+jobs:
+  backend-build:
+    name: Backend Build
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - id: run
+        run: |
+          make backend-install
+          make backend-lint
+          make backend-test
+          make backend-build-service OUTPUT=backend.tar
+
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend
+          path: backend.tar
