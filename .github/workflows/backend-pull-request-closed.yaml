@@ -1,0 +1,33 @@
+name: Backend Pull Request Closed
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-pull-request-closed.yaml"
+
+jobs:
+  cleanup-preview:
+    name: Cleanup Preview
+    runs-on: ubuntu-latest
+    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+
+    steps:
+      - id: authenticate
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
+      - id: setup
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - id: cleanup
+        run: |
+          SERVICE_NAME="backend-pr-${{ github.event.pull_request.base.sha }}"
+          gcloud run services delete "$SERVICE_NAME" --region="${{ secrets.TF_VAR_GCP_PROJECT_REGION }}" --quiet || echo "Service $SERVICE_NAME not found or already deleted."

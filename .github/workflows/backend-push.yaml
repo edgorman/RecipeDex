@@ -1,26 +1,25 @@
-name: Backend Pull Request Event
+name: Backend Push Event
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - develop
     paths:
       - "backend/**"
-      - ".github/workflows/backend-pull-request.yaml"
+      - ".github/workflows/backend-push.yaml"
 
 jobs:
   backend-build:
     name: Backend Build
     uses: ./.github/workflows/backend-build.yaml
 
-  deploy-preview:
-    name: Deploy Preview
+  deploy-live:
+    name: Deploy Live
     needs: backend-build
     uses: ./.github/workflows/backend-deploy.yaml
     with:
       environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
-      service_suffix: -pr-${{ github.event.pull_request.base.sha }}
       image_tag: ${{ github.sha }}
     secrets:
       GCP_PROJECT_ID: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
@@ -30,7 +29,7 @@ jobs:
   github-cleanup:
     name: GitHub Cleanup
     uses: ./.github/workflows/github-cleanup.yaml
-    needs: deploy-preview
+    needs: deploy-live
     if: ${{ always() }}
     with:
-      github_sha_head: ${{ github.event.pull_request.head.sha }}
+      github_sha_head: ${{ github.sha }}

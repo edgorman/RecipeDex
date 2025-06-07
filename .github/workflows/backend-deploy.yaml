@@ -1,0 +1,67 @@
+name: Backend Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service_suffix:
+        required: false
+        default: ''
+        type: string
+      image_tag:
+        required: true
+        type: string
+    secrets:
+      GCP_PROJECT_ID:
+        required: true
+      GCP_PROJECT_REGION:
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        required: true
+    outputs:
+      deploy-url:
+        value: ${{ jobs.deploy-service.outputs.deploy-url }}
+
+jobs:
+  deploy-service:
+    name: Deploy Service
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      deploy-url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend
+          path: .
+
+      - id: authenticate
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
+      - id: setup
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - id: push
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev
+          docker load -i backend.tar
+          docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
+          docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
+
+      - id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: backend${{ inputs.service_suffix }}
+          image: ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/backend/backend:${{ inputs.image_tag }}
+          region: ${{ secrets.GCP_PROJECT_REGION }}
+
+      - id: test
+        run: |
+          curl "${{ steps.deploy.outputs.url }}"
