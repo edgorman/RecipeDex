@@ -54,6 +54,7 @@ jobs:
           docker load -i backend.tar
           docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
           docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
+          unset CLOUDSDK_API_ENDPOINT_OVERRIDES_RUN
 
       - id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
