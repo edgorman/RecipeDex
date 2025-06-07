@@ -92,10 +92,10 @@ resource "google_project_service" "artifactregistry" {
   service  = "artifactregistry.googleapis.com"
 }
 
-resource "google_artifact_registry_repository" "backend_docker" {
+resource "google_artifact_registry_repository" "recipedex_registry" {
   provider      = google-beta
   location      = var.gcp_project_region
-  repository_id = var.backend_service_name
+  repository_id = var.artifact_registry_repository_name
   format        = "DOCKER"
   depends_on    = [
     google_project_service.artifactregistry
