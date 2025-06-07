@@ -31,3 +31,11 @@ jobs:
         run: |
           SERVICE_NAME="backend-pr-${{ github.event.pull_request.base.sha }}"
           gcloud run services delete "$SERVICE_NAME" --region="${{ secrets.GCP_PROJECT_REGION }}" --quiet || echo "Service $SERVICE_NAME not found or already deleted."
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+    needs: deploy-preview
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}
