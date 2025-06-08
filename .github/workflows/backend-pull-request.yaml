@@ -13,6 +13,8 @@ jobs:
   backend-build:
     name: Backend Build
     uses: ./.github/workflows/backend-build.yaml
+    with:
+      environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
 
   deploy-preview:
     name: Deploy Preview

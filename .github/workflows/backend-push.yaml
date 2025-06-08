@@ -13,13 +13,15 @@ jobs:
   backend-build:
     name: Backend Build
     uses: ./.github/workflows/backend-build.yaml
+    with:
+      environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
   deploy-live:
     name: Deploy Live
     needs: backend-build
     uses: ./.github/workflows/backend-deploy.yaml
     with:
-      environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+      environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
       image_tag: ${{ github.sha }}
     secrets:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
