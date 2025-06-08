@@ -47,6 +47,10 @@ backend-run-agent: ## run the backend agent
 backend-run-service: ## run the backend service
 	@uvicorn internal.service.service:app
 
+.PHONY: backend-call-service
+backend-call-service: ## call the backend service
+	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8000/$(ENDPOINT)
+
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
 	@docker build -t backend ./backend
