@@ -20,11 +20,14 @@ async def root():
         "message": "Hello World :)"
     }
 
+
 async def verify_token(request: Request):
     # Extract the auth from the request header
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Authorization header missing or malformed")
+        raise HTTPException(
+            status_code=401, detail="Authorization header missing or malformed"
+        )
 
     # Extract the bearer token
     token = auth_header.split("Bearer ")[1]
@@ -40,7 +43,10 @@ async def verify_token(request: Request):
         # e.g. name, user_id, email
         return user_data
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token verification failed: {e}")
+        raise HTTPException(
+            status_code=401, detail=f"Token verification failed: {e}"
+        )
+
 
 @app.get("/protected")
 async def protected_route(user_data: dict = Depends(verify_token)):
