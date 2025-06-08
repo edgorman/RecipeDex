@@ -11,6 +11,8 @@ on:
     secrets:
       FIREBASE_APP_CONFIG:
         required: true
+      BACKEND_API:
+        required: true
     outputs:
       artifact-name:
         description: 'The name of the uploaded artifact'
@@ -35,6 +37,7 @@ jobs:
         run: |
           mkdir -p frontend/src/config
           echo '${{ secrets.FIREBASE_APP_CONFIG }}' > frontend/src/config/firebase.json
+          echo 'REACT_APP_BACKEND_API=${{ secrets.BACKEND_API }}' > frontend/.env
 
       - id: run
         env:
