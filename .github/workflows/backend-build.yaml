@@ -3,8 +3,10 @@ name: Backend Build
 on:
   workflow_call:
     inputs:
+      environment:
+        required: true
+        type: string
       python-version:
-        description: 'Python version to use'
         required: false
         default: '3.13'
         type: string
@@ -16,7 +18,7 @@ on:
 jobs:
   backend-build:
     name: Backend Build
-    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
 
     steps:
