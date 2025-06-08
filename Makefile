@@ -45,11 +45,11 @@ backend-run-agent: ## run the backend agent
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@uvicorn internal.service.service:app
+	@uvicorn internal.service.service:app --port 8080
 
 .PHONY: backend-call-service
 backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8000/$(ENDPOINT)
+	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8080/$(ENDPOINT)
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
@@ -58,7 +58,7 @@ backend-build-service: ## build the backend service, optionally save as a .tar
 		docker save backend -o $(OUTPUT); \
 	fi
 
-# TODO: Doesn't work for my local machine, need to investigate
-# .PHONY: backend-proxy-service
-# backend-proxy-service: ## run a proxy to the backend service
-# 	@gcloud run services proxy backend --project $(GCP_PROJECT_ID) --region $(GCP_PROJECT_REGION)
+# TODO: Might just be an issue with my local machine, but unable to run `gcloud` directly
+.PHONY: backend-proxy-service
+backend-proxy-service: ## run a proxy to the backend service
+	@~/google-cloud-sdk/bin/gcloud run services proxy backend --project $(GCP_PROJECT_ID) --region $(GCP_PROJECT_REGION)
