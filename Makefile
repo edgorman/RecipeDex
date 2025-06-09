@@ -33,7 +33,7 @@ backend-install: ## install the backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@python -m flake8 backend/. --exclude .venv
+	@python -m flake8 backend --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
