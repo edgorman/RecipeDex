@@ -17,4 +17,4 @@ COPY . ./
 RUN adduser -D appuser
 USER appuser
 
-CMD ["uvicorn", "internal.service.service:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+CMD ["python", "commands/service.py", "run"]

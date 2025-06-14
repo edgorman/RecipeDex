@@ -1,5 +1,6 @@
 ### Firebase ###
 frontend/src/config/firebase.json
+backend/internal/config/firebase.json
 
 ### Terraform ###
 # .lock files
