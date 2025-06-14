@@ -1,23 +1,21 @@
-from fastapi import FastAPI, HTTPException, Request
-from starlette.authentication import AuthenticationBackend, AuthCredentials, UnauthenticatedUser
+from fastapi import FastAPI, HTTPException
+from starlette.authentication import AuthenticationBackend, AuthCredentials
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
-from starlette.responses import PlainTextResponse, Response
+from starlette.responses import JSONResponse, Response
 
 from google.auth.transport import requests as firebase_request
 from google.oauth2.id_token import verify_firebase_token
 
 from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID
-from internal.config.auth import AuthProvider, AUTHENTICATED_SCOPE
+from internal.config.auth import (
+    AuthProvider, AUTHENTICATED_SCOPE, AUTHORIZATION_HEADER, AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_PROVIDER_HEADER
+)
 from internal.objects.user import User
+from internal.storage.user import UserStorage
 
 
-AUTHORIZATION_HEADER = "Authorization"
-AUTHORIZATION_BEARER_PREFIX = "Bearer "
-AUTHORIZATION_PROVIDER_HEADER = "Authorization-Provider"
-
-
-class AuthBackend(AuthenticationBackend):
+class AuthenticateBackend(AuthenticationBackend):
     def __init__(self, user_handler):
         self.__user_handler = user_handler
 
@@ -90,14 +88,12 @@ class AuthBackend(AuthenticationBackend):
         # return user
 
     def on_error(connection: HTTPConnection, exception: HTTPException) -> Response:
-        return PlainTextResponse(status_code=exception.status_code, content=str(exception.detail))
+        return JSONResponse(status_code=exception.status_code, content={"detail": str(exception.detail)})
 
 
-async def authenticate_request(request: Request):
-    if not hasattr(request, "user") or isinstance(request.user, UnauthenticatedUser):
-        raise HTTPException(status_code=401, detail="User must be authenticated for this endpoint.")
-
-
-def add_auth_middleware(app: FastAPI, user_handler):
-    backend = AuthBackend(user_handler=user_handler)
+def add_authenticate_middleware(
+    app: FastAPI,
+    user_storage_handler: UserStorage,
+):
+    backend = AuthenticateBackend(user_handler=user_storage_handler)
     app.add_middleware(AuthenticationMiddleware, backend=backend, on_error=backend.on_error)

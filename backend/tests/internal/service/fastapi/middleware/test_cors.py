@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from internal.config.gcp import PROJECT_ID
-from internal.service.middleware.cors import add_cors_middleware
+from internal.service.fastapi.middleware.cors import add_cors_middleware
 
 
 @pytest.fixture

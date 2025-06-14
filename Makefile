@@ -45,11 +45,13 @@ backend-run-agent: ## run the backend agent
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@uvicorn internal.service.service:app --port 8080
+	@python backend/commands/service.py run
 
 .PHONY: backend-call-service
 backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8080/$(ENDPOINT)
+	@curl -H "Authorization: Bearer $(TOKEN)" \
+	-H "Authorization-Provider: firebase" \
+	http://localhost:8080/$(ENDPOINT)
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
