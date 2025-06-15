@@ -55,7 +55,7 @@ backend-call-service: ## call the backend service
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
-	@docker build -t backend ./backend
+	@docker build $(BUILD_ARGS) -t backend ./backend
 	@if [ -n "$(OUTPUT)" ]; then \
 		docker save backend -o $(OUTPUT); \
 	fi
