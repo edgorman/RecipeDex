@@ -10,6 +10,7 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev \
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install -e . \
     && apk del .build-deps
 
 COPY . ./
