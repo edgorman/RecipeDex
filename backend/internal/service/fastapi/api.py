@@ -29,8 +29,8 @@ class FastapiAPIService(APIService):
         self.__user_storage_handler = user_storage_handler
 
         self.__api = FastAPI()
-        add_cors_middleware(self.__api)
         add_authenticate_middleware(self.__api, self.__user_storage_handler)
+        add_cors_middleware(self.__api)
 
         self.__api.add_api_route("/", self._root)
 
