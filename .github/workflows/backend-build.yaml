@@ -30,6 +30,12 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
+      - id: config
+        run: |
+          mkdir -p backend/internal/config
+          echo '${{ secrets.FIREBASE_APP_CONFIG }}' > backend/internal/config/firebase.json
+          echo 'REACT_APP_BACKEND_API=${{ secrets.BACKEND_API }}' > backend/.env
+
       - id: run
         run: |
           make backend-install
