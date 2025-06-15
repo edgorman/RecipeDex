@@ -5,6 +5,7 @@ import uvicorn
 from internal.config.service import (
     NAME as SERVICE_NAME,
     VERSION as SERVICE_VERSION,
+    ALLOWED_ORIGIN as SERVICE_ALLOWED_ORIGIN
 )
 from internal.agents.recipe import RecipeAgent
 from internal.service.api import APIService
@@ -30,7 +31,7 @@ class FastapiAPIService(APIService):
 
         self.__api = FastAPI()
         add_authenticate_middleware(self.__api, self.__user_storage_handler)
-        add_cors_middleware(self.__api)
+        add_cors_middleware(self.__api, SERVICE_ALLOWED_ORIGIN)
 
         self.__api.add_api_route("/", self._root)
 

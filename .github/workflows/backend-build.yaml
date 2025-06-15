@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p backend/internal/config
           echo '${{ secrets.FIREBASE_APP_CONFIG }}' > backend/internal/config/firebase.json
-          echo 'REACT_APP_BACKEND_API=${{ secrets.BACKEND_API }}' > backend/.env
+          echo 'SERVICE_ALLOWED_ORIGIN=https://${{ secrets.GCP_PROJECT_ID }}.web.app' > backend/.env
 
       - id: run
         run: |
