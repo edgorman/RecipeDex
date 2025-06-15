@@ -33,23 +33,25 @@ backend-install: ## install the backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@python -m flake8 backend/. --exclude .venv
+	@python -m flake8 backend --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
 	@python -m pytest backend/tests -svv
 
 .PHONY: backend-run-agent
-backend-run-agent: ## run the backend agent
-	@adk web backend/internal
+backend-run-agent: ## run the backend agents in adk web ui
+	@adk web backend/internal/agents/vertex/subagents
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@uvicorn internal.service.service:app --port 8080
+	@python backend/commands/service.py run
 
 .PHONY: backend-call-service
 backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8080/$(ENDPOINT)
+	@curl -H "Authorization: Bearer $(TOKEN)" \
+	-H "Authorization-Provider: firebase" \
+	http://localhost:8080/$(ENDPOINT)
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar

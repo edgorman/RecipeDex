@@ -8,13 +8,13 @@ WORKDIR /app
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev \
     && pip install --no-cache-dir --upgrade pip
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
-    && apk del .build-deps
-
 COPY . ./
+
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install -e . \
+    && apk del .build-deps
 
 RUN adduser -D appuser
 USER appuser
 
-CMD ["uvicorn", "internal.service.service:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+CMD ["python", "commands/service.py", "run"]

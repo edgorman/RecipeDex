@@ -75,11 +75,12 @@ export default function App() {
       if (user !== null) {
         try {
           const token = await firebase.auth().currentUser.getIdToken();
-          const response = await fetch(`${process.env.REACT_APP_BACKEND_API}/protected`, {
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_API}/`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`,
+              "Authorization-Provider": "firebase"
             },
           });
 
