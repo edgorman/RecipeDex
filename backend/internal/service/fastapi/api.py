@@ -6,6 +6,7 @@ from internal.config.service import (
     NAME as SERVICE_NAME,
     VERSION as SERVICE_VERSION,
 )
+from internal.agents.recipe import RecipeAgent
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
 from internal.storage.recipe import RecipeStorage
@@ -19,11 +20,13 @@ class FastapiAPIService(APIService):
         self,
         host: str,
         port: int,
-        user_storage_handler: UserStorage,
+        recipe_agent_handler: RecipeAgent,
         recipe_storage_handler: RecipeStorage,
+        user_storage_handler: UserStorage,
     ):
-        self.__user_storage_handler = user_storage_handler
+        self.__recipe_agent_handler = recipe_agent_handler
         self.__recipe_storage_handler = recipe_storage_handler
+        self.__user_storage_handler = user_storage_handler
 
         self.__api = FastAPI()
         add_cors_middleware(self.__api)

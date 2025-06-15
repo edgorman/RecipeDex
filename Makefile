@@ -40,8 +40,8 @@ backend-test: ## test the backend
 	@python -m pytest backend/tests -svv
 
 .PHONY: backend-run-agent
-backend-run-agent: ## run the backend agent
-	@adk web backend/internal
+backend-run-agent: ## run the backend agents in adk web ui
+	@adk web backend/internal/agents/vertex/subagents
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service

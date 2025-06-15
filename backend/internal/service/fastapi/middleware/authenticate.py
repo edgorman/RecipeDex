@@ -93,7 +93,7 @@ class AuthenticateBackend(AuthenticationBackend):
 
 def add_authenticate_middleware(
     app: FastAPI,
-    user_storage_handler: UserStorage,
+    user_handler: UserStorage,
 ):
-    backend = AuthenticateBackend(user_handler=user_storage_handler)
+    backend = AuthenticateBackend(user_handler=user_handler)
     app.add_middleware(AuthenticationMiddleware, backend=backend, on_error=backend.on_error)
