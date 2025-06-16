@@ -7,7 +7,7 @@ from internal.service.fastapi.middleware.cors import add_cors_middleware
 
 
 @pytest.mark.parametrize(
-    "allowed_origin,actual_origin,expected_status",
+    "allowed_origin,request_origin,expected_status",
     [
         ("http://localhost:3000", "http://localhost:3000", 200),
         (f"https://{PROJECT_ID}.web.app", f"https://{PROJECT_ID}.web.app", 200),
@@ -15,13 +15,13 @@ from internal.service.fastapi.middleware.cors import add_cors_middleware
         (f"https://{PROJECT_ID}.web.app", "http://malicious.com", 400),
     ]
 )
-def test_cors_middleware(allowed_origin, actual_origin, expected_status):
+def test_cors_middleware(allowed_origin, request_origin, expected_status):
     app = FastAPI()
     add_cors_middleware(app, allowed_origin)
     mock_client = TestClient(app)
 
     headers = {
-        "Origin": actual_origin,
+        "Origin": request_origin,
         "Access-Control-Request-Method": "GET"
     }
     response = mock_client.options("/", headers=headers)
