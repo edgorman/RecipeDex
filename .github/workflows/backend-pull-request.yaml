@@ -15,6 +15,9 @@ jobs:
     uses: ./.github/workflows/backend-build.yaml
     with:
       environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
   deploy-preview:
     name: Deploy Preview

@@ -17,4 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 RUN adduser -D appuser
 USER appuser
 
+ARG SERVICE_ALLOWED_ORIGIN
+ENV SERVICE_ALLOWED_ORIGIN=${SERVICE_ALLOWED_ORIGIN}
+
 CMD ["python", "commands/service.py", "run"]

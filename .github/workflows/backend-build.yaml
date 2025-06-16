@@ -10,6 +10,11 @@ on:
         required: false
         default: '3.13'
         type: string
+    secrets:
+      FIREBASE_APP_CONFIG:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
     outputs:
       artifact-name:
         description: 'The name of the uploaded artifact'
@@ -34,14 +39,15 @@ jobs:
         run: |
           mkdir -p backend/internal/config
           echo '${{ secrets.FIREBASE_APP_CONFIG }}' > backend/internal/config/firebase.json
-          echo 'SERVICE_ALLOWED_ORIGIN=https://${{ secrets.GCP_PROJECT_ID }}.web.app' > backend/.env
 
       - id: run
         run: |
           make backend-install
           make backend-lint
           make backend-test
-          make backend-build-service OUTPUT=backend.tar
+          make backend-build-service \
+            OUTPUT=backend.tar \
+            BUILD_ARGS="--build-arg SERVICE_ALLOWED_ORIGIN=https://${{ secrets.GCP_PROJECT_ID }}.web.app"
 
       - id: upload
         uses: actions/upload-artifact@v4
