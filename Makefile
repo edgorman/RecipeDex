@@ -49,7 +49,7 @@ backend-run-service: ## run the backend service
 
 .PHONY: backend-call-service
 backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(TOKEN)" \
+	@curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
 	-H "Authorization-Provider: firebase" \
 	http://localhost:8080/$(ENDPOINT)
 
