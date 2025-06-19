@@ -28,8 +28,14 @@ frontend-run: ## run the frontend
 
 .PHONY: backend-install
 backend-install: ## install the backend
-	@python -m pip install -r backend/requirements.txt
-	@python -m pip install -e backend/.
+	@if [ ! -n "$(VIRTUAL_ENV)" == ""]; then \
+		if [ ! -n "backend/.venv"]; then \
+			uv venv .venv --python 3.13; \
+		fi; \
+		source backend/.venv/bin/activate; \
+	fi
+	@uv pip install -r backend/pyproject.toml
+	@uv pip install -e backend/.
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
@@ -46,12 +52,6 @@ backend-run-agent: ## run the backend agents in adk web ui
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
 	@python backend/commands/service.py run
-
-.PHONY: backend-call-service
-backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-	-H "Authorization-Provider: firebase" \
-	http://localhost:8080/$(ENDPOINT)
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
