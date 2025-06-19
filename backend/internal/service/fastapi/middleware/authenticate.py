@@ -4,7 +4,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse, Response
 
-from google.auth.transport import requests as firebase_request
+from google.auth.transport import requests as token_request
 from google.oauth2.id_token import verify_firebase_token
 
 from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID
@@ -46,7 +46,7 @@ class AuthenticateBackend(AuthenticationBackend):
         try:
             match provider:
                 case AuthProvider.FIREBASE:
-                    provider_data = self._auth_google(token)
+                    provider_data = self._auth_firebase(token)
                 case _:
                     raise NotImplementedError("Provider has not been implemented.")
         except Exception as e:
@@ -64,12 +64,12 @@ class AuthenticateBackend(AuthenticationBackend):
 
         return AuthCredentials([AUTHENTICATED_SCOPE]), user
 
-    def _auth_google(self, token: str) -> dict:
+    def _auth_firebase(self, token: str) -> dict:
         data = verify_firebase_token(
-            token, firebase_request.Request(), audience=GCP_PROJECT_ID
+            token, token_request.Request(), audience=GCP_PROJECT_ID
         )
         if not data:
-            raise Exception("invalid token")
+            raise Exception(f"invalid {AuthProvider.FIREBASE.value} token")
 
         return data
 
