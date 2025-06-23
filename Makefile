@@ -28,37 +28,32 @@ frontend-run: ## run the frontend
 
 .PHONY: backend-install
 backend-install: ## install the backend
-	@python -m pip install -r backend/requirements.txt
-	@python -m pip install -e backend/.
+	@uv sync --directory backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@python -m flake8 backend/. --exclude .venv
+	@uv run --directory backend -- flake8 . --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
-	@python -m pytest backend/tests -svv
+	@uv run --directory backend -- pytest tests -svv
 
 .PHONY: backend-run-agent
-backend-run-agent: ## run the backend agent
-	@adk web backend/internal
+backend-run-agent: ## run the backend agents in adk web ui
+	@adk web backend/internal/agents/vertex/subagents
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@uvicorn internal.service.service:app
-
-.PHONY: backend-call-service
-backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(TOKEN)" http://localhost:8000/$(ENDPOINT)
+	@uv run --directory backend -- commands/service.py run
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
-	@docker build -t backend ./backend
+	@docker build $(BUILD_ARGS) -t backend ./backend
 	@if [ -n "$(OUTPUT)" ]; then \
 		docker save backend -o $(OUTPUT); \
 	fi
 
-# TODO: Doesn't work for my local machine, need to investigate
-# .PHONY: backend-proxy-service
-# backend-proxy-service: ## run a proxy to the backend service
-# 	@gcloud run services proxy backend --project $(GCP_PROJECT_ID) --region $(GCP_PROJECT_REGION)
+# TODO: Might just be an issue with my local machine, but unable to run `gcloud` directly
+.PHONY: backend-proxy-service
+backend-proxy-service: ## run a proxy to the backend service
+	@~/google-cloud-sdk/bin/gcloud run services proxy backend --project $(GCP_PROJECT_ID) --region $(GCP_PROJECT_REGION)

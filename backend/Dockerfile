@@ -5,16 +5,12 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev \
-    && pip install --no-cache-dir --upgrade pip
-
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
-    && apk del .build-deps
-
+COPY --from=ghcr.io/astral-sh/uv:0.7.13-python3.13-alpine /usr/local/bin/uv /bin/uv
 COPY . ./
 
-RUN adduser -D appuser
-USER appuser
+RUN uv sync
 
-CMD ["uvicorn", "internal.service.service:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+ARG SERVICE_ALLOWED_ORIGIN
+ENV SERVICE_ALLOWED_ORIGIN=${SERVICE_ALLOWED_ORIGIN}
+
+CMD ["uv", "run", "commands/service.py", "run"]

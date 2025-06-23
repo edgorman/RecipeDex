@@ -67,10 +67,35 @@ export default function App() {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (chatInput.trim()) {
       setMessages(prev => [...prev, { sender: "user", text: chatInput }]);
       setChatInput("");
+
+      if (user !== null) {
+        try {
+          const token = await firebase.auth().currentUser.getIdToken();
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_API}/`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+              "Authorization-Provider": "firebase"
+            },
+          });
+
+          if (!response.ok) {
+            console.log(response);
+            throw new Error(response.statusText);
+          }
+
+          const data = await response.json();
+          console.log("successful response", data);
+        } catch (error) {
+          console.error("bad response", error);
+        }
+      }
+
       setTimeout(() => {
         setRecipe(sampleRecipe);
         setMessages(prev => [...prev, { sender: "ai", text: "Here's a suggestion to tweak your recipe." }]);
