@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:0.7.13-python3.13-alpine /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.7.13-python3.13-alpine /usr/local/bin/uv /bin/uv
 COPY . ./
 
 RUN uv sync && uv pip install -e .
