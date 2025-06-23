@@ -16,4 +16,4 @@ USER appuser
 ARG SERVICE_ALLOWED_ORIGIN
 ENV SERVICE_ALLOWED_ORIGIN=${SERVICE_ALLOWED_ORIGIN}
 
-CMD ["python", "commands/service.py", "run"]
+CMD ["uv", "run", "commands/service.py", "run"]

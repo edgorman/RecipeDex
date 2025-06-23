@@ -42,7 +42,6 @@ jobs:
 
       - id: run
         run: |
-          unset VIRTUAL_ENV
           make backend-install
           make backend-lint
           make backend-test
