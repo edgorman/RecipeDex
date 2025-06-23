@@ -28,22 +28,15 @@ frontend-run: ## run the frontend
 
 .PHONY: backend-install
 backend-install: ## install the backend
-	@if [ ! -n "$(VIRTUAL_ENV)" == ""]; then \
-		if [ ! -n "backend/.venv"]; then \
-			uv venv .venv --python 3.13; \
-		fi; \
-		source backend/.venv/bin/activate; \
-	fi
-	@uv pip install -r backend/pyproject.toml
-	@uv pip install -e backend/.
+	@uv sync --directory backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@python -m flake8 backend --exclude .venv --max-line-length 120
+	@uv run flake8 backend --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
-	@python -m pytest backend/tests -svv
+	@uv run pytest backend/tests -svv
 
 .PHONY: backend-run-agent
 backend-run-agent: ## run the backend agents in adk web ui
@@ -51,7 +44,7 @@ backend-run-agent: ## run the backend agents in adk web ui
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@python backend/commands/service.py run
+	@uv run backend/commands/service.py run
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
