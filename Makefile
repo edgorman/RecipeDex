@@ -32,11 +32,11 @@ backend-install: ## install the backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@uv run flake8 backend --exclude .venv --max-line-length 120
+	@uv run -- flake8 backend --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
-	@uv run pytest backend/tests -svv
+	@uv run -- pytest backend/tests -svv
 
 .PHONY: backend-run-agent
 backend-run-agent: ## run the backend agents in adk web ui
@@ -44,7 +44,7 @@ backend-run-agent: ## run the backend agents in adk web ui
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@uv run backend/commands/service.py run
+	@uv run -- backend/commands/service.py run
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar

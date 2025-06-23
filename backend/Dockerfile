@@ -8,7 +8,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.7.13-python3.13-alpine /usr/local/bin/uv /bin/uv
 COPY . ./
 
-RUN uv sync && uv pip install -e .
+RUN uv sync
 
 RUN adduser -D appuser
 USER appuser
