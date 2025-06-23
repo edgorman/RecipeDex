@@ -75,7 +75,7 @@ def mock_client(mock_user_handler):
 def test_authenticate(
     mock_client, endpoint, headers, mock_auth_provider, mock_get_user, expected_status, expected_content
 ):
-    with patch.object(AuthenticateBackend, "_auth_google", side_effect=mock_auth_provider):
+    with patch.object(AuthenticateBackend, "_auth_firebase", side_effect=mock_auth_provider):
         with patch.object(AuthenticateBackend, "_get_user", side_effect=mock_get_user):
             try:
                 response = mock_client.get(endpoint, headers=headers)

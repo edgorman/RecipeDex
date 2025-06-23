@@ -28,16 +28,15 @@ frontend-run: ## run the frontend
 
 .PHONY: backend-install
 backend-install: ## install the backend
-	@python -m pip install -r backend/requirements.txt
-	@python -m pip install -e backend/.
+	@uv sync --directory backend
 
 .PHONY: backend-lint
 backend-lint: ## lint the backend
-	@python -m flake8 backend --exclude .venv --max-line-length 120
+	@uv run --directory backend -- flake8 . --exclude .venv --max-line-length 120
 
 .PHONY: backend-test
 backend-test: ## test the backend
-	@python -m pytest backend/tests -svv
+	@uv run --directory backend -- pytest tests -svv
 
 .PHONY: backend-run-agent
 backend-run-agent: ## run the backend agents in adk web ui
@@ -45,13 +44,7 @@ backend-run-agent: ## run the backend agents in adk web ui
 
 .PHONY: backend-run-service
 backend-run-service: ## run the backend service
-	@python backend/commands/service.py run
-
-.PHONY: backend-call-service
-backend-call-service: ## call the backend service
-	@curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-	-H "Authorization-Provider: firebase" \
-	http://localhost:8080/$(ENDPOINT)
+	@uv run --directory backend -- commands/service.py run
 
 .PHONY: backend-build-service
 backend-build-service: ## build the backend service, optionally save as a .tar
