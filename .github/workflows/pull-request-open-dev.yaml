@@ -23,7 +23,7 @@ jobs:
       environment: ${{ env.environment }}
       apply_plan: false
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
       TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
@@ -77,7 +77,7 @@ jobs:
     with:
       apply_live: false
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       FIREBASE_GCP_PROJECT_ID: ${{ secrets.FIREBASE_GCP_PROJECT_ID }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 

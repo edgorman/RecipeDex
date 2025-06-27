@@ -11,7 +11,7 @@ on:
         type: boolean
         default: false
     secrets:
-      GITHUB_TOKEN:
+      GITHUB_COMMENT_TOKEN:
         required: true
       TF_CLOUD_ORGANIZATION:
         required: true
@@ -82,7 +82,7 @@ jobs:
         if: ${{ !inputs.apply_plan }}
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_COMMENT_TOKEN }}
           script: |
             // Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
