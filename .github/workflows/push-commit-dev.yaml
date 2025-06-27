@@ -1,7 +1,7 @@
 name: Push Commit Dev Event
 
 env:
-  environment: dev
+  ENVIRONMENT: dev
 
 on:
   push:

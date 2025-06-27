@@ -1,7 +1,7 @@
 name: Pull Request Open Dev Event
 
 env:
-  environment: dev
+  ENVIRONMENT: dev
 
 on:
   pull_request:
@@ -20,7 +20,7 @@ jobs:
 
     uses: ./.github/workflows/infrastructure-plan.yaml
     with:
-      environment: ${{ env.environment }}
+      environment: $ENVIRONMENT
       apply_plan: false
     secrets:
       GITHUB_COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,7 +38,7 @@ jobs:
 
     uses: ./.github/workflows/backend-build.yaml
     with:
-      environment: ${{ env.environment }}
+      environment: $ENVIRONMENT
     secrets:
       FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -50,7 +50,7 @@ jobs:
 
     uses: ./.github/workflows/backend-deploy.yaml
     with:
-      environment: ${{ env.environment }}
+      environment: $ENVIRONMENT
       service_suffix: -pr-${{ github.event.pull_request.base.sha }}
       image_tag: ${{ github.sha }}
     secrets:
