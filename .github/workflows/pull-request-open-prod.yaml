@@ -15,6 +15,7 @@ jobs:
 
   infrastructure-plan:
     name: Infrastructure Plan
+    needs: [github-changes]
     if: needs.github-changes.infrastructure == 'true'
 
     uses: ./.github/workflows/infrastructure-plan.yaml
@@ -32,6 +33,7 @@ jobs:
 
   backend-build:
     name: Backend Build
+    needs: [github-changes]
     if: needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/backend-build.yaml
@@ -43,6 +45,7 @@ jobs:
 
   frontend-build:
     name: Frontend Build
+    needs: [github-changes]
     if: needs.github-changes.frontend == 'true'
 
     uses: ./.github/workflows/frontend-build.yaml
