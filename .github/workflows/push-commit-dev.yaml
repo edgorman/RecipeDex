@@ -33,7 +33,7 @@ jobs:
 
   backend-build:
     name: Backend Build
-    needs: [infrastructure-deploy]
+    needs: [github-changes, infrastructure-deploy]
     if: needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/backend-build.yaml
@@ -45,7 +45,7 @@ jobs:
 
   backend-deploy:
     name: Backend Deploy
-    needs: [backend-build]
+    needs: [github-changes, backend-build]
     if: needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/backend-deploy.yaml
@@ -59,7 +59,7 @@ jobs:
 
   frontend-build:
     name: Frontend Build
-    needs: [backend-deploy]
+    needs: [github-changes, backend-deploy]
     if: needs.github-changes.frontend == 'true'
 
     uses: ./.github/workflows/frontend-build.yaml
@@ -69,7 +69,7 @@ jobs:
 
   frontend-deploy:
     name: Frontend Deploy
-    needs: [frontend-build]
+    needs: [github-changes, frontend-build]
     if: needs.github-changes.frontend == 'true'
 
     uses: ./.github/workflows/frontend-deploy.yaml
