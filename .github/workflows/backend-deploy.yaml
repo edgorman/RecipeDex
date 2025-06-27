@@ -80,7 +80,7 @@ jobs:
   preview-comment:
     name: Preview Comment
     needs: deploy-service
-    if: ${{ github.event_name == 'pull_request' && needs.deploy-service.result == 'success' & inputs.service_suffix != '' }}
+    if: ${{ github.event_name == 'pull_request' && needs.deploy-service.result == 'success' && inputs.service_suffix != '' }}
     runs-on: ubuntu-latest
     steps:
       - id: find
