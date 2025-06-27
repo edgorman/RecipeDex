@@ -15,7 +15,6 @@ jobs:
 
   infrastructure-plan:
     name: Infrastructure Plan
-    needs: github-changes
     if: needs.github-changes.infrastructure == 'true'
 
     uses: ./.github/workflows/infrastructure-plan.yaml
@@ -33,7 +32,6 @@ jobs:
 
   backend-build:
     name: Backend Build
-    needs: github-changes
     if: needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/backend-build.yaml
@@ -45,7 +43,6 @@ jobs:
 
   backend-preview:
     name: Backend Preview
-    needs: backend-build
     if: needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/backend-deploy.yaml
@@ -60,18 +57,16 @@ jobs:
 
   frontend-build:
     name: Frontend Build
-    needs: [github-changes, backend-preview]
-    if: needs.github-changes.frontend == 'true' || needs.backend-preview.result
+    if: needs.github-changes.frontend == 'true' || needs.github-changes.backend == 'true'
 
     uses: ./.github/workflows/frontend-build.yaml
     secrets:
       FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
-      BACKEND_API: ${{ (needs.backend-preview.result == 'success' && needs.backend-preview.outputs.backend-api) || secrets.BACKEND_API }}
+      BACKEND_API: ${{ needs.backend-preview.outputs.backend-api || secrets.BACKEND_API }}
 
   frontend-preview:
     name: Frontend Preview
-    needs: frontend-build
-    if: needs.github-changes.frontend == 'true' || needs.backend-preview.result
+    if: needs.github-changes.frontend == 'true'
 
     uses: ./.github/workflows/frontend-deploy.yaml
     with:
@@ -83,8 +78,8 @@ jobs:
 
   github-cleanup:
     name: GitHub Cleanup
-    uses: ./.github/workflows/github-cleanup.yaml
-    needs: [infrastructure-plan, backend-preview, frontend-preview]
     if: ${{ always() }}
+
+    uses: ./.github/workflows/github-cleanup.yaml
     with:
       github_sha_head: ${{ github.event.pull_request.head.sha }}
