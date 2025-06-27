@@ -1,20 +1,19 @@
-name: Backend Pull Request Closed
+name: Pull Request Close Dev
+
+env:
+  environment: dev
 
 on:
   pull_request:
     types: [closed]
     branches:
-      - main
       - develop
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-pull-request-closed.yaml"
 
 jobs:
   cleanup-preview:
     name: Cleanup Preview
     runs-on: ubuntu-latest
-    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    environment: ${{ env.environment }}
 
     steps:
       - id: authenticate

@@ -1,0 +1,62 @@
+name: Pull Request Open Prod Event
+
+env:
+  environment: prod
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  github-changes:
+    name: GitHub Changes
+    uses: ./.github/workflows/github-changes.yaml
+
+  infrastructure-plan:
+    name: Infrastructure Plan
+    needs: github-changes
+    if: needs.github-changes.infrastructure == 'true'
+
+    uses: ./.github/workflows/infrastructure-plan.yaml
+    with:
+      environment: ${{ env.environment }}
+      apply_plan: false
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
+      TF_VAR_GCP_PROJECT_ID: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+      TF_VAR_GCP_PROJECT_REGION: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
+      TF_VAR_GCP_PROJECT_ZONE: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
+
+  backend-build:
+    name: Backend Build
+    needs: github-changes
+    if: needs.github-changes.backend == 'true'
+
+    uses: ./.github/workflows/backend-build.yaml
+    with:
+      environment: ${{ env.environment }}
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+  frontend-build:
+    name: Frontend Build
+    needs: [github-changes, backend-build]
+    if: needs.github-changes.frontend == 'true'
+
+    uses: ./.github/workflows/frontend-build.yaml
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+      BACKEND_API: ${{ secrets.BACKEND_API }}
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+    needs: [infrastructure-plan, backend-build, frontend-build]
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}

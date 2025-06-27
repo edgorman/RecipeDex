@@ -1,0 +1,90 @@
+name: Pull Request Open Dev Event
+
+env:
+  environment: dev
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  github-changes:
+    name: Generate Changes
+    uses: ./.github/workflows/github-changes.yaml
+
+  infrastructure-plan:
+    name: Infrastructure Plan
+    needs: github-changes
+    if: needs.github-changes.infrastructure == 'true'
+
+    uses: ./.github/workflows/infrastructure-plan.yaml
+    with:
+      environment: ${{ env.environment }}
+      apply_plan: false
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_WORKSPACE: ${{ secrets.TF_WORKSPACE }}
+      TF_VAR_GCP_PROJECT_ID: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+      TF_VAR_GCP_PROJECT_REGION: ${{ secrets.TF_VAR_GCP_PROJECT_REGION }}
+      TF_VAR_GCP_PROJECT_ZONE: ${{ secrets.TF_VAR_GCP_PROJECT_ZONE }}
+
+  backend-build:
+    name: Backend Build
+    needs: github-changes
+    if: needs.github-changes.backend == 'true'
+
+    uses: ./.github/workflows/backend-build.yaml
+    with:
+      environment: ${{ env.environment }}
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+  backend-preview:
+    name: Backend Preview
+    needs: backend-build
+    if: needs.github-changes.backend == 'true'
+
+    uses: ./.github/workflows/backend-deploy.yaml
+    with:
+      environment: ${{ env.environment }}
+      service_suffix: -pr-${{ github.event.pull_request.base.sha }}
+      image_tag: ${{ github.sha }}
+    secrets:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_PROJECT_REGION: ${{ secrets.GCP_PROJECT_REGION }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+  frontend-build:
+    name: Frontend Build
+    needs: [github-changes, backend-preview]
+    if: needs.github-changes.frontend == 'true' || needs.backend-preview.result
+
+    uses: ./.github/workflows/frontend-build.yaml
+    secrets:
+      FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
+      BACKEND_API: ${{ (needs.backend-preview.result == 'success' && needs.backend-preview.outputs.backend-api) || secrets.BACKEND_API }}
+
+  frontend-preview:
+    name: Frontend Preview
+    needs: frontend-build
+    if: needs.github-changes.frontend == 'true' || needs.backend-preview.result
+
+    uses: ./.github/workflows/frontend-deploy.yaml
+    with:
+      apply_live: false
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FIREBASE_GCP_PROJECT_ID: ${{ secrets.FIREBASE_GCP_PROJECT_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+  github-cleanup:
+    name: GitHub Cleanup
+    uses: ./.github/workflows/github-cleanup.yaml
+    needs: [infrastructure-plan, backend-preview, frontend-preview]
+    if: ${{ always() }}
+    with:
+      github_sha_head: ${{ github.event.pull_request.head.sha }}
