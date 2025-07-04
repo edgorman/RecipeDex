@@ -13,7 +13,7 @@ jobs:
   cleanup-preview:
     name: Cleanup Preview
     runs-on: ubuntu-latest
-    environment: $ENVIRONMENT
+    environment: dev
 
     steps:
       - id: authenticate
@@ -34,7 +34,5 @@ jobs:
   github-cleanup:
     name: GitHub Cleanup
     uses: ./.github/workflows/github-cleanup.yaml
-    needs: cleanup-preview
-    if: ${{ always() }}
     with:
       github_sha_head: ${{ github.event.pull_request.head.sha }}

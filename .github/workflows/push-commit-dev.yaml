@@ -15,8 +15,8 @@ jobs:
 
   infrastructure-deploy:
     name: Infrastructure Deploy
-    needs: github-changes
-    if: needs.github-changes.infrastructure == 'true'
+    needs: [github-changes]
+    if: ${{ !failure() && !cancelled() && needs.github-changes.infrastructure == 'true' }}
 
     uses: ./.github/workflows/infrastructure-plan.yaml
     with:
@@ -33,8 +33,8 @@ jobs:
 
   backend-build:
     name: Backend Build
-    needs: github-changes
-    if: needs.github-changes.backend == 'true'
+    needs: [github-changes, infrastructure-deploy]
+    if: ${{ !failure() && !cancelled() && needs.github-changes.backend == 'true' }}
 
     uses: ./.github/workflows/backend-build.yaml
     with:
@@ -45,7 +45,8 @@ jobs:
 
   backend-deploy:
     name: Backend Deploy
-    needs: [backend-build, infrastructure-deploy]
+    needs: [github-changes, backend-build]
+    if: ${{ !failure() && !cancelled() && needs.github-changes.backend == 'true' }}
 
     uses: ./.github/workflows/backend-deploy.yaml
     with:
@@ -58,8 +59,8 @@ jobs:
 
   frontend-build:
     name: Frontend Build
-    needs: backend-deploy
-    if: needs.github-changes.frontend == 'true' || needs.backend-deploy.result
+    needs: [github-changes, backend-deploy]
+    if: ${{ !failure() && !cancelled() && needs.github-changes.frontend == 'true' }}
 
     uses: ./.github/workflows/frontend-build.yaml
     secrets:
@@ -68,8 +69,8 @@ jobs:
 
   frontend-deploy:
     name: Frontend Deploy
-    needs: frontend-build
-    if: needs.github-changes.frontend == 'true' || needs.backend-deploy.result
+    needs: [github-changes, frontend-build]
+    if: ${{ !failure() && !cancelled() && needs.github-changes.frontend == 'true' }}
 
     uses: ./.github/workflows/frontend-deploy.yaml
     with:
@@ -82,8 +83,6 @@ jobs:
   github-cleanup:
     name: GitHub Cleanup
     uses: ./.github/workflows/github-cleanup.yaml
-    needs: [infrastructure-deploy, backend-deploy, frontend-deploy]
-    if: always()
     with:
       github_sha_head: ${{ github.sha }}
 
