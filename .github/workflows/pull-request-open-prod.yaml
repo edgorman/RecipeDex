@@ -1,8 +1,5 @@
 name: Pull Request Open Prod Event
 
-env:
-  ENVIRONMENT: prod
-
 on:
   pull_request:
     branches:
@@ -16,7 +13,7 @@ jobs:
   infrastructure-plan:
     name: Infrastructure Plan
     needs: [github-changes]
-    if: ${{ !failure() && !cancelled() && needs.github-changes.infrastructure == 'true' }}
+    if: always() && !failure() && !cancelled() && needs.github-changes.outputs.infrastructure == 'true'
 
     uses: ./.github/workflows/infrastructure-plan.yaml
     with:
@@ -34,7 +31,7 @@ jobs:
   backend-build:
     name: Backend Build
     needs: [github-changes]
-    if: ${{ !failure() && !cancelled() && needs.github-changes.backend == 'true' }}
+    if: always() && !failure() && !cancelled() && needs.github-changes.outputs.backend == 'true'
 
     uses: ./.github/workflows/backend-build.yaml
     with:
@@ -46,15 +43,20 @@ jobs:
   frontend-build:
     name: Frontend Build
     needs: [github-changes]
-    if: ${{ !failure() && !cancelled() && needs.github-changes.frontend == 'true' }}
+    if: always() && !failure() && !cancelled() && needs.github-changes.outputs.frontend == 'true'
 
     uses: ./.github/workflows/frontend-build.yaml
+    with:
+      environment: prod
     secrets:
       FIREBASE_APP_CONFIG: ${{ secrets.FIREBASE_APP_CONFIG }}
       BACKEND_API: ${{ secrets.BACKEND_API }}
 
   github-cleanup:
     name: GitHub Cleanup
+    needs: [github-changes, infrastructure-plan, backend-preview, frontend-preview]
+    if: always()
+
     uses: ./.github/workflows/github-cleanup.yaml
     with:
       github_sha_head: ${{ github.event.pull_request.head.sha }}
