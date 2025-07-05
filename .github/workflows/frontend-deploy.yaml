@@ -1,0 +1,48 @@
+name: Frontend Deploy
+
+on:
+  workflow_call:
+    inputs:
+      apply_live:
+        required: true
+        type: boolean
+      environment:
+        required: true
+        type: string
+    secrets:
+      GITHUB_REPOSITORY_TOKEN:
+        required: false
+      FIREBASE_GCP_PROJECT_ID:
+        required: true
+      FIREBASE_SERVICE_ACCOUNT:
+        required: true
+
+jobs:
+  frontend-deploy:
+    name: Frontend Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: .
+
+      - id: preview
+        if: ${{ !inputs.apply_live }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          expires: 5d
+          repoToken: "${{ secrets.GITHUB_REPOSITORY_TOKEN }}"
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+
+      - id: deploy
+        if: ${{ inputs.apply_live }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          channelId: live
+          projectId: "${{ secrets.FIREBASE_GCP_PROJECT_ID }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"

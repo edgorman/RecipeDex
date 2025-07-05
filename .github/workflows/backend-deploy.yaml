@@ -21,16 +21,18 @@ on:
       GCP_SERVICE_ACCOUNT:
         required: true
     outputs:
-      deploy-url:
-        value: ${{ jobs.deploy-service.outputs.deploy-url }}
+      backend-api:
+        value: ${{ jobs.deploy-service.outputs.backend-api }}
 
 jobs:
   deploy-service:
     name: Deploy Service
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+
     outputs:
-      deploy-url: ${{ steps.deploy.outputs.url }}
+      backend-api: ${{ steps.deploy.outputs.url }}
+
     steps:
       - id: download-artifact
         uses: actions/download-artifact@v4
@@ -74,3 +76,34 @@ jobs:
             --region="${{ secrets.GCP_PROJECT_REGION }}" \
             --member="allUsers" \
             --role="roles/run.invoker"
+
+  preview-comment:
+    name: Preview Comment
+    needs: deploy-service
+    if: ${{ github.event_name == 'pull_request' && needs.deploy-service.result == 'success' && inputs.service_suffix != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: find
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Create or Update Action
+
+      - id: sha
+        uses: benjlevesque/short-sha@v3.0
+
+      - id: comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Visit the preview URL for this PR (updated for commit ${{ steps.sha.outputs.sha }}):
+
+            ${{ needs.deploy-service.outputs.backend-api }}
+
+            <sub>(expires when the PR is closed)</sub>
+
+            <sub>🔥 via [Create or Update Action](https://github.com/peter-evans/create-or-update-comment) 🧑‍💻</sub>
+          edit-mode: replace

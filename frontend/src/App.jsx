@@ -19,7 +19,7 @@ const sampleRecipe = {
   difficulty: "Easy",
   cuisine: "French",
   dietaryRestrictions: ["Vegetarian", "Gluten-Free"],
-  ingredients: ["1 potato", "1 leek", "5 eggs"],
+  ingredients: ["1 potato", "1 leek", "5 eggs", "1tsp oil"],
   instructions: [
     "cut the potato", "cut the leek", "fry it all", "profit",
     "cut the potato", "cut the leek", "fry it all", "profit"

@@ -1,20 +1,16 @@
-name: Backend Pull Request Closed
+name: Pull Request Close Dev
 
 on:
   pull_request:
     types: [closed]
     branches:
-      - main
       - develop
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-pull-request-closed.yaml"
 
 jobs:
   cleanup-preview:
     name: Cleanup Preview
     runs-on: ubuntu-latest
-    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+    environment: dev
 
     steps:
       - id: authenticate
@@ -34,8 +30,9 @@ jobs:
 
   github-cleanup:
     name: GitHub Cleanup
+    needs: [cleanup-preview]
+    if: always()
+
     uses: ./.github/workflows/github-cleanup.yaml
-    needs: cleanup-preview
-    if: ${{ always() }}
     with:
       github_sha_head: ${{ github.event.pull_request.head.sha }}
