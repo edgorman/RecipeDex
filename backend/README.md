@@ -6,7 +6,7 @@
 
 Get a bearer token from frontend
 
-To make requests to local endpoints run
+To make requests to local endpoints run:
 
 ```bash
 make backend-run-service
@@ -28,4 +28,8 @@ make backend-call-service TOKEN=<your-token-here> ENDPOINT=protected
 
 ### Running
 
-TODO
+To run the agent sdk web view, run:
+
+```bash
+make backend-run-agent
+```
