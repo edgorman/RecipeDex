@@ -3,8 +3,10 @@ name: Frontend Build Workflow
 on:
   workflow_call:
     inputs:
+      environment:
+        required: true
+        type: string
       node-version:
-        description: 'Node.js version to use'
         required: false
         default: '23.11'
         type: string
@@ -21,8 +23,8 @@ on:
 jobs:
   frontend-build:
     name: Frontend Build
-    environment: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
     runs-on: ubuntu-latest
+    environment: dev
 
     steps:
       - id: checkout

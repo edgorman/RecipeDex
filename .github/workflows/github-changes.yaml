@@ -1,0 +1,40 @@
+name: GitHub Changes
+
+on:
+  workflow_call:
+    outputs:
+      cicd:
+        value: ${{ jobs.generate-changes.outputs.cicd }}
+      backend:
+        value: ${{ jobs.generate-changes.outputs.backend }}
+      frontend:
+        value: ${{ jobs.generate-changes.outputs.frontend }}
+      infrastructure:
+        value: ${{ jobs.generate-changes.outputs.infrastructure }}
+
+jobs:
+  generate-changes: 
+    name: Generate Changes
+    runs-on: ubuntu-latest
+    outputs:
+      cicd: ${{ steps.changes.outputs.cicd }}
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      infrastructure: ${{ steps.changes.outputs.infrastructure }}
+
+    steps:
+      - id: checkout
+        uses: actions/checkout@v3
+
+      - id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            cicd:
+              - '.github/workflows/**'
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            infrastructure:
+              - 'infrastructure/**'
