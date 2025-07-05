@@ -55,10 +55,11 @@ jobs:
           gcloud auth configure-docker ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev
           docker load -i backend.tar
           docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
+          docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
           if [ -n "${{ inputs.service_suffix }}" ]; then
             docker tag backend ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:backend${{ inputs.service_suffix }}
+            docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:backend${{ inputs.service_suffix }}
           fi
-          docker push ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/recipedex/backend:${{ inputs.image_tag }}
 
       - id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
