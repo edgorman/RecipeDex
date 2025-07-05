@@ -27,7 +27,7 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev
           gcloud run services delete "backend-pr-${{ github.event.pull_request.base.sha }}" --region="${{ secrets.GCP_PROJECT_REGION }}" --quiet
-          gcloud docker images --filter "reference=*:pr-${{ github.event.pull_request.base.sha }}" -q | xargs -r docker rmi
+          gcloud docker images --filter "reference=*:backend-pr-${{ github.event.pull_request.base.sha }}" -q | xargs -r docker rmi
 
   github-cleanup:
     name: GitHub Cleanup
