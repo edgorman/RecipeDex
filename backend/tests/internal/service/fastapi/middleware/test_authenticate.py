@@ -27,16 +27,16 @@ def mock_user_handler():
 
 @pytest.fixture
 def mock_client(mock_user_handler):
-    app = FastAPI()
-    add_authenticate_middleware(app, mock_user_handler)
+    api = FastAPI()
+    add_authenticate_middleware(api, mock_user_handler)
 
-    @app.get("/")
+    @api.get("/")
     async def root(request: Request):
         return JSONResponse(
             json.loads(request.user.to_json()) if isinstance(request.user, User) else {"message": "success"}
         )
 
-    return TestClient(app)
+    return TestClient(api)
 
 
 @pytest.mark.parametrize(

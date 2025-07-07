@@ -46,29 +46,32 @@ class Recipe:
         return action in ROLE_ACTION_MAPPING[role]
 
     def to_dict(self) -> dict:
-        return asdict(self)
-
-    def to_json(self) -> str:
         def default(obj):
             if isinstance(obj, RecipeRole):
                 return obj.value
+            if isinstance(obj, dict):
+                return {k: default(v) for k, v in obj.items()}
+            if hasattr(obj, "__dict__"):
+                return {k: default(v) for k, v in obj.__dict__.items()}
             if hasattr(obj, "to_json"):
                 return json.loads(obj.to_json())
-            if hasattr(obj, "__dict__"):
-                return obj.__dict__
             if hasattr(obj, "name"):
                 return obj.name
             if hasattr(obj, "value"):
                 return obj.value
-            return str(obj)
-        return json.dumps(self.to_dict(), default=default)
+            return obj
+
+        return {k: default(v) for k, v in asdict(self).items()}
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
 
     @staticmethod
     def from_dict(data: dict) -> "Recipe":
         return Recipe(
             id=data["id"],
             private=data["private"],
-            user_access_mapping={k: RecipeRole(v) for k, v in data["user_access_mapping"]}
+            user_access_mapping={k: RecipeRole(v) for k, v in data["user_access_mapping"].items()}
         )
 
     @staticmethod
