@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
+from internal.objects.recipe import Recipe
 
 
 class RecipeStorage(ABC):
 
     @abstractmethod
-    def get(self):
+    def get(self, id_: str) -> Optional[Recipe]:
         ...
 
     @abstractmethod

@@ -1,6 +1,6 @@
+import json
 from typing import Dict, Any
 from dataclasses import dataclass, asdict
-import json
 
 from starlette.authentication import BaseUser
 from internal.config.auth import AuthProvider
@@ -22,6 +22,9 @@ class User(BaseUser):
     def display_name(self) -> str:
         return self.name
 
+    def to_dict(self) -> dict:
+        return asdict(self)
+
     def to_json(self) -> str:
         def default(obj):
             if isinstance(obj, AuthProvider):
@@ -38,11 +41,14 @@ class User(BaseUser):
         return json.dumps(asdict(self), default=default)
 
     @staticmethod
-    def from_json(data: str) -> "User":
-        obj = json.loads(data)
+    def from_dict(data: dict) -> "User":
         return User(
-            id=obj["id"],
-            name=obj["name"],
-            provider=AuthProvider(obj["provider"]),
-            provider_info=obj["provider_info"]
+            id=data["id"],
+            name=data["name"],
+            provider=AuthProvider(data["provider"]),
+            provider_info=data["provider_info"]
         )
+
+    @staticmethod
+    def from_json(data: str) -> "User":
+        return User.from_dict(json.loads(data))
