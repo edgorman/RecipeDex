@@ -52,7 +52,7 @@ class Recipe:
             if isinstance(obj, dict):
                 return {k: default(v) for k, v in obj.items()}
             if hasattr(obj, "__dict__"):
-                return {k: default(v) for k, v in obj.__dict__.items()}
+                return default(obj.__dict__)
             if hasattr(obj, "to_json"):
                 return json.loads(obj.to_json())
             if hasattr(obj, "name"):

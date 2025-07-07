@@ -11,13 +11,13 @@ class RecipeStorage(ABC):
         ...
 
     @abstractmethod
-    def create(self):
+    def create(self, recipe: Recipe) -> None:
         ...
 
     @abstractmethod
-    def update(self):
+    def update(self, id_: str, **kwargs) -> None:
         ...
 
     @abstractmethod
-    def delete(self):
+    def delete(self, id_: str) -> None:
         ...

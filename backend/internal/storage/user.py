@@ -15,7 +15,7 @@ class UserStorage(ABC):
         ...
 
     @abstractmethod
-    def update(self, user: User, **kwargs) -> None:
+    def update(self, id_: str, **kwargs) -> None:
         ...
 
     @abstractmethod
