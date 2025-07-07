@@ -16,9 +16,9 @@ from internal.service.fastapi.middleware.cors import add_cors_middleware
     ]
 )
 def test_cors_middleware(allowed_origin, request_origin, expected_status):
-    app = FastAPI()
-    add_cors_middleware(app, allowed_origin)
-    mock_client = TestClient(app)
+    api = FastAPI()
+    add_cors_middleware(api, allowed_origin)
+    mock_client = TestClient(api)
 
     headers = {
         "Origin": request_origin,

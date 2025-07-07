@@ -11,13 +11,13 @@ class UserStorage(ABC):
         ...
 
     @abstractmethod
-    def create(self):
+    def create(self, user: User) -> None:
         ...
 
     @abstractmethod
-    def update(self):
+    def update(self, user: User, **kwargs) -> None:
         ...
 
     @abstractmethod
-    def delete(self):
+    def delete(self, id_: str) -> None:
         ...

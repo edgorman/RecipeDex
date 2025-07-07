@@ -23,22 +23,25 @@ class User(BaseUser):
         return self.name
 
     def to_dict(self) -> dict:
-        return asdict(self)
-
-    def to_json(self) -> str:
         def default(obj):
             if isinstance(obj, AuthProvider):
                 return obj.value
+            if isinstance(obj, dict):
+                return {k: default(v) for k, v in obj.items()}
+            if hasattr(obj, "__dict__"):
+                return {k: default(v) for k, v in obj.__dict__.items()}
             if hasattr(obj, "to_json"):
                 return json.loads(obj.to_json())
-            if hasattr(obj, "__dict__"):
-                return obj.__dict__
             if hasattr(obj, "name"):
                 return obj.name
             if hasattr(obj, "value"):
                 return obj.value
-            return str(obj)
-        return json.dumps(asdict(self), default=default)
+            return obj
+
+        return {k: default(v) for k, v in asdict(self).items()}
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
 
     @staticmethod
     def from_dict(data: dict) -> "User":
