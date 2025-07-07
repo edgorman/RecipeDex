@@ -7,12 +7,9 @@ from internal.storage.recipe import RecipeStorage
 from internal.objects.user import User
 
 
-RECIPE_RESOURCE_ENDPOINT = "recipe"
-
-
 class RecipeResource(APIRouter):
-    def __init__(self, recipe_storage_handler: RecipeStorage, recipe_agent_handler: RecipeAgent):
-        super().__init__(prefix=f"/{RECIPE_RESOURCE_ENDPOINT}")
+    def __init__(self, recipe_storage_handler: RecipeStorage, recipe_agent_handler: RecipeAgent, endpoint="recipe"):
+        super().__init__(prefix=f"/{endpoint}")
         self.__recipe_storage_handler = recipe_storage_handler
         self.__recipe_agent_handler = recipe_agent_handler
 
@@ -22,7 +19,7 @@ class RecipeResource(APIRouter):
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
         self.add_api_route("/{recipe_id}/message", self._message, methods=["POST"])
 
-    def _preprocess(self, recipe_id: str, user: User, action: RecipeAction) -> Recipe:
+    def __preprocess(self, recipe_id: str, user: User, action: RecipeAction) -> Recipe:
         recipe = self.__recipe_storage_handler.get(recipe_id)
         if recipe is None:
             raise HTTPException(
@@ -40,7 +37,7 @@ class RecipeResource(APIRouter):
         return recipe
 
     async def _get(self, request: Request, recipe_id: str):
-        recipe = self._preprocess(recipe_id, request.user, RecipeAction.GET)
+        recipe = self.__preprocess(recipe_id, request.user, RecipeAction.GET)
         return JSONResponse(
             {
                 "recipe": recipe.to_dict(),
@@ -67,7 +64,7 @@ class RecipeResource(APIRouter):
         )
 
     async def _update(self, request: Request, recipe_id: str):
-        _ = self._preprocess(recipe_id, request.user, RecipeAction.UPDATE)
+        _ = self.__preprocess(recipe_id, request.user, RecipeAction.UPDATE)
 
         # TODO: parse recipe from request body params
         self.__recipe_storage_handler.update()
@@ -80,7 +77,7 @@ class RecipeResource(APIRouter):
         )
 
     async def _delete(self, request: Request, recipe_id: str):
-        _ = self._preprocess(recipe_id, request.user, RecipeAction.DELETE)
+        _ = self.__preprocess(recipe_id, request.user, RecipeAction.DELETE)
 
         self.__recipe_storage_handler.update()
 
@@ -92,7 +89,7 @@ class RecipeResource(APIRouter):
         )
 
     async def _message(self, request: Request, recipe_id: str):
-        recipe = self._preprocess(recipe_id, request.user, RecipeAction.UPDATE)
+        recipe = self.__preprocess(recipe_id, request.user, RecipeAction.UPDATE)
 
         try:
             self.__recipe_storage_handler.update()  # TODO: update chat
