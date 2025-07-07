@@ -62,7 +62,7 @@ def mock_client(mock_user, mock_recipe_storage_handler, mock_recipe_agent_handle
     [
         (
             "mock_recipe_id", mock_recipe_public_no_acl, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": mock_recipe_public_no_acl.to_json()}
+            {"detail": "Recipe get finished successfully.", "recipe": mock_recipe_public_no_acl.to_dict()}
         )
     ]
 )
@@ -80,6 +80,5 @@ def test_get(
     except Exception as e:
         assert False, f"Unexpected exception was thrown: {e}"
 
-    breakpoint()
     assert response.status_code == expected_status
     assert response.json() == expected_content

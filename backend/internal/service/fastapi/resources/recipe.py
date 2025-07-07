@@ -43,7 +43,7 @@ class RecipeResource(APIRouter):
         recipe = self._preprocess(recipe_id, request.user, RecipeAction.GET)
         return JSONResponse(
             {
-                "recipe": recipe.to_json(),
+                "recipe": recipe.to_dict(),
                 "detail": f"Recipe {RecipeAction.GET.value} finished successfully."
             }
         )
@@ -56,6 +56,7 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {RecipeAction.CREATE.value} recipe: `user is not authenticated`."
             )
 
+        # TODO: parse recipe from request body params
         recipe_id = self.__recipe_storage_handler.create()
 
         return JSONResponse(
@@ -68,6 +69,7 @@ class RecipeResource(APIRouter):
     async def _update(self, request: Request, recipe_id: str):
         _ = self._preprocess(recipe_id, request.user, RecipeAction.UPDATE)
 
+        # TODO: parse recipe from request body params
         self.__recipe_storage_handler.update()
 
         return JSONResponse(
