@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request
-from starlette.authentication import UnauthenticatedUser
 import uvicorn
 
 from internal.config.service import (
@@ -8,11 +7,14 @@ from internal.config.service import (
     ALLOWED_ORIGIN as SERVICE_ALLOWED_ORIGIN
 )
 from internal.agents.recipe import RecipeAgent
+from internal.objects.user import User
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
 from internal.storage.recipe import RecipeStorage
 from internal.service.fastapi.middleware.cors import add_cors_middleware
 from internal.service.fastapi.middleware.authenticate import add_authenticate_middleware
+from internal.service.fastapi.resources.user import UserResource
+from internal.service.fastapi.resources.recipe import RecipeResource
 
 
 class FastapiAPIService(APIService):
@@ -34,6 +36,8 @@ class FastapiAPIService(APIService):
         add_cors_middleware(self.__api, SERVICE_ALLOWED_ORIGIN)
 
         self.__api.add_api_route("/", self._root)
+        self.__api.include_router(UserResource(self.__user_storage_handler))
+        self.__api.include_router(RecipeResource(self.__recipe_storage_handler, self.__recipe_agent_handler))
 
         self.__config = uvicorn.Config(self.__api, host=host, port=port, workers=1)
         self.__server = uvicorn.Server(self.__config)
@@ -43,8 +47,10 @@ class FastapiAPIService(APIService):
 
     async def _root(self, request: Request):
         message = "Hello World :)"
-        if not isinstance(request.user, UnauthenticatedUser):
-            message = f"Welcome back {request.user.display_name}"
+
+        user: User = request.user
+        if user.is_authenticated:
+            message = f"Welcome back {user.display_name}"
 
         return {
             "name": SERVICE_NAME,

@@ -1,3 +1,4 @@
+import json
 import pytest
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -32,7 +33,7 @@ def mock_client(mock_user_handler):
     @app.get("/")
     async def root(request: Request):
         return JSONResponse(
-            request.user.to_json() if isinstance(request.user, User) else {"message": "success"}
+            json.loads(request.user.to_json()) if isinstance(request.user, User) else {"message": "success"}
         )
 
     return TestClient(app)
@@ -46,7 +47,7 @@ def mock_client(mock_user_handler):
         ),
         (  # Auth in header and successful authentication
             "/", {"Authorization": "Bearer blah", "Authorization-Provider": AuthProvider.FIREBASE.value},
-            None, lambda _, __: mock_user, 200, mock_user.to_json()
+            None, lambda _, __: mock_user, 200, json.loads(mock_user.to_json())
         ),
         (  # Auth in header but no bearer token
             "/", {"Authorization": "blah"}, None, None, 400,
