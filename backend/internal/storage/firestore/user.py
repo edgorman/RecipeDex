@@ -1,6 +1,7 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 from google.cloud.firestore import Client as FirestoreClient
 
+from internal.config.auth import AuthProvider
 from internal.objects.user import User
 from internal.storage.user import UserStorage
 
@@ -16,6 +17,32 @@ class FirestoreUserStorage(UserStorage):
         except Exception as e:
             raise Exception(f"Could not get user: `{str(e)}`.")
 
+        if document.exists:
+            return User.from_dict(document.to_dict())
+        return None
+
+    def get_by_auth_provider(
+        self, provider: AuthProvider, provider_info_path: Tuple[str], provider_info_value: Any
+    ) -> Optional[User]:
+        provider_info_path = ("provider_info") + provider_info_path
+
+        query = (
+            self.__collection
+            .where("provider", "==", provider.value)
+            .where(".".join(provider_info_path), "==", provider_info_value)
+        )
+
+        try:
+            documents = query.get()
+        except Exception as e:
+            raise Exception(f"Could not get user by auth provider: `{str(e)}`.")
+
+        if len(documents) == 0:
+            return None
+        elif len(documents) > 1:
+            raise Exception("Could not get user by auth provider: `more than one user returned`.")
+
+        document = documents[0]
         if document.exists:
             return User.from_dict(document.to_dict())
         return None

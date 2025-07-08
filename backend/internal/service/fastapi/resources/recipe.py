@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from internal.agents.recipe import RecipeAgent
 from internal.objects.recipe import Recipe, RecipeAction
 from internal.storage.recipe import RecipeStorage
-from internal.objects.user import User
+from internal.objects.user import User, UserRole
 
 
 class RecipeResource(APIRouter):
@@ -51,6 +51,13 @@ class RecipeResource(APIRouter):
             raise HTTPException(
                 status_code=401,
                 detail=f"Could not {RecipeAction.CREATE.value} recipe: `user is not authenticated`."
+            )
+
+        # TODO: update roles that can create recipes beyond admin role
+        if user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Could not {RecipeAction.CREATE.value} recipe: `user is not authorized`."
             )
 
         # TODO: parse recipe from request body params

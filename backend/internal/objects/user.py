@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 from typing import Dict, Any
 from dataclasses import dataclass, asdict
 
@@ -6,11 +7,17 @@ from starlette.authentication import BaseUser
 from internal.config.auth import AuthProvider
 
 
+class UserRole(Enum):
+    UNDEFINED = "undefined"
+    ADMIN = "admin"
+
+
 @dataclass
 class User(BaseUser):
     """Class for storing user information"""
     id: str
     name: str
+    role: UserRole
     provider: AuthProvider
     provider_info: Dict[str, Any]
 
@@ -24,6 +31,8 @@ class User(BaseUser):
 
     def to_dict(self) -> dict:
         def default(obj):
+            if isinstance(obj, UserRole):
+                return obj.value
             if isinstance(obj, AuthProvider):
                 return obj.value
             if isinstance(obj, dict):
@@ -40,18 +49,12 @@ class User(BaseUser):
 
         return {k: default(v) for k, v in asdict(self).items()}
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
-
     @staticmethod
     def from_dict(data: dict) -> "User":
         return User(
             id=data["id"],
             name=data["name"],
+            role=UserRole(data["role"]),
             provider=AuthProvider(data["provider"]),
             provider_info=data["provider_info"]
         )
-
-    @staticmethod
-    def from_json(data: str) -> "User":
-        return User.from_dict(json.loads(data))
