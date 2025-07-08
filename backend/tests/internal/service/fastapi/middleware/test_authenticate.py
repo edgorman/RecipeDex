@@ -1,4 +1,3 @@
-import json
 import pytest
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -6,7 +5,7 @@ from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
 
 from internal.config.auth import AuthProvider
-from internal.objects.user import User
+from internal.objects.user import User, UserRole
 from internal.service.fastapi.middleware.authenticate import (
     AuthenticateBackend, add_authenticate_middleware
 )
@@ -15,6 +14,7 @@ from internal.service.fastapi.middleware.authenticate import (
 mock_user = User(
     id="mock_id",
     name="mock_name",
+    role=UserRole.UNDEFINED,
     provider=AuthProvider.FIREBASE,
     provider_info={}
 )
@@ -33,7 +33,7 @@ def mock_client(mock_user_handler):
     @api.get("/")
     async def root(request: Request):
         return JSONResponse(
-            json.loads(request.user.to_json()) if isinstance(request.user, User) else {"message": "success"}
+            request.user.to_dict() if isinstance(request.user, User) else {"message": "success"}
         )
 
     return TestClient(api)
@@ -47,7 +47,7 @@ def mock_client(mock_user_handler):
         ),
         (  # Auth in header and successful authentication
             "/", {"Authorization": "Bearer blah", "Authorization-Provider": AuthProvider.FIREBASE.value},
-            None, lambda _, __: mock_user, 200, json.loads(mock_user.to_json())
+            None, lambda _, __, ___: mock_user, 200, mock_user.to_dict()
         ),
         (  # Auth in header but no bearer token
             "/", {"Authorization": "blah"}, None, None, 400,

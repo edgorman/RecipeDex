@@ -1,3 +1,4 @@
+from typing import Tuple
 from fastapi import FastAPI, HTTPException
 from starlette.authentication import AuthenticationBackend, AuthCredentials
 from starlette.middleware.authentication import AuthenticationMiddleware
@@ -11,13 +12,13 @@ from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID
 from internal.config.auth import (
     AuthProvider, AUTHENTICATED_SCOPE, AUTHORIZATION_HEADER, AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_PROVIDER_HEADER
 )
-from internal.objects.user import User
+from internal.objects.user import User, UserRole
 from internal.storage.user import UserStorage
 
 
 class AuthenticateBackend(AuthenticationBackend):
-    def __init__(self, user_handler):
-        self.__user_handler = user_handler
+    def __init__(self, user_storage_handler: UserStorage):
+        self.__user_storage_handler = user_storage_handler
 
     async def authenticate(self, connection: HTTPConnection) -> tuple[AuthCredentials, User] | None:
         if AUTHORIZATION_HEADER not in connection.headers:
@@ -46,7 +47,8 @@ class AuthenticateBackend(AuthenticationBackend):
         try:
             match provider:
                 case AuthProvider.FIREBASE:
-                    provider_data = self._auth_firebase(token)
+                    provider_info = self._auth_firebase(token)
+                    provider_info_path = ("user_id")
                 case _:
                     raise NotImplementedError("Provider has not been implemented.")
         except Exception as e:
@@ -55,7 +57,7 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
-            user = self._get_user(provider, provider_data)
+            user = self._get_user(provider, provider_info_path, provider_info)
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -73,18 +75,27 @@ class AuthenticateBackend(AuthenticationBackend):
 
         return data
 
-    def _get_user(self, provider: AuthProvider, provider_data: dict) -> User:
+    def _get_user(self, provider: AuthProvider, provider_info_path: Tuple[str], provider_info: dict) -> User:
         return User(
-            id=provider_data["user_id"],
-            name=provider_data["name"],
+            id=provider_info["user_id"],
+            name=provider_info["name"],
+            role=UserRole.ADMIN,
             provider=provider,
-            provider_info=provider_data
+            provider_info=provider_info
         )
 
         # TODO: when user handler has been implemented
-        # user = self.__user_handler.get_user_by_auth_provider(provider, provider_data)
+        # user = self.__user_storage_handler.get_by_auth_provider(provider, provider_info_path, provider_info_value)
         # if user is None:
-        #     user = self.__user_handler.create_user_from_auth_provider(provider, provider_data)
+        #     user = self.__user_storage_handler.create(
+        #       User(
+        #           id=uuid4(),
+        #           name=provider_info["name"],
+        #           role=UserRole.UNDEFINED,
+        #           provider=provider,
+        #           provider_info=provider_info
+        #       )
+        #     )
         # return user
 
     def on_error(connection: HTTPConnection, exception: HTTPException) -> Response:
@@ -93,7 +104,7 @@ class AuthenticateBackend(AuthenticationBackend):
 
 def add_authenticate_middleware(
     app: FastAPI,
-    user_handler: UserStorage,
+    user_storage_handler: UserStorage,
 ):
-    backend = AuthenticateBackend(user_handler=user_handler)
+    backend = AuthenticateBackend(user_storage_handler=user_storage_handler)
     app.add_middleware(AuthenticationMiddleware, backend=backend, on_error=backend.on_error)

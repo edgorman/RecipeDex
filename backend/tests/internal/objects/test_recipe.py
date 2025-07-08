@@ -1,4 +1,3 @@
-import json
 import pytest
 from internal.objects.recipe import Recipe, RecipeRole
 
@@ -32,19 +31,7 @@ def test_to_dict(mock_recipe, mock_recipe_dict):
     assert mock_recipe.to_dict() == mock_recipe_dict
 
 
-def test_to_json(mock_recipe, mock_recipe_dict):
-    json_str = mock_recipe.to_json()
-    assert isinstance(json_str, str)
-    assert json.loads(json_str) == mock_recipe_dict
-
-
 def test_from_dict(mock_recipe, mock_recipe_dict):
     recipe = Recipe.from_dict(mock_recipe_dict)
-    assert isinstance(recipe, Recipe)
-    assert recipe == mock_recipe
-
-
-def test_from_json(mock_recipe, mock_recipe_dict):
-    recipe = Recipe.from_json(json.dumps(mock_recipe_dict))
     assert isinstance(recipe, Recipe)
     assert recipe == mock_recipe

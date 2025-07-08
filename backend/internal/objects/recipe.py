@@ -63,9 +63,6 @@ class Recipe:
 
         return {k: default(v) for k, v in asdict(self).items()}
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
-
     @staticmethod
     def from_dict(data: dict) -> "Recipe":
         return Recipe(
@@ -73,7 +70,3 @@ class Recipe:
             private=data["private"],
             user_access_mapping={k: RecipeRole(v) for k, v in data["user_access_mapping"].items()}
         )
-
-    @staticmethod
-    def from_json(data: str) -> "Recipe":
-        return Recipe.from_dict(json.loads(data))
