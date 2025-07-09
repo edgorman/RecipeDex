@@ -1,8 +1,9 @@
+from uuid import uuid4, UUID
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 
 from internal.agents.recipe import RecipeAgent
-from internal.objects.recipe import Recipe, RecipeAction
+from internal.objects.recipe import Recipe, RecipeAction, RecipeRole
 from internal.storage.recipe import RecipeStorage
 from internal.objects.user import User, UserRole
 
@@ -14,24 +15,33 @@ class RecipeResource(APIRouter):
         self.__recipe_agent_handler = recipe_agent_handler
 
         self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
+        self.add_api_route("/{recipe_id}/metadata", self._get_metadata, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._create, methods=["POST"])
         self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
         self.add_api_route("/{recipe_id}/message", self._message, methods=["POST"])
 
     def __preprocess(self, recipe_id: str, user: User, action: RecipeAction) -> Recipe:
+        try:
+            recipe_id = UUID(recipe_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=401,
+                detail=f"Could not {action.value} recipe with id `{recipe_id}`: `invalid recipe id, {str(e)}`."
+            )
+
         recipe = self.__recipe_storage_handler.get(recipe_id)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Could not {action.value} recipe with id `{recipe_id}`: `it does not exist`."
+                detail=f"Could not {action.value} recipe with id `{str(recipe_id)}`: `it does not exist`."
             )
 
         user_id = user.id if user.is_authenticated else None
         if not recipe.authorize(user_id, action):
             raise HTTPException(
                 status_code=403,
-                detail=f"Could not {action.value} recipe with id `{recipe_id}`: `user is not authorized`."
+                detail=f"Could not {action.value} recipe with id `{str(recipe_id)}`: `user is not authorized`."
             )
 
         return recipe
@@ -40,8 +50,19 @@ class RecipeResource(APIRouter):
         recipe = self.__preprocess(recipe_id, request.user, RecipeAction.GET)
         return JSONResponse(
             {
-                "recipe": recipe.to_dict(),
+                "recipe": {
+                    "id": str(recipe.id),
+                },
                 "detail": f"Recipe {RecipeAction.GET.value} finished successfully."
+            }
+        )
+
+    async def _get_metadata(self, request: Request, recipe_id: str):
+        recipe = self.__preprocess(recipe_id, request.user, RecipeAction.GET_METADATA)
+        return JSONResponse(
+            {
+                "recipe": recipe.to_dict(),
+                "detail": f"Recipe {RecipeAction.GET_METADATA.value} finished successfully."
             }
         )
 
@@ -61,32 +82,37 @@ class RecipeResource(APIRouter):
             )
 
         # TODO: parse recipe from request body params
-        recipe_id = self.__recipe_storage_handler.create()
+        recipe = Recipe(
+            id=uuid4(),
+            private=False,
+            user_access_mapping={user.id: RecipeRole.OWNER}
+        )
+        self.__recipe_storage_handler.create(recipe)
 
         return JSONResponse(
             {
-                "recipe_id": recipe_id,
+                "recipe_id": str(recipe.id),
                 "detail": f"Recipe {RecipeAction.CREATE.value} finished successfully."
             }
         )
 
     async def _update(self, request: Request, recipe_id: str):
-        _ = self.__preprocess(recipe_id, request.user, RecipeAction.UPDATE)
+        recipe = self.__preprocess(recipe_id, request.user, RecipeAction.UPDATE)
 
         # TODO: parse recipe from request body params
-        self.__recipe_storage_handler.update()
+        self.__recipe_storage_handler.update(recipe.id, None)
 
         return JSONResponse(
             {
-                "recipe_id": recipe_id,
+                "recipe_id": str(recipe.id),
                 "detail": f"Recipe {RecipeAction.UPDATE.value} finished successfully."
             }
         )
 
     async def _delete(self, request: Request, recipe_id: str):
-        _ = self.__preprocess(recipe_id, request.user, RecipeAction.DELETE)
+        recipe = self.__preprocess(recipe_id, request.user, RecipeAction.DELETE)
 
-        self.__recipe_storage_handler.update()
+        self.__recipe_storage_handler.delete(recipe.id)
 
         return JSONResponse(
             {
@@ -99,7 +125,7 @@ class RecipeResource(APIRouter):
         recipe = self.__preprocess(recipe_id, request.user, RecipeAction.UPDATE)
 
         try:
-            self.__recipe_storage_handler.update()  # TODO: update chat
+            self.__recipe_storage_handler.update(recipe.id, None)  # TODO: update chat
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -108,7 +134,7 @@ class RecipeResource(APIRouter):
 
         try:
             _ = self.__recipe_agent_handler.message(request.user, recipe.session, request.body.message)
-            self.__recipe_storage_handler.update()  # TODO: update chat
+            self.__recipe_storage_handler.update(recipe.id, None)  # TODO: update chat
         except Exception as e:
             raise HTTPException(
                 status_code=500,

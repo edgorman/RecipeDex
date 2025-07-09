@@ -17,7 +17,7 @@ class VertexRecipeAgent(RecipeAgent):
 
     async def message(self, user: User, session_id: UUID, message: str) -> List[str]:
         async for event in self.__agent_handler.run_async(
-            user_id=user.id,
+            user_id=str(user.id),
             session_id=str(session_id),
             new_message=Content(role=__ROLE, parts=[Part.from_text(text=message)]),
         ):
