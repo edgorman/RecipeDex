@@ -1,4 +1,5 @@
 from typing import Any, Optional, Tuple
+from uuid import UUID
 from google.cloud.firestore import Client as FirestoreClient
 
 from internal.config.auth import AuthProvider
@@ -11,9 +12,9 @@ class FirestoreUserStorage(UserStorage):
     def __init__(self, client: FirestoreClient, collection_path: Tuple[str] = ("user")):
         self.__collection = client.collection(collection_path)
 
-    def get(self, id_: str) -> Optional[User]:
+    def get(self, id_: UUID) -> Optional[User]:
         try:
-            document = self.__collection.document(id_).get()
+            document = self.__collection.document(str(id_)).get()
         except Exception as e:
             raise Exception(f"Could not get user: `{str(e)}`.")
 
@@ -51,23 +52,23 @@ class FirestoreUserStorage(UserStorage):
         try:
             self.__collection.add(
                 document_data=user.to_dict(),
-                document_id=user.id,
+                document_id=str(user.id),
             )
         except Exception as e:
             raise Exception(f"Could not create user: `{str(e)}`.")
 
-    def update(self, id_: str, **kwargs) -> None:
+    def update(self, id_: UUID, **kwargs) -> None:
         if 'id' in kwargs:
             kwargs.pop('id')
 
         try:
-            document = self.__collection.document(id_)
+            document = self.__collection.document(str(id_))
             document.update(kwargs)
         except Exception as e:
             raise Exception(f"Could not update user: `{str(e)}`.")
 
-    def delete(self, id_: str) -> None:
+    def delete(self, id_: UUID) -> None:
         try:
-            self.__collection.document(id_).delete()
+            self.__collection.document(str(id_)).delete()
         except Exception as e:
             raise Exception(f"Could not delete user: `{str(e)}`.")

@@ -1,4 +1,5 @@
 import pytest
+from uuid import uuid4, UUID
 from internal.objects.user import User, UserRole
 from internal.config.auth import AuthProvider
 
@@ -6,7 +7,7 @@ from internal.config.auth import AuthProvider
 @pytest.fixture
 def mock_user_dict():
     return {
-        "id": "123",
+        "id": str(uuid4()),
         "name": "Test User",
         "role": UserRole.UNDEFINED.value,
         "provider": AuthProvider.FIREBASE.value,
@@ -17,7 +18,7 @@ def mock_user_dict():
 @pytest.fixture
 def mock_user(mock_user_dict):
     return User(
-        id=mock_user_dict["id"],
+        id=UUID(mock_user_dict["id"]),
         name=mock_user_dict["name"],
         role=UserRole(mock_user_dict["role"]),
         provider=AuthProvider(mock_user_dict["provider"]),

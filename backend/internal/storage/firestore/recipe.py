@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+from uuid import UUID
 from google.cloud.firestore import Client as FirestoreClient
 
 from internal.objects.recipe import Recipe
@@ -10,9 +11,9 @@ class FirestoreRecipeStorage(RecipeStorage):
     def __init__(self, client: FirestoreClient, collection_path: Tuple[str] = ("recipe")):
         self.__collection = client.collection(collection_path)
 
-    def get(self, id_: str) -> Optional[Recipe]:
+    def get(self, id_: UUID) -> Optional[Recipe]:
         try:
-            result = self.__collection.document(id_)
+            result = self.__collection.document(str(id_))
             document = result.get()
         except Exception as e:
             raise Exception(f"Could not get recipe: `{str(e)}`.")
@@ -25,13 +26,13 @@ class FirestoreRecipeStorage(RecipeStorage):
         try:
             self.__collection.add(
                 document_data=recipe.to_dict(),
-                document_id=recipe.id,
+                document_id=str(recipe.id),
             )
         except Exception as e:
             raise Exception(f"Could not create recipe: `{str(e)}`.")
 
-    def update(self, id_: str, **kwargs) -> None:
+    def update(self, id_: UUID, **kwargs) -> None:
         raise NotImplementedError()
 
-    def delete(self, id_: str) -> None:
+    def delete(self, id_: UUID) -> None:
         raise NotImplementedError()

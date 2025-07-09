@@ -1,17 +1,18 @@
 import pytest
+from uuid import uuid4, UUID
 from internal.objects.recipe import Recipe, RecipeRole
 
 
 @pytest.fixture
 def mock_recipe_dict():
     return {
-        "id": "123",
+        "id": str(uuid4()),
         "private": False,
         "user_access_mapping": {
-            "abc": RecipeRole.UNDEFINED.value,
-            "def": RecipeRole.VIEWER.value,
-            "ghi": RecipeRole.EDITOR.value,
-            "jkl": RecipeRole.OWNER.value
+            str(uuid4()): RecipeRole.UNDEFINED.value,
+            str(uuid4()): RecipeRole.VIEWER.value,
+            str(uuid4()): RecipeRole.EDITOR.value,
+            str(uuid4()): RecipeRole.OWNER.value
         }
     }
 
@@ -19,10 +20,10 @@ def mock_recipe_dict():
 @pytest.fixture
 def mock_recipe(mock_recipe_dict):
     return Recipe(
-        id=mock_recipe_dict["id"],
+        id=UUID(mock_recipe_dict["id"]),
         private=mock_recipe_dict["private"],
         user_access_mapping={
-            k: RecipeRole(v) for k, v in mock_recipe_dict["user_access_mapping"].items()
+            UUID(k): RecipeRole(v) for k, v in mock_recipe_dict["user_access_mapping"].items()
         }
     )
 

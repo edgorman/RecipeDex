@@ -79,7 +79,7 @@ class AuthenticateBackend(AuthenticationBackend):
         return User(
             id=provider_info["user_id"],
             name=provider_info["name"],
-            role=UserRole.ADMIN,
+            role=UserRole.UNDEFINED,
             provider=provider,
             provider_info=provider_info
         )

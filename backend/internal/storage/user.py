@@ -1,5 +1,6 @@
-from typing import Any, Dict, Optional
 from abc import ABC, abstractmethod
+from uuid import UUID
+from typing import Any, Dict, Optional
 
 from internal.objects.user import User
 from internal.config.auth import AuthProvider
@@ -8,7 +9,7 @@ from internal.config.auth import AuthProvider
 class UserStorage(ABC):
 
     @abstractmethod
-    def get(self, id_: str) -> Optional[User]:
+    def get(self, id_: UUID) -> Optional[User]:
         ...
 
     @abstractmethod
@@ -20,9 +21,9 @@ class UserStorage(ABC):
         ...
 
     @abstractmethod
-    def update(self, id_: str, **kwargs) -> None:
+    def update(self, id_: UUID, **kwargs) -> None:
         ...
 
     @abstractmethod
-    def delete(self, id_: str) -> None:
+    def delete(self, id_: UUID) -> None:
         ...

@@ -1,5 +1,5 @@
-import json
 from enum import Enum
+from uuid import UUID
 from typing import Dict, Any
 from dataclasses import dataclass, asdict
 
@@ -15,7 +15,7 @@ class UserRole(Enum):
 @dataclass
 class User(BaseUser):
     """Class for storing user information"""
-    id: str
+    id: UUID
     name: str
     role: UserRole
     provider: AuthProvider
@@ -31,20 +31,14 @@ class User(BaseUser):
 
     def to_dict(self) -> dict:
         def default(obj):
+            if isinstance(obj, UUID):
+                return str(obj)
             if isinstance(obj, UserRole):
                 return obj.value
             if isinstance(obj, AuthProvider):
                 return obj.value
             if isinstance(obj, dict):
-                return {k: default(v) for k, v in obj.items()}
-            if hasattr(obj, "__dict__"):
-                return default(obj.__dict__)
-            if hasattr(obj, "to_json"):
-                return json.loads(obj.to_json())
-            if hasattr(obj, "name"):
-                return obj.name
-            if hasattr(obj, "value"):
-                return obj.value
+                return {default(k): default(v) for k, v in obj.items()}
             return obj
 
         return {k: default(v) for k, v in asdict(self).items()}
@@ -52,7 +46,7 @@ class User(BaseUser):
     @staticmethod
     def from_dict(data: dict) -> "User":
         return User(
-            id=data["id"],
+            id=UUID(data["id"]),
             name=data["name"],
             role=UserRole(data["role"]),
             provider=AuthProvider(data["provider"]),

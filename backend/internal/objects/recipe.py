@@ -1,11 +1,12 @@
-import json
 from enum import Enum
+from uuid import UUID
 from typing import Dict, Optional
 from dataclasses import dataclass, asdict
 
 
 class RecipeAction(Enum):
     GET = "get"
+    GET_METADATA = "get_metadata"
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -21,19 +22,21 @@ class RecipeRole(Enum):
 ROLE_ACTION_MAPPING = {
     RecipeRole.UNDEFINED: {},
     RecipeRole.VIEWER: {RecipeAction.GET},
-    RecipeRole.EDITOR: {RecipeAction.GET, RecipeAction.UPDATE},
-    RecipeRole.OWNER: {RecipeAction.GET, RecipeAction.CREATE, RecipeAction.UPDATE, RecipeAction.DELETE},
+    RecipeRole.EDITOR: {RecipeAction.GET, RecipeAction.GET_METADATA, RecipeAction.UPDATE},
+    RecipeRole.OWNER: {
+        RecipeAction.GET, RecipeAction.GET_METADATA, RecipeAction.CREATE, RecipeAction.UPDATE, RecipeAction.DELETE
+    },
 }
 
 
 @dataclass
 class Recipe:
     """Class for storing recipe information"""
-    id: str
+    id: UUID
     private: bool
-    user_access_mapping: Dict[str, RecipeRole]
+    user_access_mapping: Dict[UUID, RecipeRole]
 
-    def authorize(self, user_id: Optional[str], action: RecipeAction) -> bool:
+    def authorize(self, user_id: Optional[UUID], action: RecipeAction) -> bool:
         """Authorize a user trying to access this recipe resource"""
         role = self.user_access_mapping.get(user_id, RecipeRole.UNDEFINED)
 
@@ -47,18 +50,12 @@ class Recipe:
 
     def to_dict(self) -> dict:
         def default(obj):
+            if isinstance(obj, UUID):
+                return str(obj)
             if isinstance(obj, RecipeRole):
                 return obj.value
             if isinstance(obj, dict):
-                return {k: default(v) for k, v in obj.items()}
-            if hasattr(obj, "__dict__"):
-                return default(obj.__dict__)
-            if hasattr(obj, "to_json"):
-                return json.loads(obj.to_json())
-            if hasattr(obj, "name"):
-                return obj.name
-            if hasattr(obj, "value"):
-                return obj.value
+                return {default(k): default(v) for k, v in obj.items()}
             return obj
 
         return {k: default(v) for k, v in asdict(self).items()}
@@ -66,7 +63,7 @@ class Recipe:
     @staticmethod
     def from_dict(data: dict) -> "Recipe":
         return Recipe(
-            id=data["id"],
+            id=UUID(data["id"]),
             private=data["private"],
-            user_access_mapping={k: RecipeRole(v) for k, v in data["user_access_mapping"].items()}
+            user_access_mapping={UUID(k): RecipeRole(v) for k, v in data["user_access_mapping"].items()}
         )
