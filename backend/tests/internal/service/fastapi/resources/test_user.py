@@ -14,7 +14,7 @@ mock_user = User(
     id="mock_user_id",
     name="mock_name",
     role=UserRole.UNDEFINED,
-    provider=AuthProvider.FIREBASE,
+    provider=AuthProvider.UNDEFINED,
     provider_info={}
 )
 

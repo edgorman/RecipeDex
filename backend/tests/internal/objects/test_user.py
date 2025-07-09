@@ -10,7 +10,7 @@ def mock_user_dict():
         "id": str(uuid4()),
         "name": "Test User",
         "role": UserRole.UNDEFINED.value,
-        "provider": AuthProvider.FIREBASE.value,
+        "provider": AuthProvider.UNDEFINED.value,
         "provider_info": {"email": "test@example.com"}
     }
 

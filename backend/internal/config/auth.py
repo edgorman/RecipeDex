@@ -8,4 +8,5 @@ AUTHORIZATION_PROVIDER_HEADER = "Authorization-Provider"
 
 
 class AuthProvider(Enum):
+    UNDEFINED = "undefined"
     FIREBASE = "firebase"
