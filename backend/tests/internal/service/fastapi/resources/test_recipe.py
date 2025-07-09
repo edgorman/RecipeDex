@@ -16,7 +16,7 @@ mock_user = User(
     id="mock_user_id",
     name="mock_name",
     role=UserRole.UNDEFINED,
-    provider=AuthProvider.FIREBASE,
+    provider=AuthProvider.UNDEFINED,
     provider_info={}
 )
 mock_recipe_public_no_acl = Recipe(uuid4(), private=False, user_access_mapping={})

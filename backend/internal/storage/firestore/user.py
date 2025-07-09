@@ -25,7 +25,7 @@ class FirestoreUserStorage(UserStorage):
     def get_by_auth_provider(
         self, provider: AuthProvider, provider_info_path: Tuple[str], provider_info_value: Any
     ) -> Optional[User]:
-        provider_info_path = ("provider_info") + provider_info_path
+        provider_info_path = tuple(["provider_info"] + list(provider_info_path))
 
         query = (
             self.__collection
@@ -50,10 +50,7 @@ class FirestoreUserStorage(UserStorage):
 
     def create(self, user: User) -> None:
         try:
-            self.__collection.add(
-                document_data=user.to_dict(),
-                document_id=str(user.id),
-            )
+            self.__collection.add(user.to_dict(), str(user.id))
         except Exception as e:
             raise Exception(f"Could not create user: `{str(e)}`.")
 
@@ -62,8 +59,7 @@ class FirestoreUserStorage(UserStorage):
             kwargs.pop('id')
 
         try:
-            document = self.__collection.document(str(id_))
-            document.update(kwargs)
+            self.__collection.document(str(id_)).update(**kwargs)
         except Exception as e:
             raise Exception(f"Could not update user: `{str(e)}`.")
 
