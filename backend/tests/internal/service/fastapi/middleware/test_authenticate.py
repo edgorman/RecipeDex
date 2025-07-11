@@ -7,14 +7,14 @@ from unittest.mock import Mock, patch
 from internal.config.auth import (
     AuthProvider, AUTHORIZATION_HEADER, AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_PROVIDER_HEADER
 )
-from internal.objects.user import User, UserRole
+from internal.objects.user import User
 from internal.service.fastapi.middleware.authenticate import add_authenticate_middleware
 
 
 example_user = User(
     id="mock_id",
     name="mock_name",
-    role=UserRole.UNDEFINED,
+    role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
         type=AuthProvider.FIREBASE,

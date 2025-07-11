@@ -5,14 +5,14 @@ from google.cloud.firestore_v1 import DocumentSnapshot, DocumentReference
 from google.cloud.firestore_v1.query_results import QueryResultsList
 
 from internal.config.auth import AuthProvider
-from internal.objects.user import User, UserRole
+from internal.objects.user import User
 from internal.storage.firestore.user import FirestoreUserStorage
 
 
 example_user = User(
     id=uuid4(),
     name="mock_name",
-    role=UserRole.UNDEFINED,
+    role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
         type=AuthProvider.UNDEFINED,

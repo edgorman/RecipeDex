@@ -6,14 +6,14 @@ from starlette.authentication import AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 from internal.config.auth import AuthProvider, AUTHENTICATED_SCOPE
-from internal.objects.user import User, UserRole
+from internal.objects.user import User
 from internal.service.fastapi.resources.user import UserResource
 
 
 example_user = User(
     id="mock_id",
     name="mock_name",
-    role=UserRole.UNDEFINED,
+    role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
         type=AuthProvider.UNDEFINED,

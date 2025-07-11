@@ -9,7 +9,7 @@ from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID
 from internal.config.auth import (
     AuthProvider, AUTHENTICATED_SCOPE, AUTHORIZATION_HEADER, AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_PROVIDER_HEADER
 )
-from internal.objects.user import User, UserRole
+from internal.objects.user import User
 from internal.storage.user import UserStorage
 
 
@@ -56,7 +56,7 @@ class AuthenticateBackend(AuthenticationBackend):
                 user = User(
                     id=uuid4(),
                     name=provider_name,
-                    role=UserRole.UNDEFINED,
+                    role=User.Role.UNDEFINED,
                     provider=User.Provider(
                         id=provider_id,
                         type=provider_type,
