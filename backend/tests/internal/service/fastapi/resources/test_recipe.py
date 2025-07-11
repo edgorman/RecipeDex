@@ -7,15 +7,15 @@ from starlette.authentication import AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 from internal.config.auth import AuthProvider, AUTHENTICATED_SCOPE
-from internal.objects.user import User, UserRole
-from internal.objects.recipe import Recipe, RecipeRole
+from internal.objects.user import User
+from internal.objects.recipe import Recipe
 from internal.service.fastapi.resources.recipe import RecipeResource
 
 
 example_user = User(
     id=uuid4(),
     name="mock_name",
-    role=UserRole.UNDEFINED,
+    role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
         type=AuthProvider.UNDEFINED,
@@ -25,13 +25,13 @@ example_user = User(
 mock_recipe_public_no_acl = Recipe(uuid4(), name="mock_recipe", private=False, user_access_mapping={})
 mock_recipe_private_no_acl = Recipe(uuid4(), name="mock_recipe", private=True, user_access_mapping={})
 mock_recipe_private_with_viewer = Recipe(
-    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: RecipeRole.VIEWER}
+    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
 )
 mock_recipe_public_with_viewer = Recipe(
-    uuid4(), name="mock_recipe", private=False, user_access_mapping={example_user.id: RecipeRole.VIEWER}
+    uuid4(), name="mock_recipe", private=False, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
 )
 mock_recipe_private_with_undefined = Recipe(
-    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: RecipeRole.UNDEFINED}
+    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.UNDEFINED}
 )
 
 

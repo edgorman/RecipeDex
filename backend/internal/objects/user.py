@@ -9,18 +9,17 @@ from starlette.authentication import BaseUser
 from internal.config.auth import AuthProvider
 
 
-class UserRole(Enum):
-    UNDEFINED = "undefined"
-    ADMIN = "admin"
-
-
 @dataclass
 class User(BaseUser):
     """Class for storing user information"""
     id: UUID
     name: str
-    role: UserRole
+    role: "Role"
     provider: "Provider"
+
+    class Role(Enum):
+        UNDEFINED = "undefined"
+        ADMIN = "admin"
 
     @dataclass
     class Provider:
@@ -48,7 +47,7 @@ class User(BaseUser):
         def default(obj):
             if isinstance(obj, UUID):
                 return str(obj)
-            if isinstance(obj, UserRole):
+            if isinstance(obj, User.Role):
                 return obj.value
             if isinstance(obj, AuthProvider):
                 return obj.value
@@ -65,7 +64,7 @@ class User(BaseUser):
         return User(
             id=UUID(data["id"]),
             name=data["name"],
-            role=UserRole(data["role"]),
+            role=User.Role(data["role"]),
             provider=User.Provider(
                 id=data["provider"]["id"],
                 type=data["provider"]["type"],
