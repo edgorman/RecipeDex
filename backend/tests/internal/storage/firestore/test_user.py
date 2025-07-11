@@ -10,7 +10,14 @@ from internal.storage.firestore.user import FirestoreUserStorage
 
 
 example_user = User(
-    uuid4(), "mock_name", UserRole.UNDEFINED, AuthProvider.UNDEFINED, {}
+    id=uuid4(),
+    name="mock_name",
+    role=UserRole.UNDEFINED,
+    provider=User.Provider(
+        id="mock_provider_id",
+        type=AuthProvider.UNDEFINED,
+        info={}
+    )
 )
 
 
@@ -80,23 +87,22 @@ def test_get(
 
 
 @pytest.mark.parametrize(
-    "provider,provider_info_path,provider_info_value,mock_users,expect_user",
+    "provider_type,provider_id,mock_users,expect_user",
     [
         (
-            AuthProvider.UNDEFINED, ["path", "to", "info"], "value", [example_user], example_user
+            AuthProvider.UNDEFINED, "provider_id", [example_user], example_user
         ),
         (
-            AuthProvider.UNDEFINED, ["path", "to", "info"], "value", [], None
+            AuthProvider.UNDEFINED, "provider_id", [], None
         )
     ]
 )
-def test_get_by_auth_provider(
+def test_get_by_provider_id(
     mock_firestore_client,
     mock_collection_path,
     mock_firestore_collection,
-    provider,
-    provider_info_path,
-    provider_info_value,
+    provider_type,
+    provider_id,
     mock_users,
     expect_user
 ):
@@ -114,12 +120,10 @@ def test_get_by_auth_provider(
     ])
 
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-    response_user = client.get_by_auth_provider(provider, tuple(provider_info_path), provider_info_value)
+    response_user = client.get_by_provider_id(provider_id, provider_type)
 
-    mock_firestore_collection.where.assert_called_once_with("provider", "==", provider.value)
-    mock_firestore_collection.where.return_value.where.assert_called_once_with(
-        ".".join(["provider_info"] + provider_info_path), "==", provider_info_value
-    )
+    mock_firestore_collection.where.assert_called_once_with("provider.type", "==", provider_type.value)
+    mock_firestore_collection.where.return_value.where.assert_called_once_with("provider.id", "==", provider_id)
     mock_firestore_collection.where.return_value.where.return_value.get.assert_called_once()
 
     if len(mock_users) != 1:
@@ -132,7 +136,7 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
     client.create(example_user)
 
-    mock_firestore_collection.add.assert_called_once_with(example_user.to_dict(), str(example_user.id))
+    mock_firestore_collection.add.assert_called_once_with(example_user.to_dict(), example_user.display_id)
 
 
 def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
@@ -143,7 +147,7 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
     client.update(example_user.id, **kwargs)
 
-    mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
+    mock_firestore_collection.document.assert_called_once_with(example_user.display_id)
     mock_firestore_collection.document.return_value.update.assert_called_once_with(**kwargs_without_id)
 
 
@@ -151,5 +155,5 @@ def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
     client.delete(example_user.id)
 
-    mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
+    mock_firestore_collection.document.assert_called_once_with(example_user.display_id)
     mock_firestore_collection.document.return_value.delete.assert_called_once()

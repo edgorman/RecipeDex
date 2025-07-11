@@ -10,8 +10,11 @@ def mock_user_dict():
         "id": str(uuid4()),
         "name": "Test User",
         "role": UserRole.UNDEFINED.value,
-        "provider": AuthProvider.UNDEFINED.value,
-        "provider_info": {"email": "test@example.com"}
+        "provider": {
+            "id": "mock_provider_id",
+            "type": AuthProvider.UNDEFINED.value,
+            "info": {"email": "test@example.com"}
+        }
     }
 
 
@@ -21,8 +24,11 @@ def mock_user(mock_user_dict):
         id=UUID(mock_user_dict["id"]),
         name=mock_user_dict["name"],
         role=UserRole(mock_user_dict["role"]),
-        provider=AuthProvider(mock_user_dict["provider"]),
-        provider_info=mock_user_dict["provider_info"]
+        provider=User.Provider(
+            id=mock_user_dict["provider"]["id"],
+            type=mock_user_dict["provider"]["type"],
+            info=mock_user_dict["provider"]["info"]
+        )
     )
 
 

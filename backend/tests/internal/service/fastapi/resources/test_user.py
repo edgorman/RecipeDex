@@ -10,12 +10,15 @@ from internal.objects.user import User, UserRole
 from internal.service.fastapi.resources.user import UserResource
 
 
-mock_user = User(
-    id="mock_user_id",
+example_user = User(
+    id="mock_id",
     name="mock_name",
     role=UserRole.UNDEFINED,
-    provider=AuthProvider.UNDEFINED,
-    provider_info={}
+    provider=User.Provider(
+        id="mock_provider_id",
+        type=AuthProvider.UNDEFINED,
+        info={}
+    )
 )
 
 
@@ -53,35 +56,35 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
     [
         # User is authenticated, user exists, should allow
         (
-            mock_user.id,
-            (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
-            mock_user,
+            example_user.id,
+            (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_user,
             200,
-            {"id": mock_user.id, "display_name": "mock_name"}
+            {"id": example_user.display_id, "display_name": "mock_name"}
         ),
         # User is authenticated, user does not exist, should allow
         (
-            mock_user.id,
-            (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            example_user.id,
+            (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             None,
             404,
-            {"detail": f"Could not get user with id `{mock_user.id}`: `it does not exist`."}
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
         ),
         # User is not authenticated, user exists, should deny
         (
-            mock_user.id,
+            example_user.id,
             (None, UnauthenticatedUser()),
-            mock_user,
+            example_user,
             403,
-            {"detail": f"Could not get user with id `{mock_user.id}`: `user is not authorized`."}
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is not authorized`."}
         ),
         # User is not authenticated, user does not exist, should deny
         (
-            mock_user.id,
+            example_user.id,
             (None, UnauthenticatedUser()),
             None,
             403,
-            {"detail": f"Could not get user with id `{mock_user.id}`: `user is not authorized`."}
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is not authorized`."}
         ),
     ]
 )

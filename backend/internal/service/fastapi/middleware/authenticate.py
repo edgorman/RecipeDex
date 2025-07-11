@@ -1,12 +1,9 @@
-from typing import Tuple
+from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from starlette.authentication import AuthenticationBackend, AuthCredentials
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse, Response
-
-from google.auth.transport import requests as token_request
-from google.oauth2.id_token import verify_firebase_token
 
 from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID
 from internal.config.auth import (
@@ -36,7 +33,7 @@ class AuthenticateBackend(AuthenticationBackend):
             raise HTTPException(status_code=400, detail=f"`{AUTHORIZATION_PROVIDER_HEADER}` is missing.")
 
         try:
-            provider = AuthProvider(connection.headers[AUTHORIZATION_PROVIDER_HEADER])
+            provider_type = AuthProvider(connection.headers[AUTHORIZATION_PROVIDER_HEADER])
         except ValueError:
             raise HTTPException(
                 status_code=400,
@@ -45,58 +42,36 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
-            match provider:
-                case AuthProvider.FIREBASE:
-                    provider_info = self._auth_firebase(token)
-                    provider_info_path = ("user_id")
-                case _:
-                    raise NotImplementedError("Provider has not been implemented.")
+            provider_id, provider_name, provider_info = User.authenticate(provider_type, token, GCP_PROJECT_ID)
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Could not authenticate with provider `{provider.value}`: `{e}`."
+                status_code=500, detail=f"Could not authenticate with provider `{provider_type.value}`: `{e}`."
             )
 
         try:
-            user = self._get_user(provider, provider_info_path, provider_info)
+            user = self.__user_storage_handler.get_by_provider_id(provider_id, provider_type)
+
+            # if no user is found, create one
+            if user is None:
+                user = User(
+                    id=uuid4(),
+                    name=provider_name,
+                    role=UserRole.UNDEFINED,
+                    provider=User.Provider(
+                        id=provider_id,
+                        type=provider_type,
+                        info=provider_info
+                    )
+                )
+                self.__user_storage_handler.create(user)
+
         except Exception as e:
             raise HTTPException(
                 status_code=500,
-                detail=f"Could not get user for provider `{provider.value}`: `{e}`."
+                detail=f"Could not get user for provider `{provider_type.value}`: `{e}`."
             )
 
         return AuthCredentials([AUTHENTICATED_SCOPE]), user
-
-    def _auth_firebase(self, token: str) -> dict:
-        data = verify_firebase_token(
-            token, token_request.Request(), audience=GCP_PROJECT_ID
-        )
-        if not data:
-            raise Exception(f"invalid {AuthProvider.FIREBASE.value} token")
-
-        return data
-
-    def _get_user(self, provider: AuthProvider, provider_info_path: Tuple[str], provider_info: dict) -> User:
-        return User(
-            id=provider_info["user_id"],
-            name=provider_info["name"],
-            role=UserRole.UNDEFINED,
-            provider=provider,
-            provider_info=provider_info
-        )
-
-        # TODO: when user handler has been implemented
-        # user = self.__user_storage_handler.get_by_auth_provider(provider, provider_info_path, provider_info_value)
-        # if user is None:
-        #     user = self.__user_storage_handler.create(
-        #       User(
-        #           id=uuid4(),
-        #           name=provider_info["name"],
-        #           role=UserRole.UNDEFINED,
-        #           provider=provider,
-        #           provider_info=provider_info
-        #       )
-        #     )
-        # return user
 
     def on_error(connection: HTTPConnection, exception: HTTPException) -> Response:
         return JSONResponse(status_code=exception.status_code, content={"detail": str(exception.detail)})

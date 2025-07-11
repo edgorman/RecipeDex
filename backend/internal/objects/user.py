@@ -1,9 +1,11 @@
 from enum import Enum
 from uuid import UUID
-from typing import Dict, Any
-from dataclasses import dataclass, asdict
-
+from typing import Any, Dict, Tuple
+from dataclasses import dataclass, asdict, is_dataclass
+from google.auth.transport import requests as token_request
+from google.oauth2.id_token import verify_firebase_token
 from starlette.authentication import BaseUser
+
 from internal.config.auth import AuthProvider
 
 
@@ -18,16 +20,29 @@ class User(BaseUser):
     id: UUID
     name: str
     role: UserRole
-    provider: AuthProvider
-    provider_info: Dict[str, Any]
+    provider: "Provider"
+
+    @dataclass
+    class Provider:
+        id: Any
+        type: AuthProvider
+        info: Dict[str, Any]
 
     @property
     def is_authenticated(self) -> bool:
         return True
 
     @property
+    def display_id(self) -> str:
+        return str(self.id)
+
+    @property
     def display_name(self) -> str:
         return self.name
+
+    @property
+    def provider_id(self) -> str:
+        return self.provider.id
 
     def to_dict(self) -> dict:
         def default(obj):
@@ -37,6 +52,8 @@ class User(BaseUser):
                 return obj.value
             if isinstance(obj, AuthProvider):
                 return obj.value
+            if is_dataclass(obj):
+                return default(asdict(obj))
             if isinstance(obj, dict):
                 return {default(k): default(v) for k, v in obj.items()}
             return obj
@@ -49,6 +66,18 @@ class User(BaseUser):
             id=UUID(data["id"]),
             name=data["name"],
             role=UserRole(data["role"]),
-            provider=AuthProvider(data["provider"]),
-            provider_info=data["provider_info"]
+            provider=User.Provider(
+                id=data["provider"]["id"],
+                type=data["provider"]["type"],
+                info=data["provider"]["info"]
+            )
         )
+
+    @staticmethod
+    def authenticate(provider: AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:
+        match provider:
+            case AuthProvider.FIREBASE:
+                info = verify_firebase_token(token, token_request.Request(), audience=audience)
+                return info["user_id"], info["name"], info
+            case _:
+                raise NotImplementedError(f"Auth provider `{provider.name}` is not implemented")

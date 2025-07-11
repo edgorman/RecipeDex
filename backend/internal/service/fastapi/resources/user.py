@@ -28,7 +28,7 @@ class UserResource(APIRouter):
 
         return JSONResponse(
             {
-                "id": user.id,
+                "id": user.display_id,
                 "display_name": user.display_name,
             }
         )
