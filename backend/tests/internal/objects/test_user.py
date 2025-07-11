@@ -1,7 +1,7 @@
 import pytest
 from uuid import uuid4, UUID
 from internal.objects.user import User
-from internal.config.auth import AuthProvider
+from internal.config.service import Service
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def mock_user_dict():
         "deleted": False,
         "provider": {
             "id": "mock_provider_id",
-            "type": AuthProvider.UNDEFINED.value,
+            "type": Service.AuthProvider.UNDEFINED.value,
             "info": {"email": "test@example.com"}
         }
     }

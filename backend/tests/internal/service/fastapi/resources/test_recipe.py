@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from starlette.authentication import AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-from internal.config.auth import AuthProvider, AUTHENTICATED_SCOPE
+from internal.config.service import Service, SERVICE_AUTH_SCOPE
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.service.fastapi.resources.recipe import RecipeResource
@@ -18,7 +18,7 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=AuthProvider.UNDEFINED,
+        type=Service.AuthProvider.UNDEFINED,
         info={}
     )
 )
@@ -80,13 +80,13 @@ def mock_client(
     [
         # User is authenticated, public recipe, no ACL, should allow
         (
-            example_public_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_public_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_public_recipe, 200,
             {"detail": "Recipe get finished successfully.", "recipe": {"id": example_public_recipe.display_id}}
         ),
         # User is authenticated, private recipe, no ACL, should deny
         (
-            example_private_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_private_recipe, 403,
             {
                 "detail": f"Could not get recipe with id `{example_private_recipe.display_id}`: "
@@ -95,7 +95,7 @@ def mock_client(
         ),
         # User is authenticated, public recipe, allow VIEWER user, should allow
         (
-            example_public_with_viewer_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_public_with_viewer_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_public_with_viewer_recipe, 200,
             {
                 "detail": "Recipe get finished successfully.",
@@ -104,7 +104,7 @@ def mock_client(
         ),
         # User is authenticated, private recipe, allow VIEWER user, should allow
         (
-            example_private_with_viewer_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_with_viewer_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_private_with_viewer_recipe, 200,
             {
                 "detail": "Recipe get finished successfully.",
@@ -113,7 +113,7 @@ def mock_client(
         ),
         # User is authenticated, private recipe, allow UNDEFINED user, should deny
         (
-            example_private_with_undefined_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_with_undefined_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_private_with_undefined_recipe, 403,
             {
                 "detail": f"Could not get recipe with id `{example_private_with_undefined_recipe.display_id}`: "
@@ -140,7 +140,7 @@ def mock_client(
         ),
         # Recipe is deleted, should deny
         (
-            example_deleted_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_deleted_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_deleted_recipe, 404,
             {"detail": f"Could not get recipe with id `{example_deleted_recipe.display_id}`: `it does not exist`."}
         )

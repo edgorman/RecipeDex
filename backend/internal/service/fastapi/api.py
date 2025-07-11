@@ -1,12 +1,8 @@
 from fastapi import FastAPI, Request
+from typing import List
 import uvicorn
 
-from internal.config.service import (
-    NAME as SERVICE_NAME,
-    VERSION as SERVICE_VERSION,
-    ALLOWED_ORIGIN as SERVICE_ALLOWED_ORIGIN
-)
-from internal.agents.recipe import RecipeAgent
+from internal.agent.recipe import RecipeAgent
 from internal.objects.user import User
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
@@ -22,19 +18,24 @@ class FastapiAPIService(APIService):
 
     def __init__(
         self,
+        name: str,
+        version: str,
         host: str,
         port: int,
+        allowed_origins: List[str],
         recipe_agent_handler: RecipeAgent,
         recipe_storage_handler: RecipeStorage,
         user_storage_handler: UserStorage,
     ):
+        self.__name = name
+        self.__version = version
         self.__recipe_agent_handler = recipe_agent_handler
         self.__recipe_storage_handler = recipe_storage_handler
         self.__user_storage_handler = user_storage_handler
 
         self.__api = FastAPI()
         add_authenticate_middleware(self.__api, self.__user_storage_handler)
-        add_cors_middleware(self.__api, SERVICE_ALLOWED_ORIGIN)
+        add_cors_middleware(self.__api, allowed_origins)
 
         self.__api.add_api_route("/", self._root)
         self.__api.include_router(UserResource(self.__user_storage_handler))
@@ -54,7 +55,7 @@ class FastapiAPIService(APIService):
             message = f"Welcome back {user.display_name}"
 
         return {
-            "name": SERVICE_NAME,
-            "version": SERVICE_VERSION,
+            "name": self.__name,
+            "version": self.__version,
             "message": message
         }

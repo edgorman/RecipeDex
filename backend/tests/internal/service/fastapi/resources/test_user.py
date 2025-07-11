@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from starlette.authentication import AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-from internal.config.auth import AuthProvider, AUTHENTICATED_SCOPE
+from internal.config.service import Service, SERVICE_AUTH_SCOPE
 from internal.objects.user import User
 from internal.service.fastapi.resources.user import UserResource
 
@@ -17,7 +17,7 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=AuthProvider.UNDEFINED,
+        type=Service.AuthProvider.UNDEFINED,
         info={}
     )
 )
@@ -61,7 +61,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         # User is authenticated, user exists, should allow
         (
             example_user.id,
-            (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_user,
             200,
             {"id": example_user.display_id, "display_name": "mock_name"}
@@ -69,7 +69,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         # User is authenticated, user does not exist, should allow
         (
             example_user.id,
-            (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             None,
             404,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
@@ -93,7 +93,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         # User is deleted, should deny
         (
             example_deleted_user.id,
-            (AuthCredentials([AUTHENTICATED_SCOPE]), example_deleted_user),
+            (AuthCredentials([SERVICE_AUTH_SCOPE]), example_deleted_user),
             example_deleted_user,
             404,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}

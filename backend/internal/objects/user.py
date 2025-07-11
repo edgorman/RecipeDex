@@ -6,7 +6,7 @@ from google.auth.transport import requests as token_request
 from google.oauth2.id_token import verify_firebase_token
 from starlette.authentication import BaseUser
 
-from internal.config.auth import AuthProvider
+from internal.config.service import Service
 
 
 @dataclass
@@ -25,7 +25,7 @@ class User(BaseUser):
     @dataclass
     class Provider:
         id: Any
-        type: AuthProvider
+        type: Service.AuthProvider
         info: Dict[str, Any]
 
     @property
@@ -54,7 +54,7 @@ class User(BaseUser):
                 return str(obj)
             if isinstance(obj, User.Role):
                 return obj.value
-            if isinstance(obj, AuthProvider):
+            if isinstance(obj, Service.AuthProvider):
                 return obj.value
             if is_dataclass(obj):
                 return default(asdict(obj))
@@ -79,9 +79,9 @@ class User(BaseUser):
         )
 
     @staticmethod
-    def authenticate(provider: AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:
+    def authenticate(provider: Service.AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:
         match provider:
-            case AuthProvider.FIREBASE:
+            case Service.AuthProvider.FIREBASE:
                 info = verify_firebase_token(token, token_request.Request(), audience=audience)
                 return info["user_id"], info["name"], info
             case _:

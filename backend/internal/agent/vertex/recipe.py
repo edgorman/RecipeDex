@@ -3,9 +3,9 @@ from typing import List
 from google.adk.runners import Runner
 from google.genai.types import Content, Part
 
-from internal.agents.recipe import RecipeAgent
-from internal.config.agents import AgentRole
+from internal.agent.recipe import RecipeAgent
 from internal.objects.user import User
+from internal.config.agent import Agent
 
 
 class VertexRecipeAgent(RecipeAgent):
@@ -18,7 +18,7 @@ class VertexRecipeAgent(RecipeAgent):
         async for event in self.__agent_runner_service.run_async(
             user_id=user.display_id,
             session_id=str(session_id),
-            new_message=Content(role=AgentRole.USER, parts=[Part.from_text(text=message)]),
+            new_message=Content(role=Agent.Role.USER, parts=[Part.from_text(text=message)]),
         ):
             messages = []
             for response in event.content.parts:

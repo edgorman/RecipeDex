@@ -4,7 +4,7 @@ import pytest
 from google.cloud.firestore_v1 import DocumentSnapshot, DocumentReference
 from google.cloud.firestore_v1.query_results import QueryResultsList
 
-from internal.config.auth import AuthProvider
+from internal.config.service import Service
 from internal.objects.user import User
 from internal.storage.firestore.user import FirestoreUserStorage
 
@@ -15,7 +15,7 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=AuthProvider.UNDEFINED,
+        type=Service.AuthProvider.UNDEFINED,
         info={}
     )
 )
@@ -90,10 +90,10 @@ def test_get(
     "provider_type,provider_id,mock_users,expect_user",
     [
         (
-            AuthProvider.UNDEFINED, "provider_id", [example_user], example_user
+            Service.AuthProvider.UNDEFINED, "provider_id", [example_user], example_user
         ),
         (
-            AuthProvider.UNDEFINED, "provider_id", [], None
+            Service.AuthProvider.UNDEFINED, "provider_id", [], None
         )
     ]
 )
