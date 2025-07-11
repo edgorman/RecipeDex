@@ -10,6 +10,7 @@ def mock_user_dict():
         "id": str(uuid4()),
         "name": "Test User",
         "role": User.Role.UNDEFINED.value,
+        "deleted": False,
         "provider": {
             "id": "mock_provider_id",
             "type": AuthProvider.UNDEFINED.value,
@@ -24,6 +25,7 @@ def mock_user(mock_user_dict):
         id=UUID(mock_user_dict["id"]),
         name=mock_user_dict["name"],
         role=User.Role(mock_user_dict["role"]),
+        deleted=mock_user_dict["deleted"],
         provider=User.Provider(
             id=mock_user_dict["provider"]["id"],
             type=mock_user_dict["provider"]["type"],

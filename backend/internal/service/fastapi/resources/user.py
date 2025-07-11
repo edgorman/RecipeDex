@@ -20,7 +20,7 @@ class UserResource(APIRouter):
 
         user = self.__user_storage_handler.get(user_id)
 
-        if user is None:
+        if user is None or user.is_deleted:
             raise HTTPException(
                 status_code=404,
                 detail=f"Could not get user with id `{user_id}`: `it does not exist`."

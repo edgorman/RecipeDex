@@ -11,11 +11,12 @@ from internal.config.auth import AuthProvider
 
 @dataclass
 class User(BaseUser):
-    """Class for storing user information"""
+    """Object that stores user information"""
     id: UUID
     name: str
     role: "Role"
     provider: "Provider"
+    deleted: bool = False
 
     class Role(Enum):
         UNDEFINED = "undefined"
@@ -26,6 +27,10 @@ class User(BaseUser):
         id: Any
         type: AuthProvider
         info: Dict[str, Any]
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted
 
     @property
     def is_authenticated(self) -> bool:
@@ -65,6 +70,7 @@ class User(BaseUser):
             id=UUID(data["id"]),
             name=data["name"],
             role=User.Role(data["role"]),
+            deleted=data["deleted"] if "deleted" in data else False,
             provider=User.Provider(
                 id=data["provider"]["id"],
                 type=data["provider"]["type"],

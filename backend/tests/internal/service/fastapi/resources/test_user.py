@@ -1,4 +1,5 @@
 import pytest
+from uuid import uuid4
 from unittest.mock import Mock
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -11,7 +12,7 @@ from internal.service.fastapi.resources.user import UserResource
 
 
 example_user = User(
-    id="mock_id",
+    id=uuid4(),
     name="mock_name",
     role=User.Role.UNDEFINED,
     provider=User.Provider(
@@ -20,6 +21,9 @@ example_user = User(
         info={}
     )
 )
+example_deleted_dict = example_user.to_dict()
+example_deleted_dict["deleted"] = True
+example_deleted_user = User.from_dict(example_deleted_dict)
 
 
 @pytest.fixture
@@ -85,6 +89,14 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
             None,
             403,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `user is not authorized`."}
+        ),
+        # User is deleted, should deny
+        (
+            example_deleted_user.id,
+            (AuthCredentials([AUTHENTICATED_SCOPE]), example_deleted_user),
+            example_deleted_user,
+            404,
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
         ),
     ]
 )

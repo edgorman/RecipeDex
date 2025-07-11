@@ -18,6 +18,7 @@ from internal.service.fastapi.resources.recipe import RecipeResource
 
 
 class FastapiAPIService(APIService):
+    """The FastAPIService is an implementation of the APIService"""
 
     def __init__(
         self,
