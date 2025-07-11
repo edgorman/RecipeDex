@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import Any, Optional
 
 from internal.objects.user import User
-from internal.config.auth import AuthProvider
+from internal.config.service import Service
 
 
 class UserStorage(ABC):
@@ -14,7 +14,7 @@ class UserStorage(ABC):
         ...
 
     @abstractmethod
-    def get_by_provider_id(self, id_: Any, type_: AuthProvider) -> Optional[User]:
+    def get_by_provider_id(self, id_: Any, type_: Service.AuthProvider) -> Optional[User]:
         ...
 
     @abstractmethod

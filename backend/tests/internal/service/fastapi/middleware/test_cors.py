@@ -2,7 +2,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from internal.config.gcp import PROJECT_ID
 from internal.service.fastapi.middleware.cors import add_cors_middleware
 
 
@@ -10,9 +9,9 @@ from internal.service.fastapi.middleware.cors import add_cors_middleware
     "allowed_origin,request_origin,expected_status",
     [
         ("http://localhost:3000", "http://localhost:3000", 200),
-        (f"https://{PROJECT_ID}.web.app", f"https://{PROJECT_ID}.web.app", 200),
-        (f"https://{PROJECT_ID}--feature-branch.web.app", f"https://{PROJECT_ID}--feature-branch.web.app", 200),
-        (f"https://{PROJECT_ID}.web.app", "http://malicious.com", 400),
+        ("https://project-id.web.app", "https://project-id.web.app", 200),
+        ("https://project-id--feature-branch.web.app", "https://project-id--feature-branch.web.app", 200),
+        ("https://project-id.web.app", "http://malicious.com", 400),
     ]
 )
 def test_cors_middleware(allowed_origin, request_origin, expected_status):

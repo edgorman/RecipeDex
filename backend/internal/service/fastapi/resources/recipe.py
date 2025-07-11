@@ -2,7 +2,7 @@ from uuid import uuid4, UUID
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 
-from internal.agents.recipe import RecipeAgent
+from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
 from internal.storage.recipe import RecipeStorage
 from internal.objects.user import User

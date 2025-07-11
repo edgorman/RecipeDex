@@ -4,8 +4,11 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
 
-from internal.config.auth import (
-    AuthProvider, AUTHORIZATION_HEADER, AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_PROVIDER_HEADER
+from internal.config.service import (
+    Service,
+    SERVICE_AUTH_HEADER,
+    SERVICE_AUTH_PROVIDER_HEADER,
+    SERVICE_AUTH_BEARER_PREFIX,
 )
 from internal.objects.user import User
 from internal.service.fastapi.middleware.authenticate import add_authenticate_middleware
@@ -17,7 +20,7 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=AuthProvider.FIREBASE,
+        type=Service.AuthProvider.FIREBASE,
         info={}
     )
 )
@@ -53,26 +56,26 @@ def mock_client(mock_user_handler):
         ),
         # Header malformed, prevent access with bad request error
         (
-            None, None, None, {AUTHORIZATION_HEADER: "blah"}, 400,
-            f"`{AUTHORIZATION_HEADER}` header malformed, must start with `{AUTHORIZATION_BEARER_PREFIX}`."
+            None, None, None, {SERVICE_AUTH_HEADER: "blah"}, 400,
+            f"`{SERVICE_AUTH_HEADER}` header malformed, must start with `{SERVICE_AUTH_BEARER_PREFIX}`."
         ),
         # Header malformed, prevent access with bad request error
         (
-            None, None, None, {AUTHORIZATION_HEADER: "Bearer blah"}, 400,
-            f"`{AUTHORIZATION_PROVIDER_HEADER}` is missing."
+            None, None, None, {SERVICE_AUTH_HEADER: "Bearer blah"}, 400,
+            f"`{SERVICE_AUTH_PROVIDER_HEADER}` is missing."
         ),
         # Header malformed, prevent access with bad request error
         (
             None, None, None,
-            {AUTHORIZATION_HEADER: f"{AUTHORIZATION_BEARER_PREFIX}blah", AUTHORIZATION_PROVIDER_HEADER: "blah"},
-            400, f"`blah` is not a valid value for `{AUTHORIZATION_PROVIDER_HEADER}`."
+            {SERVICE_AUTH_HEADER: f"{SERVICE_AUTH_BEARER_PREFIX}blah", SERVICE_AUTH_PROVIDER_HEADER: "blah"},
+            400, f"`blah` is not a valid value for `{SERVICE_AUTH_PROVIDER_HEADER}`."
         ),
         # Mock authentication error, prevent access with internal server error
         (
             Exception("it exploded"), None, None,
             {
-                AUTHORIZATION_HEADER: f"{AUTHORIZATION_BEARER_PREFIX}blah",
-                AUTHORIZATION_PROVIDER_HEADER: example_user.provider.type.value
+                SERVICE_AUTH_HEADER: f"{SERVICE_AUTH_BEARER_PREFIX}blah",
+                SERVICE_AUTH_PROVIDER_HEADER: example_user.provider.type.value
             },
             500, f"Could not authenticate with provider `{example_user.provider.type.value}`: `it exploded`."
         ),
@@ -81,8 +84,8 @@ def mock_client(mock_user_handler):
             lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
             Exception("it exploded"), None,
             {
-                AUTHORIZATION_HEADER: f"{AUTHORIZATION_BEARER_PREFIX}blah",
-                AUTHORIZATION_PROVIDER_HEADER: example_user.provider.type.value
+                SERVICE_AUTH_HEADER: f"{SERVICE_AUTH_BEARER_PREFIX}blah",
+                SERVICE_AUTH_PROVIDER_HEADER: example_user.provider.type.value
             },
             500, f"Could not get user for provider `{example_user.provider.type.value}`: `it exploded`."
         ),
@@ -91,8 +94,8 @@ def mock_client(mock_user_handler):
             lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
             lambda _, __: None, Exception("it exploded"),
             {
-                AUTHORIZATION_HEADER: f"{AUTHORIZATION_BEARER_PREFIX}blah",
-                AUTHORIZATION_PROVIDER_HEADER: example_user.provider.type.value
+                SERVICE_AUTH_HEADER: f"{SERVICE_AUTH_BEARER_PREFIX}blah",
+                SERVICE_AUTH_PROVIDER_HEADER: example_user.provider.type.value
             },
             500, f"Could not get user for provider `{example_user.provider.type.value}`: `it exploded`."
         ),
@@ -101,8 +104,8 @@ def mock_client(mock_user_handler):
             lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
             lambda _, __: example_user, None,
             {
-                AUTHORIZATION_HEADER: f"{AUTHORIZATION_BEARER_PREFIX}blah",
-                AUTHORIZATION_PROVIDER_HEADER: example_user.provider.type.value
+                SERVICE_AUTH_HEADER: f"{SERVICE_AUTH_BEARER_PREFIX}blah",
+                SERVICE_AUTH_PROVIDER_HEADER: example_user.provider.type.value
             },
             200, {"name": example_user.name}
         ),
