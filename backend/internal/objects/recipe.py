@@ -1,18 +1,24 @@
 from enum import Enum
 from uuid import UUID
-from typing import Dict, Optional
-from dataclasses import dataclass, asdict
+from collections.abc import Iterable
+from typing import Dict, List, Optional
+from dataclasses import dataclass, asdict, field
 
 
 @dataclass
 class Recipe:
-    """Class for storing recipe information"""
+    """Object that stores recipe information"""
     id: UUID
     name: str
-    private: bool
-    user_access_mapping: Dict[UUID, "Role"]
+    deleted: bool = False
+    private: bool = False
+    user_access_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
+
+    ingredients: List["Ingredient"] = field(default_factory=list)
+    instructions: List["Instruction"] = field(default_factory=list)
 
     class Action(Enum):
+        """Actions that can be performed on a Recipe"""
         GET = "get"
         GET_METADATA = "get_metadata"
         CREATE = "create"
@@ -20,10 +26,27 @@ class Recipe:
         DELETE = "delete"
 
     class Role(Enum):
+        """The role a user can have with regards to a Recipe"""
         UNDEFINED = "undefined"
         VIEWER = "viewer"
         EDITOR = "editor"
         OWNER = "owner"
+
+    @dataclass
+    class Ingredient:
+        """Object that stores a single ingredient for a Recipe"""
+        name: str
+        unit: str
+        quantity: float
+
+    @dataclass
+    class Instruction:
+        """Object that stores a single instruction for a Recipe"""
+        value: str
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted
 
     @property
     def display_id(self) -> str:
@@ -39,8 +62,16 @@ class Recipe:
                 return str(obj)
             if isinstance(obj, Recipe.Role):
                 return obj.value
+            if isinstance(obj, Recipe.Action):
+                return obj.value
+            if isinstance(obj, Recipe.Ingredient):
+                return asdict(obj)
+            if isinstance(obj, Recipe.Instruction):
+                return asdict(obj)
             if isinstance(obj, dict):
                 return {default(k): default(v) for k, v in obj.items()}
+            if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
+                return [default(v) for v in obj]
             return obj
 
         return {k: default(v) for k, v in asdict(self).items()}
@@ -50,12 +81,23 @@ class Recipe:
         return Recipe(
             id=UUID(data["id"]),
             name=data["name"],
-            private=data["private"],
-            user_access_mapping={UUID(k): Recipe.Role(v) for k, v in data["user_access_mapping"].items()}
+            deleted=data["deleted"] if "deleted" in data else False,
+            private=data["private"] if "private" in data else False,
+            user_access_mapping={
+                UUID(k): Recipe.Role(v) for k, v in data["user_access_mapping"].items()
+            },
+            ingredients=[
+                Recipe.Ingredient(name=i["name"], unit=i["unit"], quantity=i["quantity"])
+                for i in data["ingredients"]
+            ],
+            instructions=[
+                Recipe.Instruction(value=i["value"])
+                for i in data["instructions"]
+            ]
         )
 
     def authorize(self, user_id: Optional[UUID], action: "Action") -> bool:
-        """Authorize a user trying to access this recipe resource"""
+        """Authorize a user trying to access this Recipe resource with action"""
         role = self.user_access_mapping.get(user_id, Recipe.Role.UNDEFINED)
 
         if self.private and role is Recipe.Role.UNDEFINED:

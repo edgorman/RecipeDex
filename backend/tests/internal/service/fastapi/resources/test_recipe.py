@@ -22,26 +22,29 @@ example_user = User(
         info={}
     )
 )
-mock_recipe_public_no_acl = Recipe(uuid4(), name="mock_recipe", private=False, user_access_mapping={})
-mock_recipe_private_no_acl = Recipe(uuid4(), name="mock_recipe", private=True, user_access_mapping={})
-mock_recipe_private_with_viewer = Recipe(
+
+example_deleted_recipe = Recipe(uuid4(), name="mock_recipe", deleted=True)
+example_public_recipe = Recipe(uuid4(), name="mock_recipe", private=False)
+example_private_recipe = Recipe(uuid4(), name="mock_recipe", private=True)
+
+example_private_with_viewer_recipe = Recipe(
     uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
 )
-mock_recipe_public_with_viewer = Recipe(
+example_public_with_viewer_recipe = Recipe(
     uuid4(), name="mock_recipe", private=False, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
 )
-mock_recipe_private_with_undefined = Recipe(
+example_private_with_undefined_recipe = Recipe(
     uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.UNDEFINED}
 )
 
 
 @pytest.fixture
-def mock_recipe_storage_handler():
+def example_storage_handler_recipe():
     return Mock()
 
 
 @pytest.fixture
-def mock_recipe_agent_handler():
+def example_agent_handler_recipe():
     return Mock()
 
 
@@ -63,11 +66,11 @@ def mock_endpoint():
 
 @pytest.fixture
 def mock_client(
-    mock_recipe_storage_handler, mock_recipe_agent_handler, mock_authenticate_backend, mock_endpoint
+    example_storage_handler_recipe, example_agent_handler_recipe, mock_authenticate_backend, mock_endpoint
 ):
     api = FastAPI()
     api.add_middleware(AuthenticationMiddleware, backend=mock_authenticate_backend)
-    api.include_router(RecipeResource(mock_recipe_storage_handler, mock_recipe_agent_handler, mock_endpoint))
+    api.include_router(RecipeResource(example_storage_handler_recipe, example_agent_handler_recipe, mock_endpoint))
 
     return TestClient(api)
 
@@ -77,61 +80,76 @@ def mock_client(
     [
         # User is authenticated, public recipe, no ACL, should allow
         (
-            str(mock_recipe_public_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
-            mock_recipe_public_no_acl, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_public_no_acl.id)}}
+            example_public_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_public_recipe, 200,
+            {"detail": "Recipe get finished successfully.", "recipe": {"id": example_public_recipe.display_id}}
         ),
         # User is authenticated, private recipe, no ACL, should deny
         (
-            str(mock_recipe_private_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
-            mock_recipe_private_no_acl, 403,
+            example_private_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_recipe, 403,
             {
-                "detail": f"Could not get recipe with id `{str(mock_recipe_private_no_acl.id)}`: "
+                "detail": f"Could not get recipe with id `{example_private_recipe.display_id}`: "
                 "`user is not authorized`."
             }
         ),
         # User is authenticated, public recipe, allow VIEWER user, should allow
         (
-            str(mock_recipe_public_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
-            mock_recipe_public_with_viewer, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_public_with_viewer.id)}}
+            example_public_with_viewer_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_public_with_viewer_recipe, 200,
+            {
+                "detail": "Recipe get finished successfully.",
+                "recipe": {"id": example_public_with_viewer_recipe.display_id}
+            }
         ),
         # User is authenticated, private recipe, allow VIEWER user, should allow
         (
-            str(mock_recipe_private_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
-            mock_recipe_private_with_viewer, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_private_with_viewer.id)}}
+            example_private_with_viewer_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_with_viewer_recipe, 200,
+            {
+                "detail": "Recipe get finished successfully.",
+                "recipe": {"id": example_private_with_viewer_recipe.display_id}
+            }
         ),
         # User is authenticated, private recipe, allow UNDEFINED user, should deny
         (
-            str(mock_recipe_private_with_undefined.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
-            mock_recipe_private_with_undefined, 403,
+            example_private_with_undefined_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_private_with_undefined_recipe, 403,
             {
-                "detail": f"Could not get recipe with id `{str(mock_recipe_private_with_undefined.id)}`: "
+                "detail": f"Could not get recipe with id `{example_private_with_undefined_recipe.display_id}`: "
                 "`user is not authorized`."
             }
         ),
         # User is not authenticated, public recipe, allow VIEWER user, should allow
         (
-            str(mock_recipe_public_with_viewer.id), (None, UnauthenticatedUser()),
-            mock_recipe_public_with_viewer, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_public_with_viewer.id)}}
+            example_public_with_viewer_recipe.display_id, (None, UnauthenticatedUser()),
+            example_public_with_viewer_recipe, 200,
+            {
+                "detail": "Recipe get finished successfully.",
+                "recipe": {"id": example_public_with_viewer_recipe.display_id}
+            }
         ),
         # User is not authenticated, private recipe, allow VIEWER user, should deny
         (
-            str(mock_recipe_private_with_viewer.id), (None, UnauthenticatedUser()),
-            mock_recipe_private_with_viewer, 403,
+            example_private_with_viewer_recipe.display_id, (None, UnauthenticatedUser()),
+            example_private_with_viewer_recipe, 403,
             {
-                "detail": f"Could not get recipe with id `{str(mock_recipe_private_with_viewer.id)}`: "
+                "detail": f"Could not get recipe with id `{example_private_with_viewer_recipe.display_id}`: "
                 "`user is not authorized`."
             }
         ),
+        # Recipe is deleted, should deny
+        (
+            example_deleted_recipe.display_id, (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
+            example_deleted_recipe, 404,
+            {"detail": f"Could not get recipe with id `{example_deleted_recipe.display_id}`: `it does not exist`."}
+        )
     ]
 )
 def test_get(
     mock_authenticate_backend,
     mock_client,
-    mock_recipe_storage_handler,
+    example_storage_handler_recipe,
     mock_endpoint,
     recipe_id,
     mock_get_auth,
@@ -140,7 +158,7 @@ def test_get(
     expected_content,
 ):
     mock_authenticate_backend.authenticate.side_effect = awaitable_return(mock_get_auth)
-    mock_recipe_storage_handler.get.return_value = mock_get_recipe
+    example_storage_handler_recipe.get.return_value = mock_get_recipe
 
     try:
         response = mock_client.get(f"/{mock_endpoint}/{recipe_id}")

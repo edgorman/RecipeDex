@@ -6,6 +6,7 @@ from internal.objects.recipe import Recipe
 
 
 class RecipeStorage(ABC):
+    """The RecipeStorage maintains recipe information in storage"""
 
     @abstractmethod
     def get(self, id_: UUID) -> Optional[Recipe]:

@@ -31,7 +31,7 @@ class RecipeResource(APIRouter):
             )
 
         recipe = self.__recipe_storage_handler.get(recipe_id)
-        if recipe is None:
+        if recipe is None or recipe.is_deleted:
             raise HTTPException(
                 status_code=404,
                 detail=f"Could not {action.value} recipe with id `{str(recipe_id)}`: `it does not exist`."

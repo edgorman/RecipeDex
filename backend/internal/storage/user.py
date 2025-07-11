@@ -7,6 +7,7 @@ from internal.config.auth import AuthProvider
 
 
 class UserStorage(ABC):
+    """The UserStorage maintains user information in storage"""
 
     @abstractmethod
     def get(self, id_: UUID) -> Optional[User]:

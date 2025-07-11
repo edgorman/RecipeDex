@@ -9,7 +9,7 @@ from internal.storage.user import UserStorage
 
 class FirestoreUserStorage(UserStorage):
 
-    def __init__(self, client: FirestoreClient, collection_path: Tuple[str] = ("user")):
+    def __init__(self, client: FirestoreClient, collection_path: Tuple[str]):
         self.__collection = client.collection(collection_path)
 
     def get(self, id_: UUID) -> Optional[User]:
