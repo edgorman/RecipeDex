@@ -7,6 +7,7 @@ from internal.objects.recipe import Recipe, RecipeRole
 def mock_recipe_dict():
     return {
         "id": str(uuid4()),
+        "name": "mock_recipe",
         "private": False,
         "user_access_mapping": {
             str(uuid4()): RecipeRole.UNDEFINED.value,
@@ -21,6 +22,7 @@ def mock_recipe_dict():
 def mock_recipe(mock_recipe_dict):
     return Recipe(
         id=UUID(mock_recipe_dict["id"]),
+        name=mock_recipe_dict["name"],
         private=mock_recipe_dict["private"],
         user_access_mapping={
             UUID(k): RecipeRole(v) for k, v in mock_recipe_dict["user_access_mapping"].items()

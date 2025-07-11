@@ -12,23 +12,26 @@ from internal.objects.recipe import Recipe, RecipeRole
 from internal.service.fastapi.resources.recipe import RecipeResource
 
 
-mock_user = User(
-    id="mock_user_id",
+example_user = User(
+    id=uuid4(),
     name="mock_name",
     role=UserRole.UNDEFINED,
-    provider=AuthProvider.UNDEFINED,
-    provider_info={}
+    provider=User.Provider(
+        id="mock_provider_id",
+        type=AuthProvider.UNDEFINED,
+        info={}
+    )
 )
-mock_recipe_public_no_acl = Recipe(uuid4(), private=False, user_access_mapping={})
-mock_recipe_private_no_acl = Recipe(uuid4(), private=True, user_access_mapping={})
+mock_recipe_public_no_acl = Recipe(uuid4(), name="mock_recipe", private=False, user_access_mapping={})
+mock_recipe_private_no_acl = Recipe(uuid4(), name="mock_recipe", private=True, user_access_mapping={})
 mock_recipe_private_with_viewer = Recipe(
-    uuid4(), private=True, user_access_mapping={"mock_user_id": RecipeRole.VIEWER}
+    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: RecipeRole.VIEWER}
 )
 mock_recipe_public_with_viewer = Recipe(
-    uuid4(), private=False, user_access_mapping={"mock_user_id": RecipeRole.VIEWER}
+    uuid4(), name="mock_recipe", private=False, user_access_mapping={example_user.id: RecipeRole.VIEWER}
 )
 mock_recipe_private_with_undefined = Recipe(
-    uuid4(), private=True, user_access_mapping={"mock_user_id": RecipeRole.UNDEFINED}
+    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: RecipeRole.UNDEFINED}
 )
 
 
@@ -74,13 +77,13 @@ def mock_client(
     [
         # User is authenticated, public recipe, no ACL, should allow
         (
-            str(mock_recipe_public_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            str(mock_recipe_public_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             mock_recipe_public_no_acl, 200,
             {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_public_no_acl.id)}}
         ),
         # User is authenticated, private recipe, no ACL, should deny
         (
-            str(mock_recipe_private_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            str(mock_recipe_private_no_acl.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             mock_recipe_private_no_acl, 403,
             {
                 "detail": f"Could not get recipe with id `{str(mock_recipe_private_no_acl.id)}`: "
@@ -89,19 +92,19 @@ def mock_client(
         ),
         # User is authenticated, public recipe, allow VIEWER user, should allow
         (
-            str(mock_recipe_public_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            str(mock_recipe_public_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             mock_recipe_public_with_viewer, 200,
             {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_public_with_viewer.id)}}
         ),
         # User is authenticated, private recipe, allow VIEWER user, should allow
         (
-            str(mock_recipe_private_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            str(mock_recipe_private_with_viewer.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             mock_recipe_private_with_viewer, 200,
             {"detail": "Recipe get finished successfully.", "recipe": {"id": str(mock_recipe_private_with_viewer.id)}}
         ),
         # User is authenticated, private recipe, allow UNDEFINED user, should deny
         (
-            str(mock_recipe_private_with_undefined.id), (AuthCredentials([AUTHENTICATED_SCOPE]), mock_user),
+            str(mock_recipe_private_with_undefined.id), (AuthCredentials([AUTHENTICATED_SCOPE]), example_user),
             mock_recipe_private_with_undefined, 403,
             {
                 "detail": f"Could not get recipe with id `{str(mock_recipe_private_with_undefined.id)}`: "

@@ -22,15 +22,11 @@ class FirestoreUserStorage(UserStorage):
             return User.from_dict(document.to_dict())
         return None
 
-    def get_by_auth_provider(
-        self, provider: AuthProvider, provider_info_path: Tuple[str], provider_info_value: Any
-    ) -> Optional[User]:
-        provider_info_path = tuple(["provider_info"] + list(provider_info_path))
-
+    def get_by_provider_id(self, id_: Any, type_: AuthProvider) -> Optional[User]:
         query = (
             self.__collection
-            .where("provider", "==", provider.value)
-            .where(".".join(provider_info_path), "==", provider_info_value)
+            .where("provider.type", "==", type_.value)
+            .where("provider.id", "==", id_)
         )
 
         try:
@@ -50,7 +46,7 @@ class FirestoreUserStorage(UserStorage):
 
     def create(self, user: User) -> None:
         try:
-            self.__collection.add(user.to_dict(), str(user.id))
+            self.__collection.add(user.to_dict(), user.display_id)
         except Exception as e:
             raise Exception(f"Could not create user: `{str(e)}`.")
 
