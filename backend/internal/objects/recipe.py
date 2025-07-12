@@ -10,6 +10,7 @@ class Recipe:
     """Object that stores recipe information"""
     id: UUID
     name: str
+    session_id: Optional[UUID] = None
     deleted: bool = False
     private: bool = False
     user_access_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
@@ -20,10 +21,11 @@ class Recipe:
     class Action(Enum):
         """Actions that can be performed on a Recipe"""
         GET = "get"
-        GET_METADATA = "get_metadata"
+        METADATA = "metadata"
         CREATE = "create"
         UPDATE = "update"
         DELETE = "delete"
+        MESSAGE = "message"
 
     class Role(Enum):
         """The role a user can have with regards to a Recipe"""
@@ -43,6 +45,14 @@ class Recipe:
     class Instruction:
         """Object that stores a single instruction for a Recipe"""
         value: str
+
+    @dataclass
+    class Session:
+        class Role(Enum):
+            """The role an entity can have within a session"""
+            UNDEFINED = "undefined"
+            MODEL = "model"
+            USER = "user"
 
     @property
     def is_deleted(self) -> bool:
@@ -111,9 +121,21 @@ class Recipe:
 
 ROLE_ACTION_MAPPING = {
     Recipe.Role.UNDEFINED: {},
-    Recipe.Role.VIEWER: {Recipe.Action.GET},
-    Recipe.Role.EDITOR: {Recipe.Action.GET, Recipe.Action.GET_METADATA, Recipe.Action.UPDATE},
-    Recipe.Role.OWNER: {
-        Recipe.Action.GET, Recipe.Action.GET_METADATA, Recipe.Action.CREATE, Recipe.Action.UPDATE, Recipe.Action.DELETE
+    Recipe.Role.VIEWER: {
+        Recipe.Action.GET
     },
+    Recipe.Role.EDITOR: {
+        Recipe.Action.GET,
+        Recipe.Action.METADATA,
+        Recipe.Action.UPDATE,
+        Recipe.Action.MESSAGE
+    },
+    Recipe.Role.OWNER: {
+        Recipe.Action.GET,
+        Recipe.Action.METADATA,
+        Recipe.Action.CREATE,
+        Recipe.Action.UPDATE,
+        Recipe.Action.DELETE,
+        Recipe.Action.MESSAGE
+    }
 }

@@ -26,7 +26,7 @@ class FirestoreRecipeStorage(RecipeStorage):
         try:
             self.__collection.add(
                 document_data=recipe.to_dict(),
-                document_id=str(recipe.id),
+                document_id=recipe.display_id,
             )
         except Exception as e:
             raise Exception(f"Could not create recipe: `{str(e)}`.")
