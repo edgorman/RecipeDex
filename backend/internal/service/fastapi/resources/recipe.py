@@ -19,7 +19,7 @@ class RecipeResource(APIRouter):
         self.add_api_route("/{recipe_id}", self._create, methods=["POST"])
         self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
-        self.add_api_route("/{recipe_id}/message", self._message, methods=["POST"])
+        self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
         self.add_api_websocket_route("/{recipe_id}/message", self._message)
 
     def __preprocess(self, recipe_id: str, user: User, action: Recipe.Action) -> Recipe:
@@ -90,7 +90,7 @@ class RecipeResource(APIRouter):
         recipe = Recipe(
             id=uuid4(),
             private=False,
-            user_access_mapping={user.id: Recipe.Role.OWNER}
+            user_role_mapping={user.id: Recipe.Role.OWNER}
         )
         self.__recipe_storage_handler.create(recipe)
 
@@ -128,6 +128,19 @@ class RecipeResource(APIRouter):
             }
         )
 
+    async def _get_messages(self, connection: Request, recipe_id: str):
+        user: User = connection.user
+        recipe = self.__preprocess(recipe_id, user, Recipe.Action.MESSAGE)
+
+        self.__recipe_agent_handler.get_messages(recipe)
+
+        return JSONResponse(
+            {
+                "recipe_id": recipe_id,
+                "detail": f"Recipe {Recipe.Action.MESSAGE.value} finished successfully."
+            }
+        )
+
     async def _message(self, connection: WebSocket, recipe_id: str):
         user: User = connection.user
         recipe = self.__preprocess(recipe_id, user, Recipe.Action.MESSAGE)
@@ -137,9 +150,8 @@ class RecipeResource(APIRouter):
 
             while True:
                 data = await connection.receive_json()
-                message = data.get("message")
 
-                if not message:
+                if "message" not in data:
                     await connection.send_json(
                         {
                             "response": None,
@@ -151,11 +163,12 @@ class RecipeResource(APIRouter):
                     await connection.send_json(
                         {
                             "response": None,
-                            "detail": f"Recipe {Recipe.Action.MESSAGE.value} received message successfully."
+                            "detail": f"Recipe {Recipe.Action.MESSAGE.value} received data successfully."
                         }
                     )
 
-                    async for response in self.__recipe_agent_handler.message(user, recipe, message):
+                    message = Recipe.Message(user.display_id, Recipe.Message.Role.USER, data.get("message"))
+                    async for response in self.__recipe_agent_handler.create_message(recipe, message):
                         await connection.send_json(
                             {
                                 "response": response,

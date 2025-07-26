@@ -28,7 +28,7 @@ def mock_user(mock_user_dict):
         deleted=mock_user_dict["deleted"],
         provider=User.Provider(
             id=mock_user_dict["provider"]["id"],
-            type=mock_user_dict["provider"]["type"],
+            type=Service.AuthProvider(mock_user_dict["provider"]["type"]),
             info=mock_user_dict["provider"]["info"]
         )
     )

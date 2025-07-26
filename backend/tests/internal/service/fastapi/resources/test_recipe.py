@@ -28,13 +28,13 @@ example_public_recipe = Recipe(uuid4(), name="mock_recipe", private=False)
 example_private_recipe = Recipe(uuid4(), name="mock_recipe", private=True)
 
 example_private_with_viewer_recipe = Recipe(
-    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
+    uuid4(), name="mock_recipe", private=True, user_role_mapping={example_user.id: Recipe.Role.VIEWER}
 )
 example_public_with_viewer_recipe = Recipe(
-    uuid4(), name="mock_recipe", private=False, user_access_mapping={example_user.id: Recipe.Role.VIEWER}
+    uuid4(), name="mock_recipe", private=False, user_role_mapping={example_user.id: Recipe.Role.VIEWER}
 )
 example_private_with_undefined_recipe = Recipe(
-    uuid4(), name="mock_recipe", private=True, user_access_mapping={example_user.id: Recipe.Role.UNDEFINED}
+    uuid4(), name="mock_recipe", private=True, user_role_mapping={example_user.id: Recipe.Role.UNDEFINED}
 )
 
 

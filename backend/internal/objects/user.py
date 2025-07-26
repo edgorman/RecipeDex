@@ -1,10 +1,12 @@
 from enum import Enum
 from uuid import UUID
 from typing import Any, Dict, Tuple
+from collections.abc import Iterable
 from dataclasses import dataclass, asdict, is_dataclass
 from google.auth.transport import requests as token_request
 from google.oauth2.id_token import verify_firebase_token
 from starlette.authentication import BaseUser
+from pydantic import TypeAdapter
 
 from internal.config.service import Service
 
@@ -52,31 +54,21 @@ class User(BaseUser):
         def default(obj):
             if isinstance(obj, UUID):
                 return str(obj)
-            if isinstance(obj, User.Role):
-                return obj.value
-            if isinstance(obj, Service.AuthProvider):
+            if isinstance(obj, Enum):
                 return obj.value
             if is_dataclass(obj):
                 return default(asdict(obj))
             if isinstance(obj, dict):
                 return {default(k): default(v) for k, v in obj.items()}
+            if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
+                return [default(v) for v in obj]
             return obj
 
         return {k: default(v) for k, v in asdict(self).items()}
 
     @staticmethod
     def from_dict(data: dict) -> "User":
-        return User(
-            id=UUID(data["id"]),
-            name=data["name"],
-            role=User.Role(data["role"]),
-            deleted=data["deleted"] if "deleted" in data else False,
-            provider=User.Provider(
-                id=data["provider"]["id"],
-                type=data["provider"]["type"],
-                info=data["provider"]["info"]
-            )
-        )
+        return TypeAdapter(User).validate_python(data)
 
     @staticmethod
     def authenticate(provider: Service.AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:

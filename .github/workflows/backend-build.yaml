@@ -42,10 +42,10 @@ jobs:
 
       - id: run
         run: |
-          make backend-install
-          make backend-lint
-          make backend-test
-          make backend-build-service \
+          make backend install
+          make backend lint
+          make backend test
+          make backend build-service \
             OUTPUT=backend.tar \
             BUILD_ARGS="--build-arg SERVICE_ALLOWED_ORIGIN=https://${{ secrets.GCP_PROJECT_ID }}.web.app"
 

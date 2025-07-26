@@ -2,7 +2,8 @@ from enum import Enum
 from uuid import UUID
 from collections.abc import Iterable
 from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict, field, is_dataclass
+from pydantic import TypeAdapter
 
 
 @dataclass
@@ -13,7 +14,7 @@ class Recipe:
     session_id: Optional[UUID] = None
     deleted: bool = False
     private: bool = False
-    user_access_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
+    user_role_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
 
     ingredients: List["Ingredient"] = field(default_factory=list)
     instructions: List["Instruction"] = field(default_factory=list)
@@ -47,9 +48,14 @@ class Recipe:
         value: str
 
     @dataclass
-    class Session:
+    class Message():
+        """The message between a user and model in a session"""
+        author_id: str
+        author_role: "Role"
+        value: str
+
         class Role(Enum):
-            """The role an entity can have within a session"""
+            """The role an entity can have within a message"""
             UNDEFINED = "undefined"
             MODEL = "model"
             USER = "user"
@@ -57,6 +63,20 @@ class Recipe:
     @property
     def is_deleted(self) -> bool:
         return self.deleted
+
+    @property
+    def owner_id(self) -> UUID:
+        owner_mapping = next(
+            filter(
+                lambda i: i[1] == Recipe.Role.OWNER,
+                self.user_role_mapping.items()
+            ),
+            None
+        )
+
+        if owner_mapping is None:
+            raise ValueError("No owner mapping exists in this Recipe")
+        return owner_mapping[0]
 
     @property
     def display_id(self) -> str:
@@ -70,14 +90,10 @@ class Recipe:
         def default(obj):
             if isinstance(obj, UUID):
                 return str(obj)
-            if isinstance(obj, Recipe.Role):
+            if isinstance(obj, Enum):
                 return obj.value
-            if isinstance(obj, Recipe.Action):
-                return obj.value
-            if isinstance(obj, Recipe.Ingredient):
-                return asdict(obj)
-            if isinstance(obj, Recipe.Instruction):
-                return asdict(obj)
+            if is_dataclass(obj):
+                return default(asdict(obj))
             if isinstance(obj, dict):
                 return {default(k): default(v) for k, v in obj.items()}
             if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
@@ -88,27 +104,11 @@ class Recipe:
 
     @staticmethod
     def from_dict(data: dict) -> "Recipe":
-        return Recipe(
-            id=UUID(data["id"]),
-            name=data["name"],
-            deleted=data["deleted"] if "deleted" in data else False,
-            private=data["private"] if "private" in data else False,
-            user_access_mapping={
-                UUID(k): Recipe.Role(v) for k, v in data["user_access_mapping"].items()
-            },
-            ingredients=[
-                Recipe.Ingredient(name=i["name"], unit=i["unit"], quantity=i["quantity"])
-                for i in data["ingredients"]
-            ],
-            instructions=[
-                Recipe.Instruction(value=i["value"])
-                for i in data["instructions"]
-            ]
-        )
+        return TypeAdapter(Recipe).validate_python(data)
 
     def authorize(self, user_id: Optional[UUID], action: "Action") -> bool:
         """Authorize a user trying to access this Recipe resource with action"""
-        role = self.user_access_mapping.get(user_id, Recipe.Role.UNDEFINED)
+        role = self.user_role_mapping.get(user_id, Recipe.Role.UNDEFINED)
 
         if self.private and role is Recipe.Role.UNDEFINED:
             return False

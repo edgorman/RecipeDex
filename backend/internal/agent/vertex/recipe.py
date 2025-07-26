@@ -1,11 +1,12 @@
 from uuid import uuid4
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List
 from google.adk.runners import Runner
+from google.adk.sessions import Session
+from google.adk.events import Event
 from google.genai.types import Content, Part
 
 from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
-from internal.objects.user import User
 
 
 class VertexRecipeAgent(RecipeAgent):
@@ -15,20 +16,54 @@ class VertexRecipeAgent(RecipeAgent):
         self.__app_name = app_name
         self.__agent_runner_service = agent_runner_service
 
-    async def message(self, user: User, recipe: Recipe, message: str) -> AsyncGenerator[str]:
+    async def _preprocess(self, recipe: Recipe) -> Session:
         if recipe.session_id is None:
             recipe.session_id = uuid4()
-            self.__agent_runner_service.session_service.create_session(
+            await self.__agent_runner_service.session_service.create_session(
                 app_name=self.__app_name,
-                user_id=user.display_id,
+                user_id=str(recipe.owner_id),
                 session_id=str(recipe.session_id)
             )
 
+        return self.__agent_runner_service.session_service.get_session(
+            app_name=self.__app_name,
+            user_id=str(recipe.owner_id),
+            session_id=recipe.session_id
+        )
+
+    @staticmethod
+    def _parse_role(event: Event) -> Recipe.Message.Role:
+        return Recipe.Message.Role.USER if event.author == 'user' else Recipe.Message.Role.MODEL
+
+    async def get_messages(self, recipe: Recipe) -> AsyncGenerator[Recipe.Message]:
+        session = await self._preprocess(recipe)
+        events: List[Event] = session.events
+
+        for event in events:
+            for part in event.content.parts:
+                if part and part.text:
+                    yield Recipe.Message(
+                        id=event.author,
+                        role=self._parse_role(event),
+                        value=part.text
+                    )
+
+    async def create_message(self, recipe: Recipe, message: Recipe.Message) -> AsyncGenerator[Recipe.Message]:
+        session = await self._preprocess(recipe)
+
         async for event in self.__agent_runner_service.run_async(
-            user_id=user.display_id,
-            session_id=recipe.session_id,
-            new_message=Content(role=Recipe.Session.Role.USER, parts=[Part.from_text(text=message)]),
+            user_id=str(recipe.owner_id),  # TODO: may be able to use message.author_id
+            session_id=session.id,
+            new_message=Content(
+                role=message.author_role,
+                parts=[Part.from_text(text=message.value)]
+            ),
         ):
-            for response in event.content.parts:
-                if response and response.text:
-                    yield response.text
+            # TODO: check if even is last with `event.is_final_response`
+            for part in event.content.parts:
+                if part and part.text:
+                    yield Recipe.Message(
+                        id=event.author,
+                        role=self._parse_role(event),
+                        value=part.text
+                    )
