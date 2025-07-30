@@ -64,7 +64,13 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_user,
             200,
-            {"id": example_user.display_id, "display_name": "mock_name"}
+            {
+                "detail": "User get finished successfully.",
+                "data": {
+                    "user_id": example_user.display_id,
+                    "user_name": example_user.display_name
+                }
+            }
         ),
         # User is authenticated, user does not exist, should allow
         (
@@ -72,7 +78,9 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             None,
             404,
-            {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
+            {
+                "detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."
+            }
         ),
         # User is not authenticated, user exists, should deny
         (
@@ -80,7 +88,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
             (None, UnauthenticatedUser()),
             example_user,
             403,
-            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is not authorized`."}
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is forbidden`."}
         ),
         # User is not authenticated, user does not exist, should deny
         (
@@ -88,7 +96,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
             (None, UnauthenticatedUser()),
             None,
             403,
-            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is not authorized`."}
+            {"detail": f"Could not get user with id `{example_user.display_id}`: `user is forbidden`."}
         ),
         # User is deleted, should deny
         (

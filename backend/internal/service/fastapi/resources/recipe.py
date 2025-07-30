@@ -1,11 +1,15 @@
+from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Optional
 from uuid import uuid4, UUID
-from fastapi import APIRouter, Request, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status
+from starlette.authentication import BaseUser
 
 from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
 from internal.storage.recipe import RecipeStorage
 from internal.objects.user import User
+from internal.service.fastapi.resources import BaseRequest, BaseResponse
+from internal.service.fastapi.middleware.authenticate import get_user_from_request
 
 
 class RecipeResource(APIRouter):
@@ -22,123 +26,164 @@ class RecipeResource(APIRouter):
         self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
         self.add_api_websocket_route("/{recipe_id}/message", self._message)
 
-    def __preprocess(self, recipe_id: str, user: User, action: Recipe.Action) -> Recipe:
+    def __preprocess(self, recipe_id: str, request_user: User, request_action: Recipe.Action) -> Recipe:
         try:
             recipe_id = UUID(recipe_id)
         except Exception as e:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Could not {action.value} recipe with id `{recipe_id}`: `invalid recipe id, {str(e)}`."
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not {request_action.value} recipe with id `{recipe_id}`: `invalid recipe id, {str(e)}`."
             )
 
         recipe = self.__recipe_storage_handler.get(recipe_id)
         if recipe is None or recipe.is_deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Could not {action.value} recipe with id `{str(recipe_id)}`: `it does not exist`."
+                detail=f"Could not {request_action.value} recipe with id `{str(recipe_id)}`: `it does not exist`."
             )
 
-        user_id = user.id if user.is_authenticated else None
-        if not recipe.authorize(user_id, action):
+        user_id = request_user.id if request_user.is_authenticated else None
+        if not recipe.authorize(user_id, request_action):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Could not {action.value} recipe with id `{str(recipe_id)}`: `user is not authorized`."
+                detail=f"Could not {request_action.value} recipe with id `{str(recipe_id)}`: `user is forbidden`."
             )
 
         return recipe
 
-    async def _get(self, connection: Request, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.GET)
+    @dataclass
+    class GetRecipeResponse:
+        id: str
+        name: str
+        ingredients: List[Recipe.Ingredient]
+        instructions: List[Recipe.Instruction]
 
-        return JSONResponse(
-            {
-                "recipe": {
-                    "id": str(recipe.id),
-                },
-                "detail": f"Recipe {Recipe.Action.GET.value} finished successfully."
-            }
+    async def _get(
+        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetRecipeResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET)
+
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.GET.value} finished successfully.",
+            data=self.GetRecipeResponse(
+                id=recipe.display_id,
+                name=recipe.display_name,
+                ingredients=recipe.ingredients,
+                instructions=recipe.instructions
+            )
         )
 
-    async def _get_metadata(self, connection: Request, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.METADATA)
+    @dataclass
+    class GetMetadataResponse:
+        id: str
+        session_id: str
+        deleted: bool
+        private: bool
+        user_role_mapping: Dict[UUID, Recipe.Role]
 
-        return JSONResponse(
-            {
-                "recipe": recipe.to_dict(),
-                "detail": f"Recipe {Recipe.Action.METADATA.value} finished successfully."
-            }
+    async def _get_metadata(
+        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetMetadataResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.METADATA)
+
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.METADATA.value} finished successfully.",
+            data=self.GetMetadataResponse(
+                id=recipe.display_id,
+                session_id=str(recipe.session_id),
+                deleted=recipe.deleted,
+                private=recipe.private,
+                user_role_mapping=recipe.user_role_mapping
+            )
         )
 
-    async def _create(self, connection: Request):
-        user: User = connection.user
-        if not user.is_authenticated:
+    @dataclass
+    class CreateRecipeResponse:
+        id: str
+
+    async def _create(
+        self, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[CreateRecipeResponse]:
+        if not request_user.is_authenticated:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authenticated`."
             )
 
         # TODO: update roles that can create recipes beyond admin role
-        if user.role != User.Role.ADMIN:
+        if request_user.role != User.Role.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authorized`."
             )
 
-        # TODO: parse recipe from connection body params
-        recipe = Recipe(
-            id=uuid4(),
-            private=False,
-            user_role_mapping={user.id: Recipe.Role.OWNER}
-        )
+        recipe = Recipe(id=uuid4(), user_role_mapping={request_user.id: Recipe.Role.OWNER})
         self.__recipe_storage_handler.create(recipe)
 
-        return JSONResponse(
-            {
-                "recipe_id": str(recipe.id),
-                "detail": f"Recipe {Recipe.Action.CREATE.value} finished successfully."
-            }
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.",
+            data=self.CreateRecipeResponse(id=recipe.display_id)
         )
 
-    async def _update(self, connection: Request, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.UPDATE)
+    @dataclass
+    class UpdateRecipeRequest:
+        name: Optional[str] = None
+        deleted: Optional[bool] = None
+        private: Optional[bool] = None
+        user_role_mapping: Optional[Dict[UUID, Recipe.Role]] = field(default_factory=dict)
+        ingredients: List[Recipe.Ingredient] = field(default_factory=list)
+        instructions: List[Recipe.Instruction] = field(default_factory=list)
 
-        # TODO: parse recipe from connection body params
-        self.__recipe_storage_handler.update(recipe.id, None)
+    @dataclass
+    class UpdateRecipeResponse:
+        id: str
 
-        return JSONResponse(
-            {
-                "recipe_id": str(recipe.id),
-                "detail": f"Recipe {Recipe.Action.UPDATE.value} finished successfully."
-            }
+    async def _update(
+        self,
+        request: BaseRequest[UpdateRecipeRequest],
+        recipe_id: str,
+        request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[UpdateRecipeResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.UPDATE)
+
+        # TODO: parse request params to their appropriate types
+        self.__recipe_storage_handler.update(recipe.id, **asdict(request))
+
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.",
+            data=self.UpdateRecipeResponse(id=recipe.display_id)
         )
 
-    async def _delete(self, connection: Request, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.DELETE)
+    @dataclass
+    class DeleteRecipeResponse:
+        id: str
+
+    async def _delete(
+        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[DeleteRecipeResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.DELETE)
 
         self.__recipe_storage_handler.delete(recipe.id)
 
-        return JSONResponse(
-            {
-                "recipe_id": recipe_id,
-                "detail": f"Recipe {Recipe.Action.DELETE.value} finished successfully."
-            }
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.DELETE.value} finished successfully.",
+            data=self.DeleteRecipeResponse(id=recipe.display_id)
         )
 
-    async def _get_messages(self, connection: Request, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.MESSAGE)
+    @dataclass
+    class GetMessagesResponse:
+        messages: List[Recipe.Message] = field(default_factory=list)
 
-        self.__recipe_agent_handler.get_messages(recipe)
+    async def _get_messages(
+        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetMessagesResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
 
-        return JSONResponse(
-            {
-                "recipe_id": recipe_id,
-                "detail": f"Recipe {Recipe.Action.MESSAGE.value} finished successfully."
-            }
+        messages = await self.__recipe_agent_handler.get_messages(recipe)
+
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.MESSAGE.value} finished successfully.",
+            data=self.GetMessagesResponse(messages=messages)
         )
 
     async def _message(self, connection: WebSocket, recipe_id: str):
@@ -154,16 +199,16 @@ class RecipeResource(APIRouter):
                 if "message" not in data:
                     await connection.send_json(
                         {
-                            "response": None,
-                            "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, missing `message` field."
+                            "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, missing `message` field.",
+                            "data": None
                         }
                     )
 
                 try:
                     await connection.send_json(
                         {
-                            "response": None,
-                            "detail": f"Recipe {Recipe.Action.MESSAGE.value} received data successfully."
+                            "detail": f"Recipe {Recipe.Action.MESSAGE.value} received data successfully.",
+                            "data": None
                         }
                     )
 
@@ -171,25 +216,25 @@ class RecipeResource(APIRouter):
                     async for response in self.__recipe_agent_handler.create_message(recipe, message):
                         await connection.send_json(
                             {
-                                "response": response,
-                                "detail": f"Recipe {Recipe.Action.MESSAGE.value} responded successfully."
+                                "detail": f"Recipe {Recipe.Action.MESSAGE.value} responded successfully.",
+                                "data": response
                             }
                         )
                 except Exception as e:
                     await connection.send_json(
                         {
-                            "response": None,
                             "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                                      f"experienced internal error: {str(e)}."
+                                      f"experienced internal error: {str(e)}.",
+                            "data": None
                         }
                     )
 
         except WebSocketException as we:
             await connection.send_json(
                 {
-                    "response": None,
                     "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                              f"experienced websocket error: `{str(we.reason)}`."
+                              f"experienced websocket error: `{str(we.reason)}`.",
+                    "data": None
                 }
             )
         except WebSocketDisconnect:

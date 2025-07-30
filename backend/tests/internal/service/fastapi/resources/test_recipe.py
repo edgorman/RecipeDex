@@ -82,7 +82,15 @@ def mock_client(
         (
             example_public_recipe.display_id, (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
             example_public_recipe, 200,
-            {"detail": "Recipe get finished successfully.", "recipe": {"id": example_public_recipe.display_id}}
+            {
+                "detail": "Recipe get finished successfully.",
+                "data": {
+                    "id": example_public_recipe.display_id,
+                    "name": example_public_recipe.display_name,
+                    "ingredients": example_public_recipe.ingredients,
+                    "instructions": example_public_recipe.instructions
+                }
+            }
         ),
         # User is authenticated, private recipe, no ACL, should deny
         (
@@ -90,7 +98,7 @@ def mock_client(
             example_private_recipe, 403,
             {
                 "detail": f"Could not get recipe with id `{example_private_recipe.display_id}`: "
-                "`user is not authorized`."
+                "`user is forbidden`."
             }
         ),
         # User is authenticated, public recipe, allow VIEWER user, should allow
@@ -99,7 +107,12 @@ def mock_client(
             example_public_with_viewer_recipe, 200,
             {
                 "detail": "Recipe get finished successfully.",
-                "recipe": {"id": example_public_with_viewer_recipe.display_id}
+                "data": {
+                    "id": example_public_with_viewer_recipe.display_id,
+                    "name": example_public_with_viewer_recipe.display_name,
+                    "ingredients": example_public_with_viewer_recipe.ingredients,
+                    "instructions": example_public_with_viewer_recipe.instructions
+                }
             }
         ),
         # User is authenticated, private recipe, allow VIEWER user, should allow
@@ -108,7 +121,12 @@ def mock_client(
             example_private_with_viewer_recipe, 200,
             {
                 "detail": "Recipe get finished successfully.",
-                "recipe": {"id": example_private_with_viewer_recipe.display_id}
+                "data": {
+                    "id": example_private_with_viewer_recipe.display_id,
+                    "name": example_private_with_viewer_recipe.display_name,
+                    "ingredients": example_private_with_viewer_recipe.ingredients,
+                    "instructions": example_private_with_viewer_recipe.instructions
+                }
             }
         ),
         # User is authenticated, private recipe, allow UNDEFINED user, should deny
@@ -117,7 +135,7 @@ def mock_client(
             example_private_with_undefined_recipe, 403,
             {
                 "detail": f"Could not get recipe with id `{example_private_with_undefined_recipe.display_id}`: "
-                "`user is not authorized`."
+                "`user is forbidden`.",
             }
         ),
         # User is not authenticated, public recipe, allow VIEWER user, should allow
@@ -126,7 +144,12 @@ def mock_client(
             example_public_with_viewer_recipe, 200,
             {
                 "detail": "Recipe get finished successfully.",
-                "recipe": {"id": example_public_with_viewer_recipe.display_id}
+                "data": {
+                    "id": example_public_with_viewer_recipe.display_id,
+                    "name": example_public_with_viewer_recipe.display_name,
+                    "ingredients": example_public_with_viewer_recipe.ingredients,
+                    "instructions": example_public_with_viewer_recipe.instructions
+                }
             }
         ),
         # User is not authenticated, private recipe, allow VIEWER user, should deny
@@ -135,7 +158,7 @@ def mock_client(
             example_private_with_viewer_recipe, 403,
             {
                 "detail": f"Could not get recipe with id `{example_private_with_viewer_recipe.display_id}`: "
-                "`user is not authorized`."
+                "`user is forbidden`."
             }
         ),
         # Recipe is deleted, should deny

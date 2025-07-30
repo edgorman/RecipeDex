@@ -1,7 +1,7 @@
 from uuid import uuid4
 from typing import Tuple
 from fastapi import FastAPI, status, Request, HTTPException
-from starlette.authentication import AuthenticationBackend, AuthCredentials, UnauthenticatedUser
+from starlette.authentication import AuthenticationBackend, AuthCredentials, UnauthenticatedUser, BaseUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse
@@ -170,3 +170,7 @@ def add_authenticate_middleware(
 ):
     backend = AuthenticateBackend(user_storage_handler=user_storage_handler)
     app.add_middleware(AuthenticationAsyncMiddleware, backend=backend)
+
+
+def get_user_from_request(request: Request) -> BaseUser:
+    return request.user

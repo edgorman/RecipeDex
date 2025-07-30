@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import JSONResponse
+from dataclasses import dataclass
+from fastapi import APIRouter, Depends, HTTPException, status
+from starlette.authentication import BaseUser
 
 from internal.storage.user import UserStorage
+from internal.service.fastapi.resources import BaseResponse
+from internal.service.fastapi.middleware.authenticate import get_user_from_request
 
 
 class UserResource(APIRouter):
@@ -11,23 +14,31 @@ class UserResource(APIRouter):
 
         self.add_api_route("/{user_id}", self._get, methods=["GET"])
 
-    async def _get(self, connection: Request, user_id: str):
-        if not connection.user.is_authenticated:
+    @dataclass
+    class GetUserResponse:
+        user_id: str
+        user_name: str
+
+    async def _get(
+        self, user_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetUserResponse]:
+        if not request_user.is_authenticated:
             raise HTTPException(
-                status_code=403,
-                detail=f"Could not get user with id `{user_id}`: `user is not authorized`."
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Could not get user with id `{user_id}`: `user is forbidden`."
             )
 
         user = self.__user_storage_handler.get(user_id)
         if user is None or user.is_deleted:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Could not get user with id `{user_id}`: `it does not exist`."
             )
 
-        return JSONResponse(
-            {
-                "id": user.display_id,
-                "display_name": user.display_name,
-            }
+        return BaseResponse(
+            detail="User get finished successfully.",
+            data=self.GetUserResponse(
+                user_id=user.display_id,
+                user_name=user.display_name
+            )
         )

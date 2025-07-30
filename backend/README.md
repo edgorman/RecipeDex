@@ -21,3 +21,19 @@ And then run your request:
 ```bash
 make backend call-service TOKEN=<your-token-here> ENDPOINT=protected
 ```
+
+## Linting
+
+To lint the backend run
+
+```bash
+make backend lint
+```
+
+## Testing
+
+To test the backend run
+
+```bash
+make backend test
+```
