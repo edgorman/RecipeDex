@@ -1,3 +1,5 @@
+include .env
+
 .PHONY: help
 help: ## prints this help output
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | \

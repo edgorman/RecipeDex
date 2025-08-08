@@ -4,7 +4,7 @@ from abc import ABC
 
 
 SERVICE_NAME = os.getenv("SERVICE_NAME", "backend")
-SERVICE_VERSION = os.getenv("SERVICE_VERSION", "0.1.0")
+SERVICE_VERSION = os.getenv("SERVICE_VERSION", "0.0.1")
 SERVICE_HOST = os.getenv("SERVICE_HOST", "0.0.0.0")
 SERVICE_PORT = os.getenv("SERVICE_PORT", 8080)
 SERVICE_ALLOWED_ORIGIN = os.getenv("SERVICE_ALLOWED_ORIGIN")

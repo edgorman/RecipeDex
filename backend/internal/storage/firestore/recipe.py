@@ -9,7 +9,7 @@ from internal.storage.recipe import RecipeStorage
 class FirestoreRecipeStorage(RecipeStorage):
 
     def __init__(self, client: FirestoreClient, collection_path: Tuple[str]):
-        self.__collection = client.collection(collection_path)
+        self.__collection = client.collection(*collection_path)
 
     def get(self, id_: UUID) -> Optional[Recipe]:
         try:
