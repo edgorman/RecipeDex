@@ -54,7 +54,7 @@ jobs:
 
   github-cleanup:
     name: GitHub Cleanup
-    needs: [github-changes, infrastructure-plan, backend-preview, frontend-preview]
+    needs: [github-changes, infrastructure-plan, backend-build, frontend-build]
     if: always()
 
     uses: ./.github/workflows/github-cleanup.yaml
