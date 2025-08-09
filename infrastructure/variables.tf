@@ -23,17 +23,12 @@ variable "firebase_app_name" {
   default = "RecipeDex"
 }
 
-variable "firestore_user_name" {
+variable "firestore_database_name" {
   type    = string
-  default = "user"
+  default = "recipedex"
 }
 
-variable "firestore_recipe_name" {
-  type    = string
-  default = "recipe"
-}
-
-variable "firestore_type" {
+variable "firestore_database_type" {
   type    = string
   default = "FIRESTORE_NATIVE"
 }

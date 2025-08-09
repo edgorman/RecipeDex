@@ -102,16 +102,9 @@ resource "google_artifact_registry_repository" "recipedex_registry" {
   ]
 }
 
-resource "google_firestore_database" "recipedex_user_storage" {
-  project                           = var.gcp_project_id
-  name                              = var.firestore_user_name
-  location_id                       = var.gcp_project_region
-  type                              = var.firestore_type
-}
-
-resource "google_firestore_database" "recipedex_recipe_storage" {
-  project                           = var.gcp_project_id
-  name                              = var.firestore_recipe_name
-  location_id                       = var.gcp_project_region
-  type                              = var.firestore_type
+resource "google_firestore_database" "recipedex_firestore" {
+  project     = var.gcp_project_id
+  name        = var.firestore_database_name
+  location_id = var.gcp_project_region
+  type        = var.firestore_database_type
 }
