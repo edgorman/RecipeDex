@@ -33,6 +33,16 @@ variable "firestore_database_type" {
   default = "FIRESTORE_NATIVE"
 }
 
+variable "firestore_collection_recipe_name" {
+  type    = string
+  default = "recipe"
+}
+
+variable "firestore_collection_user_name" {
+  type    = string
+  default = "user"
+}
+
 variable "artifact_registry_repository_name" {
   type    = string
   default = "recipedex"
