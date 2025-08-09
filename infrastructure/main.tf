@@ -108,3 +108,25 @@ resource "google_firestore_database" "recipedex_firestore" {
   location_id = var.gcp_project_region
   type        = var.firestore_database_type
 }
+
+resource "google_firestore_index" "recipedex_firestore_recipe_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_recipe_name
+
+  fields {
+    field_path = "id"
+    order      = "ASCENDING"
+  }
+}
+
+resource "google_firestore_index" "recipedex_firestore_user_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_user_name
+
+  fields {
+    field_path = "id"
+    order      = "ASCENDING"
+  }
+}
