@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 
 from internal.objects.recipe import Recipe
 
@@ -10,6 +10,10 @@ class RecipeStorage(ABC):
 
     @abstractmethod
     def get(self, id_: UUID) -> Optional[Recipe]:
+        ...
+
+    @abstractmethod
+    def list(self, page: int = 0, page_size: int = 25) -> List[Recipe]:
         ...
 
     @abstractmethod

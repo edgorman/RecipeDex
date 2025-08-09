@@ -40,7 +40,7 @@ def mock_collection_path():
 
 def test_init(mock_firestore_client, mock_collection_path):
     _ = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-    mock_firestore_client.collection.assert_called_once_with(mock_collection_path)
+    mock_firestore_client.collection.assert_called_once_with(*mock_collection_path)
 
 
 @pytest.mark.parametrize(
@@ -148,7 +148,7 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client.update(example_user.id, **kwargs)
 
     mock_firestore_collection.document.assert_called_once_with(example_user.display_id)
-    mock_firestore_collection.document.return_value.update.assert_called_once_with(**kwargs_without_id)
+    mock_firestore_collection.document.return_value.update.assert_called_once_with(kwargs_without_id)
 
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):
@@ -156,4 +156,4 @@ def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client.delete(example_user.id)
 
     mock_firestore_collection.document.assert_called_once_with(example_user.display_id)
-    mock_firestore_collection.document.return_value.delete.assert_called_once()
+    mock_firestore_collection.document.return_value.update.assert_called_once_with({"deleted": True})

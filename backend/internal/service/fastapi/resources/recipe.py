@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional
 from uuid import uuid4, UUID
-from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status
+from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status, Query
 from starlette.authentication import BaseUser
 
 from internal.agent.recipe import RecipeAgent
@@ -18,6 +18,7 @@ class RecipeResource(APIRouter):
         self.__recipe_storage_handler = recipe_storage_handler
         self.__recipe_agent_handler = recipe_agent_handler
 
+        self.add_api_route("/", self._list, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
         self.add_api_route("/{recipe_id}/metadata", self._get_metadata, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._create, methods=["POST"])
@@ -50,6 +51,44 @@ class RecipeResource(APIRouter):
             )
 
         return recipe
+
+    @dataclass
+    class ListRecipesItem:
+        id: str
+        name: str
+        private: bool
+
+    @dataclass
+    class ListRecipesResponse:
+        recipes: List["RecipeResource.ListRecipesItem"]
+
+    async def _list(
+        self,
+        request_user: BaseUser = Depends(get_user_from_request),
+        page: int = Query(0, ge=0),
+        page_size: int = Query(25, ge=1, le=100),
+    ) -> BaseResponse[ListRecipesResponse]:
+        try:
+            recipes = self.__recipe_storage_handler.list(page=page, page_size=page_size)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not list recipes: `{str(e)}`."
+            )
+
+        user_id = request_user.id if request_user.is_authenticated else None
+        authorized_recipes = [
+            self.ListRecipesItem(
+                id=r.display_id,
+                name=r.display_name,
+                private=r.private
+            )
+            for r in recipes if r.authorize(user_id, Recipe.Action.GET)
+        ]
+
+        return BaseResponse(
+            detail="Recipe list finished successfully.",
+            data=self.ListRecipesResponse(recipes=authorized_recipes)
+        )
 
     @dataclass
     class GetRecipeResponse:

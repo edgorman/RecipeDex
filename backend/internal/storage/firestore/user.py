@@ -1,3 +1,4 @@
+from dataclasses import fields
 from typing import Any, Optional, Tuple
 from uuid import UUID
 from google.cloud.firestore import Client as FirestoreClient
@@ -51,16 +52,20 @@ class FirestoreUserStorage(UserStorage):
             raise Exception(f"Could not create user: `{str(e)}`.")
 
     def update(self, id_: UUID, **kwargs) -> None:
-        if 'id' in kwargs:
-            kwargs.pop('id')
+        updatable_keys = [f.name for f in fields(User)]
+        updatable_keys.remove("id")
+
+        for key in list(kwargs.keys()):
+            if key not in updatable_keys:
+                del kwargs[key]
 
         try:
-            self.__collection.document(str(id_)).update(**kwargs)
+            self.__collection.document(str(id_)).update(kwargs)
         except Exception as e:
             raise Exception(f"Could not update user: `{str(e)}`.")
 
     def delete(self, id_: UUID) -> None:
         try:
-            self.__collection.document(str(id_)).delete()
+            self.__collection.document(str(id_)).update({"deleted": True})
         except Exception as e:
             raise Exception(f"Could not delete user: `{str(e)}`.")

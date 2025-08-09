@@ -7,7 +7,9 @@ from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService
 
 from internal.config.agent import AGENT_APP_NAME, AGENT_PROJECT_ID, AGENT_PROJECT_REGION
 from internal.config.service import SERVICE_NAME, SERVICE_VERSION, SERVICE_HOST, SERVICE_PORT, SERVICE_ALLOWED_ORIGIN
-from internal.config.storage import STORAGE_PROJECT_ID, STORAGE_RECIPE_NAME, STORAGE_USER_NAME
+from internal.config.storage import (
+    STORAGE_PROJECT_ID, STORAGE_DATABASE_NAME, STORAGE_COLLECTION_RECIPE_NAME, STORAGE_COLLECTION_USER_NAME
+)
 from internal.agent.vertex.recipe import VertexRecipeAgent
 from internal.agent.vertex.subagents.coordinator.agent import root_agent as base_agent
 from internal.storage.firestore.user import FirestoreUserStorage
@@ -23,12 +25,12 @@ def service():
 @service.command
 def run():
     # Initialise storage client and handlers
-    firestore_client = FirestoreClient(STORAGE_PROJECT_ID)
+    firestore_client = FirestoreClient(STORAGE_PROJECT_ID, database=STORAGE_DATABASE_NAME)
     recipe_storage_handler = FirestoreRecipeStorage(
-        client=firestore_client, collection_path=(STORAGE_RECIPE_NAME,)
+        client=firestore_client, collection_path=(STORAGE_COLLECTION_RECIPE_NAME,)
     )
     user_storage_handler = FirestoreUserStorage(
-        client=firestore_client, collection_path=(STORAGE_USER_NAME,)
+        client=firestore_client, collection_path=(STORAGE_COLLECTION_USER_NAME,)
     )
 
     # Initialise agent services and handlers
