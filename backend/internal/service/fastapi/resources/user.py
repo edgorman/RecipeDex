@@ -5,6 +5,7 @@ from starlette.authentication import BaseUser
 from internal.storage.user import UserStorage
 from internal.service.fastapi.resources import BaseResponse
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
+from internal.config.service import Service
 
 
 class UserResource(APIRouter):
@@ -13,6 +14,7 @@ class UserResource(APIRouter):
         self.__user_storage_handler = user_storage_handler
 
         self.add_api_route("/{user_id}", self._get, methods=["GET"])
+        self.add_api_route("/provider/{provider}/{provider_id}", self._get_by_provider, methods=["GET"])
 
     @dataclass
     class GetUserResponse:
@@ -37,6 +39,42 @@ class UserResource(APIRouter):
 
         return BaseResponse(
             detail="User get finished successfully.",
+            data=self.GetUserResponse(
+                user_id=user.display_id,
+                user_name=user.display_name
+            )
+        )
+
+    async def _get_by_provider(
+        self,
+        provider: str,
+        provider_id: str,
+        request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetUserResponse]:
+        if not request_user.is_authenticated:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Could not get user by provider `{provider}` and id `{provider_id}`: `user is forbidden`."
+            )
+
+        # normalize and validate provider
+        try:
+            provider_enum = Service.AuthProvider(provider.lower())
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid provider `{provider}`."
+            )
+
+        user = self.__user_storage_handler.get_by_provider_id(provider_id, provider_enum)
+        if user is None or user.is_deleted:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Could not get user by provider `{provider}` and id `{provider_id}`: `it does not exist`."
+            )
+
+        return BaseResponse(
+            detail="User get by provider finished successfully.",
             data=self.GetUserResponse(
                 user_id=user.display_id,
                 user_name=user.display_name

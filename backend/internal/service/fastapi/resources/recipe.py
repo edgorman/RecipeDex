@@ -21,7 +21,7 @@ class RecipeResource(APIRouter):
         self.add_api_route("/", self._list, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
         self.add_api_route("/{recipe_id}/metadata", self._get_metadata, methods=["GET"])
-        self.add_api_route("/{recipe_id}", self._create, methods=["POST"])
+        self.add_api_route("/", self._create, methods=["POST"])
         self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
         self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
@@ -115,7 +115,7 @@ class RecipeResource(APIRouter):
     @dataclass
     class GetMetadataResponse:
         id: str
-        session_id: str
+        session_id: Optional[str]
         deleted: bool
         private: bool
         user_role_mapping: Dict[UUID, Recipe.Role]
@@ -129,7 +129,7 @@ class RecipeResource(APIRouter):
             detail=f"Recipe {Recipe.Action.METADATA.value} finished successfully.",
             data=self.GetMetadataResponse(
                 id=recipe.display_id,
-                session_id=str(recipe.session_id),
+                session_id=(str(recipe.session_id) if recipe.session_id is not None else None),
                 deleted=recipe.deleted,
                 private=recipe.private,
                 user_role_mapping=recipe.user_role_mapping
@@ -137,11 +137,17 @@ class RecipeResource(APIRouter):
         )
 
     @dataclass
+    class CreateRecipeRequest:
+        name: Optional[str] = None
+
+    @dataclass
     class CreateRecipeResponse:
         id: str
 
     async def _create(
-        self, request_user: BaseUser = Depends(get_user_from_request)
+        self,
+        request: BaseRequest[CreateRecipeRequest],
+        request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[CreateRecipeResponse]:
         if not request_user.is_authenticated:
             raise HTTPException(
@@ -156,7 +162,8 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authorized`."
             )
 
-        recipe = Recipe(id=uuid4(), user_role_mapping={request_user.id: Recipe.Role.OWNER})
+        name = (request.data.name if request and request.data and request.data.name else "Untitled Recipe")
+        recipe = Recipe(id=uuid4(), name=name, user_role_mapping={request_user.id: Recipe.Role.OWNER})
         self.__recipe_storage_handler.create(recipe)
 
         return BaseResponse(
@@ -217,8 +224,7 @@ class RecipeResource(APIRouter):
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[GetMessagesResponse]:
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
-
-        messages = await self.__recipe_agent_handler.get_messages(recipe)
+        messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe)]
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.MESSAGE.value} finished successfully.",
