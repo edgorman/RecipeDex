@@ -1,4 +1,3 @@
-from dataclasses import fields
 from typing import Any, Optional, Tuple
 from uuid import UUID
 from google.cloud.firestore import Client as FirestoreClient
@@ -52,12 +51,12 @@ class FirestoreUserStorage(UserStorage):
             raise Exception(f"Could not create user: `{str(e)}`.")
 
     def update(self, id_: UUID, **kwargs) -> None:
-        updatable_keys = [f.name for f in fields(User)]
-        updatable_keys.remove("id")
+        if len(kwargs) == 0:
+            raise ValueError("Could not update user: `no fields to update`.")
 
-        for key in list(kwargs.keys()):
-            if key not in updatable_keys:
-                del kwargs[key]
+        forbidden_keys = list(filter(lambda key: key in User.forbidden_keys_to_update(), kwargs.keys()))
+        if len(forbidden_keys) > 0:
+            raise ValueError(f"Could not update user: `forbidden field(s) in args: {forbidden_keys}`.")
 
         try:
             self.__collection.document(str(id_)).update(kwargs)

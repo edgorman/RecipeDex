@@ -11,7 +11,7 @@ class Recipe:
     """Object that stores recipe information"""
     id: UUID
     name: str
-    session_id: Optional[UUID] = None
+    session_id: Optional[str] = None
     deleted: bool = False
     private: bool = False
     user_role_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
@@ -105,6 +105,10 @@ class Recipe:
     @staticmethod
     def from_dict(data: dict) -> "Recipe":
         return TypeAdapter(Recipe).validate_python(data)
+
+    @classmethod
+    def forbidden_keys_to_update(cls) -> List[str]:
+        return ["id"]
 
     def authorize(self, user_id: Optional[UUID], action: "Action") -> bool:
         """Authorize a user trying to access this Recipe resource with action"""

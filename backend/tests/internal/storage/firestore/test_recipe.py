@@ -195,16 +195,36 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
     )
 
 
-def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    kwargs = example_recipe.to_dict()
-    kwargs_without_id = kwargs.copy()
-    del kwargs_without_id["id"]
+def test_update_success(mock_firestore_client, mock_collection_path, mock_firestore_collection):
+    kwargs = {"name": "updated_recipe_name"}
 
     client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
     client.update(example_recipe.id, **kwargs)
 
     mock_firestore_collection.document.assert_called_once_with(str(example_recipe.id))
-    mock_firestore_collection.document.return_value.update.assert_called_once_with(kwargs_without_id)
+    mock_firestore_collection.document.return_value.update.assert_called_once_with(kwargs)
+
+
+def test_update_raises_error_for_empty_kwargs(mock_firestore_client, mock_collection_path, mock_firestore_collection):
+    client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
+
+    with pytest.raises(ValueError, match="Could not update recipe: `no fields to update`."):
+        client.update(example_recipe.id, **{})
+
+    assert not mock_firestore_collection.document.called
+    assert not mock_firestore_collection.document.return_value.update.called
+
+
+def test_update_raises_error_for_forbidden_keys(mock_firestore_client, mock_collection_path, mock_firestore_collection):
+    kwargs = {"id": "forbidden_id"}
+
+    client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
+
+    with pytest.raises(ValueError, match="Could not update recipe: `forbidden field\\(s\\) in args:"):
+        client.update(example_recipe.id, **kwargs)
+
+    assert not mock_firestore_collection.document.called
+    assert not mock_firestore_collection.document.return_value.update.called
 
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):

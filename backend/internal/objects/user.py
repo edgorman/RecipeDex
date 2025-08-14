@@ -1,6 +1,6 @@
 from enum import Enum
 from uuid import UUID
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 from collections.abc import Iterable
 from dataclasses import dataclass, asdict, is_dataclass
 from google.auth.transport import requests as token_request
@@ -69,6 +69,10 @@ class User(BaseUser):
     @staticmethod
     def from_dict(data: dict) -> "User":
         return TypeAdapter(User).validate_python(data)
+
+    @classmethod
+    def forbidden_keys_to_update(cls) -> List[str]:
+        return ["id"]
 
     @staticmethod
     def authenticate(provider: Service.AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:
