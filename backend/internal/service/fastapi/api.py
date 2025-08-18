@@ -3,6 +3,7 @@ from typing import List
 import uvicorn
 
 from internal.agent.recipe import RecipeAgent
+from internal.auth.recipe import RecipeAuthorize
 from internal.objects.user import User
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
@@ -25,12 +26,14 @@ class FastapiAPIService(APIService):
         allowed_origins: List[str],
         recipe_agent_handler: RecipeAgent,
         recipe_storage_handler: RecipeStorage,
+        recipe_authorize_handler: RecipeAuthorize,
         user_storage_handler: UserStorage,
     ):
         self.__name = name
         self.__version = version
         self.__recipe_agent_handler = recipe_agent_handler
         self.__recipe_storage_handler = recipe_storage_handler
+        self.__recipe_authorize_handler = recipe_authorize_handler
         self.__user_storage_handler = user_storage_handler
 
         self.__api = FastAPI()
@@ -38,8 +41,16 @@ class FastapiAPIService(APIService):
         add_cors_middleware(self.__api, allowed_origins)
 
         self.__api.add_api_route("/", self._root)
-        self.__api.include_router(UserResource(self.__user_storage_handler))
-        self.__api.include_router(RecipeResource(self.__recipe_storage_handler, self.__recipe_agent_handler))
+        self.__api.include_router(
+            UserResource(self.__user_storage_handler)
+        )
+        self.__api.include_router(
+            RecipeResource(
+                self.__recipe_storage_handler,
+                self.__recipe_agent_handler,
+                self.__recipe_authorize_handler
+            )
+        )
 
         self.__config = uvicorn.Config(self.__api, host=host, port=port, workers=1)
         self.__server = uvicorn.Server(self.__config)

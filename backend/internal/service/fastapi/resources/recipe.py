@@ -5,18 +5,26 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocket
 from starlette.authentication import BaseUser
 
 from internal.agent.recipe import RecipeAgent
+from internal.auth.recipe import RecipeAuthorize
+from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.storage.recipe import RecipeStorage
-from internal.objects.user import User
 from internal.service.fastapi.resources import BaseRequest, BaseResponse
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
 
 
 class RecipeResource(APIRouter):
-    def __init__(self, recipe_storage_handler: RecipeStorage, recipe_agent_handler: RecipeAgent, endpoint="recipe"):
+    def __init__(
+            self,
+            recipe_storage_handler: RecipeStorage,
+            recipe_agent_handler: RecipeAgent,
+            recipe_authorize_handler: RecipeAuthorize,
+            endpoint="recipe"
+    ):
         super().__init__(prefix=f"/{endpoint}")
         self.__recipe_storage_handler = recipe_storage_handler
         self.__recipe_agent_handler = recipe_agent_handler
+        self.__recipe_authorize_handler = recipe_authorize_handler
 
         self.add_api_route("/", self._list, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
@@ -25,7 +33,7 @@ class RecipeResource(APIRouter):
         self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
         self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
-        self.add_api_websocket_route("/{recipe_id}/message", self._message)
+        self.add_api_websocket_route("/{recipe_id}/message", self._message, "message")
 
     def __preprocess(self, recipe_id: str, request_user: User, request_action: Recipe.Action) -> Recipe:
         try:
@@ -43,8 +51,8 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {request_action.value} recipe with id `{str(recipe_id)}`: `it does not exist`."
             )
 
-        user_id = request_user.id if request_user.is_authenticated else None
-        if not recipe.authorize(user_id, request_action):
+        authorized = self.__recipe_authorize_handler.authorize(recipe, request_action, request_user)
+        if not authorized:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not {request_action.value} recipe with id `{str(recipe_id)}`: `user is forbidden`."
@@ -75,14 +83,9 @@ class RecipeResource(APIRouter):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not list recipes: `{str(e)}`."
             )
 
-        user_id = request_user.id if request_user.is_authenticated else None
         authorized_recipes = [
-            self.ListRecipesItem(
-                id=r.display_id,
-                name=r.display_name,
-                private=r.private
-            )
-            for r in recipes if r.authorize(user_id, Recipe.Action.GET)
+            self.ListRecipesItem(id=recipe.display_id, name=recipe.display_name, private=recipe.private)
+            for recipe in recipes if self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.GET, request_user)
         ]
 
         return BaseResponse(
@@ -129,7 +132,7 @@ class RecipeResource(APIRouter):
             detail=f"Recipe {Recipe.Action.METADATA.value} finished successfully.",
             data=self.GetMetadataResponse(
                 id=recipe.display_id,
-                session_id=(str(recipe.session_id) if recipe.session_id is not None else None),
+                session_id=recipe.session_id,
                 deleted=recipe.deleted,
                 private=recipe.private,
                 user_role_mapping=recipe.user_role_mapping
@@ -138,7 +141,8 @@ class RecipeResource(APIRouter):
 
     @dataclass
     class CreateRecipeRequest:
-        name: Optional[str] = None
+        name: Optional[str] = "Untitled Recipe"
+        private: Optional[bool] = False
 
     @dataclass
     class CreateRecipeResponse:
@@ -155,16 +159,27 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authenticated`."
             )
 
-        # TODO: update roles that can create recipes beyond admin role
-        if request_user.role != User.Role.ADMIN:
+        recipe = Recipe(
+            id=uuid4(),
+            name=request.data.name,
+            private=request.data.private,
+            user_role_mapping={request_user.id: Recipe.Role.OWNER}
+        )
+
+        authorized = self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.CREATE, request_user)
+        if not authorized:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authorized`."
             )
 
-        name = (request.data.name if request and request.data and request.data.name else "Untitled Recipe")
-        recipe = Recipe(id=uuid4(), name=name, user_role_mapping={request_user.id: Recipe.Role.OWNER})
-        self.__recipe_storage_handler.create(recipe)
+        try:
+            self.__recipe_storage_handler.create(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Could not {Recipe.Action.CREATE.value} recipe: `{e}`."
+            )
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.",

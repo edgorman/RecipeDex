@@ -164,10 +164,7 @@ class AuthenticateBackend(AuthenticationBackend):
         return provider, token
 
 
-def add_authenticate_middleware(
-    app: FastAPI,
-    user_storage_handler: UserStorage,
-):
+def add_authenticate_middleware(app: FastAPI, user_storage_handler: UserStorage):
     backend = AuthenticateBackend(user_storage_handler=user_storage_handler)
     app.add_middleware(AuthenticationAsyncMiddleware, backend=backend)
 

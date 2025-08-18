@@ -13,7 +13,7 @@ from internal.config.service import Service
 
 @dataclass
 class User(BaseUser):
-    """Object that stores user information"""
+    """Object that stores User information"""
     id: UUID
     name: str
     role: "Role"
@@ -49,6 +49,11 @@ class User(BaseUser):
     @property
     def provider_id(self) -> str:
         return self.provider.id
+
+    @property
+    def can_create_recipe(self) -> bool:
+        # for now, only admins are authorized to create
+        return self.role == self.Role.ADMIN
 
     def to_dict(self) -> dict:
         def default(obj):
