@@ -124,7 +124,13 @@ def test_list_paginates_and_filters_deleted(
     client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
     result = client.list(page=page, page_size=page_size)
 
-    mock_firestore_collection.where.assert_called_once_with("deleted", "==", False)
+    mock_firestore_collection.where.assert_called_once()
+    call_args = mock_firestore_collection.where.call_args
+    filter_arg = call_args.kwargs['filter']
+    assert filter_arg.field_path == "deleted"
+    assert filter_arg.op_string == "=="
+    assert filter_arg.value is False
+
     mock_firestore_collection.where.return_value.order_by.assert_called_once_with("name")
     mock_firestore_collection.where.return_value.order_by.return_value.offset.assert_called_once_with(page * page_size)
 

@@ -20,6 +20,13 @@ class User(BaseUser):
     provider: "Provider"
     deleted: bool = False
 
+    class Action(Enum):
+        GET = "get"
+        GET_BY_PROVIDER = "get_by_provider"
+        CREATE = "create"
+        UPDATE = "update"
+        DELETE = "delete"
+
     class Role(Enum):
         UNDEFINED = "undefined"
         ADMIN = "admin"

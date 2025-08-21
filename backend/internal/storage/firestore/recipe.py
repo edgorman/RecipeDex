@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, List
 from uuid import UUID
-from google.cloud.firestore import Client as FirestoreClient
+from google.cloud.firestore import FieldFilter, Client as FirestoreClient
 
 from internal.objects.recipe import Recipe
 from internal.storage.recipe import RecipeStorage
@@ -28,7 +28,7 @@ class FirestoreRecipeStorage(RecipeStorage):
     def list(self, page: int = 0, page_size: int = 25) -> List[Recipe]:
         try:
             result = self.__collection \
-                .where("deleted", "==", False) \
+                .where(filter=FieldFilter("deleted", "==", False)) \
                 .order_by("name") \
                 .offset(max(self.__list_min_offset, page * page_size)) \
                 .limit(min(max(self.__list_min_limit, page_size), self.__list_max_limit)) \
