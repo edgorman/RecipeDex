@@ -5,7 +5,7 @@ from google.cloud.firestore import Client as FirestoreClient
 # from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService
 from google.adk.sessions import InMemorySessionService
 
-from internal.config.agent import AGENT_APP_NAME  # , AGENT_PROJECT_ID, AGENT_PROJECT_REGION
+from internal.config.agent import AGENT_APP_NAME  # AGENT_PROJECT_ID, AGENT_PROJECT_REGION
 from internal.config.service import SERVICE_NAME, SERVICE_VERSION, SERVICE_HOST, SERVICE_PORT, SERVICE_ALLOWED_ORIGIN
 from internal.config.storage import (
     STORAGE_PROJECT_ID, STORAGE_DATABASE_NAME, STORAGE_COLLECTION_RECIPE_NAME, STORAGE_COLLECTION_USER_NAME
@@ -42,14 +42,13 @@ def run():
     # TODO: for local development only, not suitable for deployments
     agent_sessions_service = InMemorySessionService()
     agent_runner_service = AgentRunner(
-        app_name=SERVICE_NAME,
+        app_name=AGENT_APP_NAME,
         agent=base_agent,
         artifact_service=None,  # agent_artifact_service,
         memory_service=None,  # agent_memory_service,
         session_service=agent_sessions_service
     )
     recipe_agent_handler = VertexRecipeAgent(
-        app_name=AGENT_APP_NAME,
         agent_runner_service=agent_runner_service,
         recipe_storage_handler=recipe_storage_handler
     )

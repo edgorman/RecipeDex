@@ -59,8 +59,21 @@ class FirestoreRecipeStorage(RecipeStorage):
         if len(forbidden_keys) > 0:
             raise ValueError(f"Could not update recipe: `forbidden field(s) in args: {forbidden_keys}`.")
 
+        processed_kwargs = {}
+        for key, item in kwargs.items():
+            if not isinstance(item, dict):
+                processed_kwargs[key] = item
+                continue
+
+            processed_kwargs = {
+                f"{key}.{inner_key}": inner_item
+                for inner_key, inner_item in item.items()
+            }
+
         try:
-            self.__collection.document(str(id_)).update(kwargs)
+            # TODO: need to validate that kwargs only contains keys in class
+            #       and the values are the expected type
+            self.__collection.document(str(id_)).update(processed_kwargs)
         except Exception as e:
             raise Exception(f"Could not update recipe: `{str(e)}`.")
 

@@ -10,7 +10,7 @@ def mock_recipe_dict():
         "name": "mock_recipe",
         "private": False,
         "deleted": False,
-        "session_id": None,
+        "user_session_mapping": {},
         "user_role_mapping": {
             str(uuid4()): Recipe.Role.UNDEFINED.value,
             str(uuid4()): Recipe.Role.VIEWER.value,

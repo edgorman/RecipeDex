@@ -56,9 +56,9 @@ class GetRecipeResponse:
 @dataclass
 class GetMetadataResponse:
     id: UUID
-    session_id: Optional[UUID]
     deleted: bool
     private: bool
+    user_session_mapping: Dict[str, str]
     user_role_mapping: Dict[str, str]
 
     @classmethod
@@ -66,9 +66,9 @@ class GetMetadataResponse:
         """Create a GetMetadataResponse from a Recipe object"""
         return cls(
             id=recipe.display_id,
-            session_id=recipe.session_id,
             deleted=recipe.deleted,
             private=recipe.private,
+            user_session_mapping={str(key): value for key, value in recipe.user_session_mapping.items()},
             user_role_mapping={str(key): role.value for key, role in recipe.user_role_mapping.items()}
         )
 
@@ -121,16 +121,14 @@ class DeleteRecipeResponse:
 
 @dataclass
 class GetMessageItem:
-    author_id: UUID
-    author_role: Recipe.Role
+    role: Recipe.Role
     value: str
 
     @classmethod
     def from_objects(cls, message: Recipe.Message) -> "GetMessageItem":
         """Create a GetMessageItem from a Recipe Message object"""
         return cls(
-            author_id=message.author_id,
-            author_role=message.author_role,
+            role=message.role,
             value=message.value
         )
 
@@ -151,23 +149,25 @@ class GetMessagesResponse:
 
 @dataclass
 class SendMessageRequest:
-    message: str
+    value: str
 
     @classmethod
     def from_objects(cls, data: dict) -> "SendMessageRequest":
         """Create a SendMessageRequest from generic dict object"""
         return cls(
-            message=data["message"]
+            value=data["value"]
         )
 
 
 @dataclass
 class SendMessageResponse:
-    message: Optional[str]
+    role: str
+    value: str
 
     @classmethod
-    def from_objects(cls, message: Optional[Recipe.Message] = None) -> "SendMessageResponse":
+    def from_objects(cls, message: Recipe.Message) -> "SendMessageResponse":
         """Create a SendMessageResponse from a Recipe Message object"""
         return cls(
-            message=message.value if message else None
+            role=message.role,
+            value=message.value
         )

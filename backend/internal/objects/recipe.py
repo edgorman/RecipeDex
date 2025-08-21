@@ -11,9 +11,9 @@ class Recipe:
     """Object that stores Recipe information"""
     id: UUID
     name: str
-    session_id: Optional[str] = None
     deleted: bool = False
     private: bool = False
+    user_session_mapping: Dict[UUID, str] = field(default_factory=dict)
     user_role_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
 
     ingredients: List["Ingredient"] = field(default_factory=list)
@@ -45,8 +45,7 @@ class Recipe:
 
     @dataclass
     class Message:
-        author_id: str
-        author_role: "Role"
+        role: "Role"
         value: str
 
         class Role(Enum):

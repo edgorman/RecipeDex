@@ -111,7 +111,7 @@ class RecipeResource(APIRouter):
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[GetMessagesResponse]:
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_MESSAGES)
-        messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe)]
+        messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe, request_user)]
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} finished successfully.",
@@ -197,16 +197,15 @@ class RecipeResource(APIRouter):
                 try:
                     request_data = SendMessageRequest.from_objects(data)
                     request_message = Recipe.Message(
-                        request_user.display_id,
                         Recipe.Message.Role.USER,
-                        request_data.message
+                        request_data.value
                     )
                 except Exception as e:
                     await connection.send_json(
                         BaseResponse(
                             detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                                    f"invalid request data: {str(e)}.",
-                            data=SendMessageResponse.from_objects()
+                            data=None
                         ).to_dict()
                     )
 
@@ -214,23 +213,25 @@ class RecipeResource(APIRouter):
                     await connection.send_json(
                         BaseResponse(
                             detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} received data successfully.",
-                            data=SendMessageResponse.from_objects()
+                            data=None
                         ).to_dict()
                     )
 
-                    async for response_message in self.__recipe_agent_handler.create_message(recipe, request_message):
+                    async for response_message in self.__recipe_agent_handler.create_message(
+                        recipe, request_user, request_message
+                    ):
                         await connection.send_json(
                             BaseResponse(
                                 detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} responded successfully.",
                                 data=SendMessageResponse.from_objects(response_message)
-                            )
+                            ).to_dict()
                         )
                 except Exception as e:
                     await connection.send_json(
                         BaseResponse(
                             detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                                    f"experienced internal error: {str(e)}.",
-                            data=SendMessageResponse.from_objects()
+                            data=None
                         ).to_dict()
                     )
 
@@ -239,7 +240,7 @@ class RecipeResource(APIRouter):
                 BaseResponse(
                     detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                            f"experienced websocket error: `{str(we.reason)}`.",
-                    data=SendMessageResponse.from_objects()
+                    data=None
                 ).to_dict()
             )
         except WebSocketDisconnect:

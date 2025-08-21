@@ -117,7 +117,7 @@ export default function EngineeringConsole() {
       setWsLog((l) => [...l, { type: 'error', message: 'WebSocket not connected' }]);
       return;
     }
-    const payload = { message: wsMessage };
+    const payload = { value: wsMessage };
     ws.send(JSON.stringify(payload));
     setWsLog((l) => [...l, { type: 'sent', at: new Date().toISOString(), data: payload }]);
     setWsMessage('');
