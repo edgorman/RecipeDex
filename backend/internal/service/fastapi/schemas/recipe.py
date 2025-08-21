@@ -1,0 +1,173 @@
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from internal.objects.recipe import Recipe
+
+
+@dataclass
+class ListRecipesItem:
+    id: UUID
+    name: str
+    private: bool
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "ListRecipesItem":
+        """Create a ListRecipesItem from a Recipe object"""
+        return cls(
+            id=recipe.display_id,
+            name=recipe.display_name,
+            private=recipe.private
+        )
+
+
+@dataclass
+class ListRecipesResponse:
+    recipes: List[ListRecipesItem]
+
+    @classmethod
+    def from_objects(cls, recipes: List[Recipe]) -> "ListRecipesResponse":
+        """Create a ListRecipesResponse from a list of Recipe objects"""
+        return cls(
+            recipes=[
+                ListRecipesItem.from_objects(recipe) for recipe in recipes
+            ]
+        )
+
+
+@dataclass
+class GetRecipeResponse:
+    id: UUID
+    name: str
+    ingredients: List[Dict[str, Any]]
+    instructions: List[Dict[str, Any]]
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "GetRecipeResponse":
+        """Create a GetRecipeResponse from a Recipe object"""
+        return cls(
+            id=recipe.display_id,
+            name=recipe.display_name,
+            ingredients=recipe.ingredients,
+            instructions=recipe.instructions
+        )
+
+
+@dataclass
+class GetMetadataResponse:
+    id: UUID
+    session_id: Optional[UUID]
+    deleted: bool
+    private: bool
+    user_role_mapping: Dict[str, str]
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "GetMetadataResponse":
+        """Create a GetMetadataResponse from a Recipe object"""
+        return cls(
+            id=recipe.display_id,
+            session_id=recipe.session_id,
+            deleted=recipe.deleted,
+            private=recipe.private,
+            user_role_mapping={str(key): role.value for key, role in recipe.user_role_mapping.items()}
+        )
+
+
+@dataclass
+class CreateRecipeRequest:
+    name: Optional[str] = "Untitled Recipe"
+    private: Optional[bool] = False
+
+
+@dataclass
+class CreateRecipeResponse:
+    id: UUID
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "CreateRecipeResponse":
+        """Create a CreateRecipeResponse from a Recipe object"""
+        return cls(id=recipe.display_id)
+
+
+@dataclass
+class UpdateRecipeRequest:
+    name: Optional[str] = None
+    deleted: Optional[bool] = None
+    private: Optional[bool] = None
+    user_role_mapping: Optional[Dict[str, str]] = field(default_factory=dict)
+    ingredients: List[str] = field(default_factory=list)
+    instructions: List[str] = field(default_factory=list)
+
+
+@dataclass
+class UpdateRecipeResponse:
+    id: UUID
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "UpdateRecipeResponse":
+        """Create a UpdateRecipeResponse from a Recipe object"""
+        return cls(id=recipe.display_id)
+
+
+@dataclass
+class DeleteRecipeResponse:
+    id: UUID
+
+    @classmethod
+    def from_objects(cls, recipe: Recipe) -> "DeleteRecipeResponse":
+        """Create a DeleteRecipeResponse from a Recipe object"""
+        return cls(id=recipe.display_id)
+
+
+@dataclass
+class GetMessageItem:
+    author_id: UUID
+    author_role: Recipe.Role
+    value: str
+
+    @classmethod
+    def from_objects(cls, message: Recipe.Message) -> "GetMessageItem":
+        """Create a GetMessageItem from a Recipe Message object"""
+        return cls(
+            author_id=message.author_id,
+            author_role=message.author_role,
+            value=message.value
+        )
+
+
+@dataclass
+class GetMessagesResponse:
+    messages: List[GetMessageItem]
+
+    @classmethod
+    def from_objects(cls, messages: List[Recipe.Message]) -> "GetMessagesResponse":
+        """Create a GetMessagesResponse from a list of Recipe Message objects"""
+        return cls(
+            messages=[
+                GetMessageItem.from_objects(message) for message in messages
+            ]
+        )
+
+
+@dataclass
+class SendMessageRequest:
+    message: str
+
+    @classmethod
+    def from_objects(cls, data: dict) -> "SendMessageRequest":
+        """Create a SendMessageRequest from generic dict object"""
+        return cls(
+            message=data["message"]
+        )
+
+
+@dataclass
+class SendMessageResponse:
+    message: Optional[str]
+
+    @classmethod
+    def from_objects(cls, message: Optional[Recipe.Message] = None) -> "SendMessageResponse":
+        """Create a SendMessageResponse from a Recipe Message object"""
+        return cls(
+            message=message.value if message else None
+        )

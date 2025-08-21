@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional
+from dataclasses import asdict
 from uuid import uuid4, UUID
 from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status, Query
 from starlette.authentication import BaseUser
@@ -9,8 +8,13 @@ from internal.auth.recipe import RecipeAuthorize
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.storage.recipe import RecipeStorage
-from internal.service.fastapi.resources import BaseRequest, BaseResponse
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
+from internal.service.fastapi.schemas import BaseRequest, BaseResponse
+from internal.service.fastapi.schemas.recipe import (
+    ListRecipesResponse, GetRecipeResponse, GetMetadataResponse, GetMessagesResponse,
+    CreateRecipeRequest, CreateRecipeResponse, UpdateRecipeRequest, UpdateRecipeResponse,
+    DeleteRecipeResponse, SendMessageRequest, SendMessageResponse
+)
 
 
 class RecipeResource(APIRouter):
@@ -29,10 +33,10 @@ class RecipeResource(APIRouter):
         self.add_api_route("/", self._list, methods=["GET"])
         self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
         self.add_api_route("/{recipe_id}/metadata", self._get_metadata, methods=["GET"])
+        self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
         self.add_api_route("/", self._create, methods=["POST"])
         self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
         self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
-        self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
         self.add_api_websocket_route("/{recipe_id}/message", self._message, "message")
 
     def __preprocess(self, recipe_id: str, request_user: User, request_action: Recipe.Action) -> Recipe:
@@ -60,16 +64,6 @@ class RecipeResource(APIRouter):
 
         return recipe
 
-    @dataclass
-    class ListRecipesItem:
-        id: str
-        name: str
-        private: bool
-
-    @dataclass
-    class ListRecipesResponse:
-        recipes: List["RecipeResource.ListRecipesItem"]
-
     async def _list(
         self,
         request_user: BaseUser = Depends(get_user_from_request),
@@ -84,21 +78,14 @@ class RecipeResource(APIRouter):
             )
 
         authorized_recipes = [
-            self.ListRecipesItem(id=recipe.display_id, name=recipe.display_name, private=recipe.private)
+            recipe
             for recipe in recipes if self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.GET, request_user)
         ]
 
         return BaseResponse(
             detail="Recipe list finished successfully.",
-            data=self.ListRecipesResponse(recipes=authorized_recipes)
+            data=ListRecipesResponse.from_objects(authorized_recipes)
         )
-
-    @dataclass
-    class GetRecipeResponse:
-        id: str
-        name: str
-        ingredients: List[Recipe.Ingredient]
-        instructions: List[Recipe.Instruction]
 
     async def _get(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -107,46 +94,29 @@ class RecipeResource(APIRouter):
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.GET.value} finished successfully.",
-            data=self.GetRecipeResponse(
-                id=recipe.display_id,
-                name=recipe.display_name,
-                ingredients=recipe.ingredients,
-                instructions=recipe.instructions
-            )
+            data=GetRecipeResponse.from_objects(recipe)
         )
-
-    @dataclass
-    class GetMetadataResponse:
-        id: str
-        session_id: Optional[str]
-        deleted: bool
-        private: bool
-        user_role_mapping: Dict[UUID, Recipe.Role]
 
     async def _get_metadata(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[GetMetadataResponse]:
-        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.METADATA)
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_METADATA)
 
         return BaseResponse(
-            detail=f"Recipe {Recipe.Action.METADATA.value} finished successfully.",
-            data=self.GetMetadataResponse(
-                id=recipe.display_id,
-                session_id=recipe.session_id,
-                deleted=recipe.deleted,
-                private=recipe.private,
-                user_role_mapping=recipe.user_role_mapping
-            )
+            detail=f"Recipe {Recipe.Action.GET_METADATA.value} finished successfully.",
+            data=GetMetadataResponse.from_objects(recipe)
         )
 
-    @dataclass
-    class CreateRecipeRequest:
-        name: Optional[str] = "Untitled Recipe"
-        private: Optional[bool] = False
+    async def _get_messages(
+        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
+    ) -> BaseResponse[GetMessagesResponse]:
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_MESSAGES)
+        messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe)]
 
-    @dataclass
-    class CreateRecipeResponse:
-        id: str
+        return BaseResponse(
+            detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} finished successfully.",
+            data=GetMessagesResponse.from_objects(messages)
+        )
 
     async def _create(
         self,
@@ -183,21 +153,8 @@ class RecipeResource(APIRouter):
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.",
-            data=self.CreateRecipeResponse(id=recipe.display_id)
+            data=CreateRecipeResponse.from_objects(recipe)
         )
-
-    @dataclass
-    class UpdateRecipeRequest:
-        name: Optional[str] = None
-        deleted: Optional[bool] = None
-        private: Optional[bool] = None
-        user_role_mapping: Optional[Dict[UUID, Recipe.Role]] = field(default_factory=dict)
-        ingredients: List[Recipe.Ingredient] = field(default_factory=list)
-        instructions: List[Recipe.Instruction] = field(default_factory=list)
-
-    @dataclass
-    class UpdateRecipeResponse:
-        id: str
 
     async def _update(
         self,
@@ -212,12 +169,8 @@ class RecipeResource(APIRouter):
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.",
-            data=self.UpdateRecipeResponse(id=recipe.display_id)
+            data=UpdateRecipeResponse.from_objects(recipe)
         )
-
-    @dataclass
-    class DeleteRecipeResponse:
-        id: str
 
     async def _delete(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -228,27 +181,12 @@ class RecipeResource(APIRouter):
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.DELETE.value} finished successfully.",
-            data=self.DeleteRecipeResponse(id=recipe.display_id)
+            data=DeleteRecipeResponse.from_objects(recipe)
         )
 
-    @dataclass
-    class GetMessagesResponse:
-        messages: List[Recipe.Message] = field(default_factory=list)
-
-    async def _get_messages(
-        self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
-    ) -> BaseResponse[GetMessagesResponse]:
-        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
-        messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe)]
-
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.MESSAGE.value} finished successfully.",
-            data=self.GetMessagesResponse(messages=messages)
-        )
-
-    async def _message(self, connection: WebSocket, recipe_id: str):
-        user: User = connection.user
-        recipe = self.__preprocess(recipe_id, user, Recipe.Action.MESSAGE)
+    async def _message(self, connection: WebSocket, recipe_id: str) -> None:
+        request_user: User = get_user_from_request(connection)
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_MESSAGES)
 
         try:
             await connection.accept()
@@ -256,46 +194,53 @@ class RecipeResource(APIRouter):
             while True:
                 data = await connection.receive_json()
 
-                if "message" not in data:
+                try:
+                    request_data = SendMessageRequest.from_objects(data)
+                    request_message = Recipe.Message(
+                        request_user.display_id,
+                        Recipe.Message.Role.USER,
+                        request_data.message
+                    )
+                except Exception as e:
                     await connection.send_json(
-                        {
-                            "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, missing `message` field.",
-                            "data": None
-                        }
+                        BaseResponse(
+                            detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                                   f"invalid request data: {str(e)}.",
+                            data=SendMessageResponse.from_objects()
+                        ).to_dict()
                     )
 
                 try:
                     await connection.send_json(
-                        {
-                            "detail": f"Recipe {Recipe.Action.MESSAGE.value} received data successfully.",
-                            "data": None
-                        }
+                        BaseResponse(
+                            detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} received data successfully.",
+                            data=SendMessageResponse.from_objects()
+                        ).to_dict()
                     )
 
-                    message = Recipe.Message(user.display_id, Recipe.Message.Role.USER, data.get("message"))
-                    async for response in self.__recipe_agent_handler.create_message(recipe, message):
+                    async for response_message in self.__recipe_agent_handler.create_message(recipe, request_message):
                         await connection.send_json(
-                            {
-                                "detail": f"Recipe {Recipe.Action.MESSAGE.value} responded successfully.",
-                                "data": response
-                            }
+                            BaseResponse(
+                                detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} responded successfully.",
+                                data=SendMessageResponse.from_objects(response_message)
+                            )
                         )
                 except Exception as e:
                     await connection.send_json(
-                        {
-                            "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                                      f"experienced internal error: {str(e)}.",
-                            "data": None
-                        }
+                        BaseResponse(
+                            detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                                   f"experienced internal error: {str(e)}.",
+                            data=SendMessageResponse.from_objects()
+                        ).to_dict()
                     )
 
         except WebSocketException as we:
             await connection.send_json(
-                {
-                    "detail": f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                              f"experienced websocket error: `{str(we.reason)}`.",
-                    "data": None
-                }
+                BaseResponse(
+                    detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                           f"experienced websocket error: `{str(we.reason)}`.",
+                    data=SendMessageResponse.from_objects()
+                ).to_dict()
             )
         except WebSocketDisconnect:
             pass

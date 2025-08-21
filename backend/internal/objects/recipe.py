@@ -21,11 +21,11 @@ class Recipe:
 
     class Action(Enum):
         GET = "get"
-        METADATA = "metadata"
+        GET_METADATA = "get_metadata"
+        GET_MESSAGES = "get_messages"
         CREATE = "create"
         UPDATE = "update"
         DELETE = "delete"
-        MESSAGE = "message"
 
     class Role(Enum):
         UNDEFINED = "undefined"

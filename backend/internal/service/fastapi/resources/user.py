@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.authentication import BaseUser
 
 from internal.storage.user import UserStorage
-from internal.service.fastapi.resources import BaseResponse
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
+from internal.service.fastapi.schemas import BaseResponse
+from internal.service.fastapi.schemas.user import GetUserResponse, GetUserByProviderResponse
 from internal.config.service import Service
 
 
@@ -15,11 +15,6 @@ class UserResource(APIRouter):
 
         self.add_api_route("/{user_id}", self._get, methods=["GET"])
         self.add_api_route("/provider/{provider}/{provider_id}", self._get_by_provider, methods=["GET"])
-
-    @dataclass
-    class GetUserResponse:
-        user_id: str
-        user_name: str
 
     async def _get(
         self, user_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -39,10 +34,7 @@ class UserResource(APIRouter):
 
         return BaseResponse(
             detail="User get finished successfully.",
-            data=self.GetUserResponse(
-                user_id=user.display_id,
-                user_name=user.display_name
-            )
+            data=GetUserResponse.from_objects(user)
         )
 
     async def _get_by_provider(
@@ -50,14 +42,13 @@ class UserResource(APIRouter):
         provider: str,
         provider_id: str,
         request_user: BaseUser = Depends(get_user_from_request)
-    ) -> BaseResponse[GetUserResponse]:
+    ) -> BaseResponse[GetUserByProviderResponse]:
         if not request_user.is_authenticated:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not get user by provider `{provider}` and id `{provider_id}`: `user is forbidden`."
             )
 
-        # normalize and validate provider
         try:
             provider_enum = Service.AuthProvider(provider.lower())
         except Exception:
@@ -75,8 +66,5 @@ class UserResource(APIRouter):
 
         return BaseResponse(
             detail="User get by provider finished successfully.",
-            data=self.GetUserResponse(
-                user_id=user.display_id,
-                user_name=user.display_name
-            )
+            data=GetUserByProviderResponse.from_objects(user)
         )

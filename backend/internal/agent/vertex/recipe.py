@@ -1,4 +1,3 @@
-from uuid import uuid4
 from typing import AsyncGenerator, List
 from google.adk.runners import Runner
 from google.adk.sessions import Session
@@ -7,25 +6,27 @@ from google.genai.types import Content, Part
 
 from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
+from internal.storage.recipe import RecipeStorage
 
 
 class VertexRecipeAgent(RecipeAgent):
     """The VertexRecipeAgent is an implementation of the RecipeAgent class"""
 
-    def __init__(self, app_name: str, agent_runner_service: Runner) -> None:
+    def __init__(self, app_name: str, agent_runner_service: Runner, recipe_storage_handler: RecipeStorage) -> None:
         self.__app_name = app_name
         self.__agent_runner_service = agent_runner_service
+        self.__recipe_storage_handler = recipe_storage_handler
 
     async def _preprocess(self, recipe: Recipe) -> Session:
         if recipe.session_id is None:
-            recipe.session_id = uuid4()
-            await self.__agent_runner_service.session_service.create_session(
+            session = await self.__agent_runner_service.session_service.create_session(
                 app_name=self.__app_name,
                 user_id=str(recipe.owner_id),
-                session_id=str(recipe.session_id)
             )
+            recipe.session_id = session.id
+            self.__recipe_storage_handler.update(recipe.id, sessiond_id=session.id)
 
-        return self.__agent_runner_service.session_service.get_session(
+        return await self.__agent_runner_service.session_service.get_session(
             app_name=self.__app_name,
             user_id=str(recipe.owner_id),
             session_id=recipe.session_id

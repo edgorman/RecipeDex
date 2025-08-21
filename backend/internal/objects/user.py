@@ -51,8 +51,9 @@ class User(BaseUser):
         return self.provider.id
 
     @property
-    def can_create_recipe(self) -> bool:
-        # for now, only admins are authorized to create
+    def can_call_generative_ai(self) -> bool:
+        # for now, only admins are authorized
+        # in the future, this will depend on whether the user is paying
         return self.role == self.Role.ADMIN
 
     def to_dict(self) -> dict:
