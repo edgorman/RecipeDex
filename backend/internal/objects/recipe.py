@@ -100,10 +100,10 @@ class Recipe:
     def from_dict(data: Dict[str, Any]) -> "Recipe":
         return TypeAdapter(Recipe).validate_python(data)
 
-    @classmethod
-    def forbidden_keys_to_update(cls) -> List[str]:
-        return ["id"]
+    @staticmethod
+    def updatable_keys() -> List[str]:
+        return ["name", "private", "user_role_mapping", "ingrediets", "instructions"]
 
-    @property
-    def generative_ai_actions(self) -> List["Action"]:
+    @staticmethod
+    def generative_ai_actions() -> List["Action"]:
         return [Recipe.Action.GET_MESSAGES, Recipe.Action.MESSAGE]

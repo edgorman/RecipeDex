@@ -54,7 +54,7 @@ class FirestoreUserStorage(UserStorage):
         if len(kwargs) == 0:
             raise ValueError("Could not update user: `no fields to update`.")
 
-        forbidden_keys = list(filter(lambda key: key in User.forbidden_keys_to_update(), kwargs.keys()))
+        forbidden_keys = list(filter(lambda key: key not in User.updatable_keys(), kwargs.keys()))
         if len(forbidden_keys) > 0:
             raise ValueError(f"Could not update user: `forbidden field(s) in args: {forbidden_keys}`.")
 

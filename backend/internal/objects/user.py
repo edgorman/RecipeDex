@@ -83,6 +83,6 @@ class User(BaseUser):
     def from_dict(data: dict) -> "User":
         return TypeAdapter(User).validate_python(data)
 
-    @classmethod
-    def forbidden_keys_to_update(cls) -> List[str]:
-        return ["id"]
+    @staticmethod
+    def updatable_keys() -> List[str]:
+        return ["name"]

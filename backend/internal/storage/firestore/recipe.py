@@ -55,7 +55,7 @@ class FirestoreRecipeStorage(RecipeStorage):
         if len(kwargs) == 0:
             raise ValueError("Could not update recipe: `no fields to update`.")
 
-        forbidden_keys = list(filter(lambda key: key in Recipe.forbidden_keys_to_update(), kwargs.keys()))
+        forbidden_keys = list(filter(lambda key: key not in Recipe.updatable_keys(), kwargs.keys()))
         if len(forbidden_keys) > 0:
             raise ValueError(f"Could not update recipe: `forbidden field(s) in args: {forbidden_keys}`.")
 

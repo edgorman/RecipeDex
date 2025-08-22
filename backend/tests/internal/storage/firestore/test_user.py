@@ -159,7 +159,7 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
 
 
 def test_update_success(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    kwargs = {"name": "updated_name", "role": "admin"}
+    kwargs = {"name": "updated_name"}
 
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
     client.update(example_user.id, **kwargs)
