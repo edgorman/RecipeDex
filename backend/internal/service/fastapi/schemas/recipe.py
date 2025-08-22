@@ -78,6 +78,14 @@ class CreateRecipeRequest:
     name: Optional[str] = "Untitled Recipe"
     private: Optional[bool] = False
 
+    @classmethod
+    def from_objects(cls, data: dict) -> "CreateRecipeRequest":
+        """Create an CreateRecipeRequest from a dict object"""
+        return cls(
+            name=data.get("name"),
+            private=data.get("private")
+        )
+
 
 @dataclass
 class CreateRecipeResponse:
@@ -92,11 +100,21 @@ class CreateRecipeResponse:
 @dataclass
 class UpdateRecipeRequest:
     name: Optional[str] = None
-    deleted: Optional[bool] = None
     private: Optional[bool] = None
     user_role_mapping: Optional[Dict[str, str]] = field(default_factory=dict)
     ingredients: List[str] = field(default_factory=list)
     instructions: List[str] = field(default_factory=list)
+
+    @classmethod
+    def from_objects(cls, data: dict) -> "UpdateRecipeRequest":
+        """Create an UpdateRecipeRequest from a dict object"""
+        return cls(
+            name=data.get("name"),
+            private=data.get("private"),
+            user_role_mapping=data.get("user_role_mapping"),
+            ingredients=data.get("ingredients"),
+            instructions=data.get("instructions")
+        )
 
 
 @dataclass

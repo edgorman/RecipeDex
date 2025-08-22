@@ -18,6 +18,7 @@ from internal.service.fastapi.schemas.recipe import (
 
 
 class RecipeResource(APIRouter):
+
     def __init__(
             self,
             recipe_storage_handler: RecipeStorage,
@@ -128,15 +129,23 @@ class RecipeResource(APIRouter):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authenticated`."
             )
+        authenticated_user: User = request_user
 
-        recipe = Recipe(
-            id=uuid4(),
-            name=request.data.name,
-            private=request.data.private,
-            user_role_mapping={request_user.id: Recipe.Role.OWNER}
-        )
+        try:
+            if request.data is None:
+                raise ValueError("request body missing data")
 
-        authorized = self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.CREATE, request_user)
+            parsed_request = CreateRecipeRequest.from_objects(request.data)
+        except Exception as e:
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
+            )
+
+        recipe_args = {"id": uuid4(), "user_role_mapping": {authenticated_user.id}} | asdict(parsed_request)
+        recipe = Recipe(**recipe_args)
+
+        authorized = self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.CREATE, authenticated_user)
         if not authorized:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -164,8 +173,24 @@ class RecipeResource(APIRouter):
     ) -> BaseResponse[UpdateRecipeResponse]:
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.UPDATE)
 
-        # TODO: parse request params to their appropriate types
-        self.__recipe_storage_handler.update(recipe.id, **asdict(request))
+        try:
+            if request.data is None:
+                raise ValueError("request body missing data")
+
+            parsed_request = UpdateRecipeRequest.from_objects(request.data)
+        except Exception as e:
+            return HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
+            )
+
+        try:
+            self.__recipe_storage_handler.update(recipe.id, **asdict(parsed_request))
+        except Exception as e:
+            return HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
+            )
 
         return BaseResponse(
             detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.",

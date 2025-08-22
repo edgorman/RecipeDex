@@ -27,7 +27,7 @@ example_deleted_user = User.from_dict(example_deleted_dict)
 
 
 @pytest.fixture
-def mock_user_storage_handler():
+def example_user_storage_handler():
     return Mock()
 
 
@@ -43,26 +43,37 @@ def awaitable_return(value):
 
 
 @pytest.fixture
+def example_user_authorize_handler():
+    return Mock()
+
+
+@pytest.fixture
 def mock_endpoint():
     return "test_user_endpoint"
 
 
 @pytest.fixture
-def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpoint):
+def mock_client(example_user_storage_handler, example_user_authorize_handler, mock_authenticate_backend, mock_endpoint):
     api = FastAPI()
     api.add_middleware(AuthenticationMiddleware, backend=mock_authenticate_backend)
-    api.include_router(UserResource(mock_user_storage_handler, mock_endpoint))
+    api.include_router(
+        UserResource(
+            example_user_storage_handler,
+            example_user_authorize_handler,
+            mock_endpoint
+        )
+    )
     return TestClient(api)
 
 
 @pytest.mark.parametrize(
-    "user_id,mock_get_auth,mock_get_user,expected_status,expected_content",
+    "user_id,mock_get_auth,mock_get_user,mock_authorize_user,expected_status,expected_content",
     [
         # User is authenticated, user exists, should allow
         (
             example_user.id,
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
-            example_user,
+            example_user, True,
             200,
             {
                 "detail": "User get finished successfully.",
@@ -76,7 +87,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         (
             example_user.id,
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_user),
-            None,
+            None, True,
             404,
             {
                 "detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."
@@ -86,7 +97,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         (
             example_user.id,
             (None, UnauthenticatedUser()),
-            example_user,
+            example_user, False,
             403,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `user is forbidden`."}
         ),
@@ -94,7 +105,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         (
             example_user.id,
             (None, UnauthenticatedUser()),
-            None,
+            None, False,
             403,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `user is forbidden`."}
         ),
@@ -102,7 +113,7 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
         (
             example_deleted_user.id,
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_deleted_user),
-            example_deleted_user,
+            example_deleted_user, True,
             404,
             {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
         ),
@@ -111,16 +122,19 @@ def mock_client(mock_user_storage_handler, mock_authenticate_backend, mock_endpo
 def test_get_user(
     mock_authenticate_backend,
     mock_client,
-    mock_user_storage_handler,
+    example_user_storage_handler,
+    example_user_authorize_handler,
     mock_endpoint,
     user_id,
     mock_get_auth,
     mock_get_user,
+    mock_authorize_user,
     expected_status,
     expected_content
 ):
     mock_authenticate_backend.authenticate.side_effect = awaitable_return(mock_get_auth)
-    mock_user_storage_handler.get.return_value = mock_get_user
+    example_user_storage_handler.get.return_value = mock_get_user
+    example_user_authorize_handler.authorize.return_value = mock_authorize_user
 
     try:
         response = mock_client.get(f"/{mock_endpoint}/{user_id}")
