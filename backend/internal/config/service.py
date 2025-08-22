@@ -1,6 +1,4 @@
 import os
-from enum import Enum
-from abc import ABC
 
 
 SERVICE_NAME = os.getenv("SERVICE_NAME", "backend")
@@ -16,10 +14,3 @@ SERVICE_AUTH_TOKEN_PREFIX = os.getenv("SERVICE_AUTH_TOKEN_PREFIX", "Bearer ")
 SERVICE_AUTH_PROVIDER_HEADER = os.getenv("SERVICE_AUTH_PROVIDER_HEADER", "Authorization-Provider")
 SERVICE_AUTH_TOKEN_QUERY = os.getenv("SERVICE_AUTH_TOKEN_QUERY", "authorization")
 SERVICE_AUTH_PROVIDER_QUERY = os.getenv("SERVICE_AUTH_PROVIDER_QUERY", "authorization_provider")
-
-
-class Service(ABC):
-
-    class AuthProvider(Enum):
-        UNDEFINED = "undefined"
-        FIREBASE = "firebase"

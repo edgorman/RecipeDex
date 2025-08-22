@@ -6,7 +6,6 @@ from internal.storage.user import UserStorage
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
 from internal.service.fastapi.schemas import BaseResponse
 from internal.service.fastapi.schemas.user import GetUserResponse, GetUserByProviderResponse
-from internal.config.service import Service
 
 
 class UserResource(APIRouter):
@@ -52,7 +51,7 @@ class UserResource(APIRouter):
             )
 
         try:
-            provider_enum = Service.AuthProvider(provider.lower())
+            provider_enum = User.ProviderType(provider.lower())
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

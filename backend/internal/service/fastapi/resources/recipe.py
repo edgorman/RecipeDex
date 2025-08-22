@@ -186,7 +186,7 @@ class RecipeResource(APIRouter):
 
     async def _message(self, connection: WebSocket, recipe_id: str) -> None:
         request_user: User = get_user_from_request(connection)
-        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_MESSAGES)
+        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
 
         try:
             await connection.accept()

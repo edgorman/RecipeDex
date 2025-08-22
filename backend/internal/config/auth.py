@@ -1,0 +1,4 @@
+import os
+
+
+AUTH_USER_FIREBASE_AUDIENCE = os.getenv("GCP_PROJECT_ID")

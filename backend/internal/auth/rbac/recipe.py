@@ -13,20 +13,22 @@ class RBACRecipeAuthorize(RecipeAuthorize):
         Recipe.Role.EDITOR: {
             Recipe.Action.GET,
             Recipe.Action.GET_METADATA,
+            Recipe.Action.GET_MESSAGES,
             Recipe.Action.UPDATE,
-            Recipe.Action.GET_MESSAGES
+            Recipe.Action.MESSAGE
         },
         Recipe.Role.OWNER: {
             Recipe.Action.GET,
             Recipe.Action.GET_METADATA,
+            Recipe.Action.GET_MESSAGES,
             Recipe.Action.CREATE,
             Recipe.Action.UPDATE,
             Recipe.Action.DELETE,
-            Recipe.Action.GET_MESSAGES
+            Recipe.Action.MESSAGE
         }
     }
 
-    GENERATIVE_AI_ACTIONS = [Recipe.Action.GET_MESSAGES]
+    GENERATIVE_AI_ACTIONS = [Recipe.Action.GET_MESSAGES, Recipe.Action.MESSAGE]
 
     @classmethod
     def authorize(cls, recipe: Recipe, action: Recipe.Action, action_user: User) -> bool:
@@ -48,7 +50,7 @@ class RBACRecipeAuthorize(RecipeAuthorize):
         if role is Recipe.Role.UNDEFINED:
             role = Recipe.Role.VIEWER
 
-        if action in cls.GENERATIVE_AI_ACTIONS and not action_user.can_call_generative_ai:
+        if action in recipe.generative_ai_actions and not action_user.can_call_generative_ai:
             return False
 
         return action in cls.ROLE_ACTION_MAPPING[role]

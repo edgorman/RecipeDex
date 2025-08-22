@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from starlette.authentication import AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-from internal.config.service import Service, SERVICE_AUTH_SCOPE
+from internal.config.service import SERVICE_AUTH_SCOPE
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.service.fastapi.resources.recipe import RecipeResource
@@ -18,7 +18,7 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=Service.AuthProvider.UNDEFINED,
+        type=User.ProviderType.UNDEFINED,
         info={}
     )
 )

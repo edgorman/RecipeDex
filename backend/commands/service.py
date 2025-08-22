@@ -6,10 +6,12 @@ from google.cloud.firestore import Client as FirestoreClient
 from google.adk.sessions import InMemorySessionService
 
 from internal.config.agent import AGENT_APP_NAME  # AGENT_PROJECT_ID, AGENT_PROJECT_REGION
+from internal.config.auth import AUTH_USER_FIREBASE_AUDIENCE
 from internal.config.service import SERVICE_NAME, SERVICE_VERSION, SERVICE_HOST, SERVICE_PORT, SERVICE_ALLOWED_ORIGIN
 from internal.config.storage import (
     STORAGE_PROJECT_ID, STORAGE_DATABASE_NAME, STORAGE_COLLECTION_RECIPE_NAME, STORAGE_COLLECTION_USER_NAME
 )
+from internal.auth.firebase.user import FirebaseUserAuthenticate
 from internal.agent.vertex.recipe import VertexRecipeAgent
 from internal.agent.vertex.subagents.coordinator.agent import root_agent as base_agent
 from internal.auth.rbac.recipe import RBACRecipeAuthorize
@@ -33,6 +35,9 @@ def run():
     user_storage_handler = FirestoreUserStorage(
         client=firestore_client, collection_path=(STORAGE_COLLECTION_USER_NAME,)
     )
+
+    # Initialise auth handlers
+    user_authenticate_handler = FirebaseUserAuthenticate(AUTH_USER_FIREBASE_AUDIENCE)
 
     # Initialise agent services and handlers
     # agent_artifact_service = GcsArtifactService(bucket_name=AGENT_ARTIFACT_BUCKET, project=AGENT_PROJECT_ID)
@@ -64,6 +69,7 @@ def run():
         recipe_storage_handler=recipe_storage_handler,
         recipe_authorize_handler=RBACRecipeAuthorize,
         user_storage_handler=user_storage_handler,
+        user_authenticate_handler=user_authenticate_handler,
     )
     service.run()
 

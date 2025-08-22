@@ -26,6 +26,7 @@ class Recipe:
         CREATE = "create"
         UPDATE = "update"
         DELETE = "delete"
+        MESSAGE = "message"
 
     class Role(Enum):
         UNDEFINED = "undefined"
@@ -102,3 +103,7 @@ class Recipe:
     @classmethod
     def forbidden_keys_to_update(cls) -> List[str]:
         return ["id"]
+
+    @property
+    def generative_ai_actions(self) -> List["Action"]:
+        return [Recipe.Action.GET_MESSAGES, Recipe.Action.MESSAGE]

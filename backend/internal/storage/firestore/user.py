@@ -2,7 +2,6 @@ from typing import Any, Optional, Tuple
 from uuid import UUID
 from google.cloud.firestore import FieldFilter, Client as FirestoreClient
 
-from internal.config.service import Service
 from internal.objects.user import User
 from internal.storage.user import UserStorage
 
@@ -22,7 +21,7 @@ class FirestoreUserStorage(UserStorage):
             return User.from_dict(document.to_dict())
         return None
 
-    def get_by_provider_id(self, id_: Any, type_: Service.AuthProvider) -> Optional[User]:
+    def get_by_provider_id(self, id_: Any, type_: User.ProviderType) -> Optional[User]:
         query = (
             self.__collection
             .where(filter=FieldFilter("deleted", "==", False))

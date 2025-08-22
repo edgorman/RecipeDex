@@ -1,14 +1,10 @@
 from enum import Enum
 from uuid import UUID
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List
 from collections.abc import Iterable
 from dataclasses import dataclass, asdict, is_dataclass
-from google.auth.transport import requests as token_request
-from google.oauth2.id_token import verify_firebase_token
 from starlette.authentication import BaseUser
 from pydantic import TypeAdapter
-
-from internal.config.service import Service
 
 
 @dataclass
@@ -31,10 +27,14 @@ class User(BaseUser):
         UNDEFINED = "undefined"
         ADMIN = "admin"
 
+    class ProviderType(Enum):
+        UNDEFINED = "undefined"
+        FIREBASE = "firebase"
+
     @dataclass
     class Provider:
         id: Any
-        type: Service.AuthProvider
+        type: "User.ProviderType"
         info: Dict[str, Any]
 
     @property
@@ -86,12 +86,3 @@ class User(BaseUser):
     @classmethod
     def forbidden_keys_to_update(cls) -> List[str]:
         return ["id"]
-
-    @staticmethod
-    def authenticate(provider: Service.AuthProvider, token: str, audience: Any) -> Tuple[Dict[str, Any], str, str]:
-        match provider:
-            case Service.AuthProvider.FIREBASE:
-                info = verify_firebase_token(token, token_request.Request(), audience=audience)
-                return info["user_id"], info["name"], info
-            case _:
-                raise NotImplementedError(f"Auth provider `{provider.name}` is not implemented")

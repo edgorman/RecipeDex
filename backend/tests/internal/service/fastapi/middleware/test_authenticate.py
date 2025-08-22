@@ -3,10 +3,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocket, WebSocketDisconnect
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from internal.config.service import (
-    Service,
     SERVICE_AUTH_TOKEN_HEADER,
     SERVICE_AUTH_TOKEN_PREFIX,
     SERVICE_AUTH_PROVIDER_HEADER,
@@ -23,21 +22,26 @@ example_user = User(
     role=User.Role.UNDEFINED,
     provider=User.Provider(
         id="mock_provider_id",
-        type=Service.AuthProvider.FIREBASE,
+        type=User.ProviderType.FIREBASE,
         info={}
     )
 )
 
 
 @pytest.fixture
-def mock_user_handler():
+def mock_user_storage_handler():
     return Mock()
 
 
 @pytest.fixture
-def mock_client(mock_user_handler):
+def mock_user_authenticate_handler():
+    return Mock()
+
+
+@pytest.fixture
+def mock_client(mock_user_storage_handler, mock_user_authenticate_handler):
     api = FastAPI()
-    add_authenticate_middleware(api, mock_user_handler)
+    add_authenticate_middleware(api, mock_user_storage_handler, mock_user_authenticate_handler)
 
     @api.get("/http")
     async def http_endpoint(connection: Request):
@@ -101,7 +105,7 @@ def mock_client(mock_user_handler):
         ),
         # Mock get user returns error, prevent access with internal server error
         (
-            lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
+            lambda _, __: (example_user.provider_id, example_user.name, example_user.provider.info),
             Exception("it exploded"), None,
             {
                 SERVICE_AUTH_TOKEN_HEADER: f"{SERVICE_AUTH_TOKEN_PREFIX}blah",
@@ -111,7 +115,7 @@ def mock_client(mock_user_handler):
         ),
         # Mock create user returns error, prevent access with internal server error
         (
-            lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
+            lambda _, __: (example_user.provider_id, example_user.name, example_user.provider.info),
             lambda _, __: None, Exception("it exploded"),
             {
                 SERVICE_AUTH_TOKEN_HEADER: f"{SERVICE_AUTH_TOKEN_PREFIX}blah",
@@ -121,7 +125,7 @@ def mock_client(mock_user_handler):
         ),
         # Valid header provided, allow access as authenticated user
         (
-            lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
+            lambda _, __: (example_user.provider_id, example_user.name, example_user.provider.info),
             lambda _, __: example_user, None,
             {
                 SERVICE_AUTH_TOKEN_HEADER: f"{SERVICE_AUTH_TOKEN_PREFIX}blah",
@@ -133,7 +137,8 @@ def mock_client(mock_user_handler):
 )
 def test_authenticate_http(
     mock_client,
-    mock_user_handler,
+    mock_user_storage_handler,
+    mock_user_authenticate_handler,
     mock_user_authenticate,
     mock_user_get,
     mock_user_create,
@@ -141,17 +146,17 @@ def test_authenticate_http(
     expected_status,
     expected_content
 ):
-    mock_user_handler.get_by_provider_id.side_effect = mock_user_get
-    mock_user_handler.create.side_effect = mock_user_create
+    mock_user_storage_handler.get_by_provider_id.side_effect = mock_user_get
+    mock_user_storage_handler.create.side_effect = mock_user_create
+    mock_user_authenticate_handler.authenticate.side_effect = mock_user_authenticate
 
-    with patch.object(User, "authenticate", side_effect=mock_user_authenticate):
-        try:
-            response = mock_client.get("/http", headers=headers)
-        except Exception as e:
-            assert False, f"Unexpected exception was thrown: {e}"
+    try:
+        response = mock_client.get("/http", headers=headers)
+    except Exception as e:
+        assert False, f"Unexpected exception was thrown: {e}"
 
-        assert response.status_code == expected_status
-        assert response.json() == expected_content
+    assert response.status_code == expected_status
+    assert response.json() == expected_content
 
 
 @pytest.mark.parametrize(
@@ -171,7 +176,7 @@ def test_authenticate_http(
         ),
         # Valid query provided, allow access as authenticated user
         (
-            lambda _, __, ___: (example_user.provider_id, example_user.name, example_user.provider.info),
+            lambda _, __: (example_user.provider_id, example_user.name, example_user.provider.info),
             lambda _, __: example_user, None,
             f"?{SERVICE_AUTH_TOKEN_QUERY}={SERVICE_AUTH_TOKEN_PREFIX}blah"
             f"&{SERVICE_AUTH_PROVIDER_QUERY}={example_user.provider.type.value}",
@@ -181,7 +186,8 @@ def test_authenticate_http(
 )
 def test_authenticate_websocket(
     mock_client,
-    mock_user_handler,
+    mock_user_storage_handler,
+    mock_user_authenticate_handler,
     mock_user_authenticate,
     mock_user_get,
     mock_user_create,
@@ -189,15 +195,15 @@ def test_authenticate_websocket(
     expected_status,
     expected_message
 ):
-    mock_user_handler.get_by_provider_id.side_effect = mock_user_get
-    mock_user_handler.create.side_effect = mock_user_create
+    mock_user_storage_handler.get_by_provider_id.side_effect = mock_user_get
+    mock_user_storage_handler.create.side_effect = mock_user_create
+    mock_user_authenticate_handler.authenticate.side_effect = mock_user_authenticate
 
-    with patch.object(User, "authenticate", side_effect=mock_user_authenticate):
-        try:
-            with mock_client.websocket_connect(f"/ws{query_params}") as websocket:
-                message = websocket.receive_json()
-                assert message == expected_message
-        except WebSocketDisconnect as e:
-            assert e.code == expected_status
-        except Exception as e:
-            assert False, f"Unexpected exception: {e}"
+    try:
+        with mock_client.websocket_connect(f"/ws{query_params}") as websocket:
+            message = websocket.receive_json()
+            assert message == expected_message
+    except WebSocketDisconnect as e:
+        assert e.code == expected_status
+    except Exception as e:
+        assert False, f"Unexpected exception: {e}"

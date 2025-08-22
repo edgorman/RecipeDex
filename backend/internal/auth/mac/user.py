@@ -1,12 +1,10 @@
-from typing import Any
-
 from internal.auth.user import UserAuthorize
 from internal.objects.user import User
 
 
 class MACUserAuthorize(UserAuthorize):
     @classmethod
-    def authorize(self, user: User, _: Any, action_user: User) -> bool:
+    def authorize(self, user: User, _: User.Action, action_user: User) -> bool:
         """Authorize a User to perform an action on a User resource.
 
         Args:

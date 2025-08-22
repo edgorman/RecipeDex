@@ -9,15 +9,14 @@ from starlette.types import Receive, Scope, Send
 from starlette.websockets import WebSocket
 
 from internal.config.service import (
-    Service,
     SERVICE_AUTH_SCOPE,
     SERVICE_AUTH_TOKEN_HEADER,
     SERVICE_AUTH_TOKEN_PREFIX,
     SERVICE_AUTH_PROVIDER_HEADER,
     SERVICE_AUTH_TOKEN_QUERY,
     SERVICE_AUTH_PROVIDER_QUERY,
-    SERVICE_PROJECT_ID
 )
+from internal.auth.user import UserAuthenticate
 from internal.objects.user import User
 from internal.storage.user import UserStorage
 
@@ -52,8 +51,9 @@ class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
 
 
 class AuthenticateBackend(AuthenticationBackend):
-    def __init__(self, user_storage_handler: UserStorage):
+    def __init__(self, user_storage_handler: UserStorage, user_authenticate_handler: UserAuthenticate):
         self.__user_storage_handler = user_storage_handler
+        self.__user_authenticate_handler = user_authenticate_handler
 
     async def authenticate(self, connection: HTTPConnection) -> Tuple[AuthCredentials, User] | None:
         try:
@@ -62,14 +62,15 @@ class AuthenticateBackend(AuthenticationBackend):
             else:
                 provider, token = await self._parse_http_headers(connection)
                 if provider is None and token is None:
-                    return
+                    # Allow unauthenticated requests
+                    return  # TODO: should this be `AuthCredentials(), UnauthenticatedUser()`?
         except HTTPException as he:
             raise HTTPException(
                 he.status_code, f"Could not parse authentication parameters: {he.detail}."
             )
 
         try:
-            provider_type = Service.AuthProvider(provider)
+            provider_type = User.ProviderType(provider)
         except ValueError:
             code = status.HTTP_400_BAD_REQUEST
             if isinstance(connection, WebSocket):
@@ -80,7 +81,9 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
-            provider_id, provider_name, provider_info = User.authenticate(provider_type, token, SERVICE_PROJECT_ID)
+            provider_id, provider_name, provider_info = self.__user_authenticate_handler.authenticate(
+                provider_type, token
+            )
         except Exception as e:
             code = status.HTTP_500_INTERNAL_SERVER_ERROR
             if isinstance(connection, WebSocket):
@@ -164,8 +167,12 @@ class AuthenticateBackend(AuthenticationBackend):
         return provider, token
 
 
-def add_authenticate_middleware(app: FastAPI, user_storage_handler: UserStorage):
-    backend = AuthenticateBackend(user_storage_handler=user_storage_handler)
+def add_authenticate_middleware(
+    app: FastAPI, user_storage_handler: UserStorage, user_authenticate_handler: UserAuthenticate
+):
+    backend = AuthenticateBackend(
+        user_storage_handler=user_storage_handler, user_authenticate_handler=user_authenticate_handler
+    )
     app.add_middleware(AuthenticationAsyncMiddleware, backend=backend)
 
 
