@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime, timezone
 from uuid import uuid4, UUID
 
 from internal.objects.user import User
@@ -15,7 +16,10 @@ def mock_user_dict():
             "id": "mock_provider_id",
             "type": User.ProviderType.UNDEFINED.value,
             "info": {"email": "test@example.com"}
-        }
+        },
+        "created_at": datetime.now(tz=timezone.utc),
+        "updated_at": datetime.now(tz=timezone.utc),
+        "deleted_at": datetime.now(tz=timezone.utc),
     }
 
 
@@ -30,7 +34,10 @@ def mock_user(mock_user_dict):
             id=mock_user_dict["provider"]["id"],
             type=User.ProviderType(mock_user_dict["provider"]["type"]),
             info=mock_user_dict["provider"]["info"]
-        )
+        ),
+        created_at=mock_user_dict["created_at"],
+        updated_at=mock_user_dict["updated_at"],
+        deleted_at=mock_user_dict["deleted_at"],
     )
 
 

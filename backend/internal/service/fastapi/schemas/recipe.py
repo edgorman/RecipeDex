@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -10,6 +11,9 @@ class ListRecipesItem:
     id: UUID
     name: str
     private: bool
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime]
 
     @classmethod
     def from_objects(cls, recipe: Recipe) -> "ListRecipesItem":
@@ -17,7 +21,10 @@ class ListRecipesItem:
         return cls(
             id=recipe.display_id,
             name=recipe.display_name,
-            private=recipe.private
+            private=recipe.private,
+            created_at=recipe.created_at,
+            updated_at=recipe.updated_at,
+            deleted_at=recipe.deleted_at if recipe.deleted_at else None
         )
 
 
@@ -60,6 +67,9 @@ class GetMetadataResponse:
     private: bool
     user_session_mapping: Dict[str, str]
     user_role_mapping: Dict[str, str]
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime]
 
     @classmethod
     def from_objects(cls, recipe: Recipe) -> "GetMetadataResponse":
@@ -69,7 +79,10 @@ class GetMetadataResponse:
             deleted=recipe.deleted,
             private=recipe.private,
             user_session_mapping={str(key): value for key, value in recipe.user_session_mapping.items()},
-            user_role_mapping={str(key): role.value for key, role in recipe.user_role_mapping.items()}
+            user_role_mapping={str(key): role.value for key, role in recipe.user_role_mapping.items()},
+            created_at=recipe.created_at,
+            updated_at=recipe.updated_at,
+            deleted_at=recipe.deleted_at if recipe.deleted_at else None
         )
 
 

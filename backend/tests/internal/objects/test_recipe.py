@@ -1,5 +1,7 @@
 import pytest
+from datetime import datetime, timezone
 from uuid import uuid4, UUID
+
 from internal.objects.recipe import Recipe
 
 
@@ -18,7 +20,10 @@ def mock_recipe_dict():
             str(uuid4()): Recipe.Role.OWNER.value
         },
         "ingredients": [],
-        "instructions": []
+        "instructions": [],
+        "created_at": datetime.now(tz=timezone.utc),
+        "updated_at": datetime.now(tz=timezone.utc),
+        "deleted_at": datetime.now(tz=timezone.utc),
     }
 
 
@@ -44,7 +49,10 @@ def mock_recipe(mock_recipe_dict):
                 value=instruction["value"]
             )
             for instruction in mock_recipe_dict["instructions"]
-        ]
+        ],
+        created_at=mock_recipe_dict["created_at"],
+        updated_at=mock_recipe_dict["updated_at"],
+        deleted_at=mock_recipe_dict["deleted_at"],
     )
 
 

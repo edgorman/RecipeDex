@@ -1,7 +1,8 @@
 from enum import Enum
 from uuid import UUID
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from collections.abc import Iterable
+from datetime import datetime, timezone
 from dataclasses import dataclass, asdict, is_dataclass
 from starlette.authentication import BaseUser
 from pydantic import TypeAdapter
@@ -15,6 +16,10 @@ class User(BaseUser):
     role: "Role"
     provider: "Provider"
     deleted: bool = False
+
+    created_at: datetime = datetime.now(tz=timezone.utc)
+    updated_at: datetime = datetime.now(tz=timezone.utc)
+    deleted_at: Optional[datetime] = None
 
     class Action(Enum):
         GET = "get"

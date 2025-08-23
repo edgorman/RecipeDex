@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, List
 from uuid import UUID
+from datetime import datetime, timezone
 from google.cloud.firestore import FieldFilter, Client as FirestoreClient
 
 from internal.objects.recipe import Recipe
@@ -53,12 +54,13 @@ class FirestoreRecipeStorage(RecipeStorage):
 
     def update(self, id_: UUID, recipe: Recipe) -> None:
         try:
+            recipe.updated_at = datetime.now(tz=timezone.utc)
             self.__collection.document(str(id_)).set(recipe.to_dict())
         except Exception as e:
             raise Exception(f"Could not update recipe: `{str(e)}`.")
 
     def delete(self, id_: UUID) -> None:
         try:
-            self.__collection.document(str(id_)).update({"deleted": True})
+            self.__collection.document(str(id_)).update({"deleted": True, "deleted_at": datetime.now(tz=timezone.utc)})
         except Exception as e:
             raise Exception(f"Could not delete recipe: `{str(e)}`.")

@@ -1,5 +1,6 @@
 from uuid import uuid4
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+from datetime import datetime, timezone
 import pytest
 from google.cloud.firestore_v1 import DocumentSnapshot, DocumentReference
 from google.cloud.firestore_v1.query_results import QueryResultsList
@@ -159,18 +160,33 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
 
 
 def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    example_user.name = "updated_user_name"
+    mock_datetime = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    
+    with patch('internal.storage.firestore.user.datetime') as mock_datetime_module:
+        mock_datetime_module.now.return_value = mock_datetime
+        mock_datetime_module.timezone = timezone
+        
+        client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
+        client.update(example_user.id, example_user)
 
-    client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-    client.update(example_user.id, example_user)
-
-    mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
-    mock_firestore_collection.document.return_value.set.assert_called_once_with(example_user.to_dict())
+        expect_user = example_user.to_dict()
+        expect_user["updated_at"] = mock_datetime
+        mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
+        mock_firestore_collection.document.return_value.set.assert_called_once_with(expect_user)
 
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-    client.delete(example_user.id)
+    mock_datetime = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    
+    with patch('internal.storage.firestore.user.datetime') as mock_datetime_module:
+        mock_datetime_module.now.return_value = mock_datetime
+        mock_datetime_module.timezone = timezone
+        
+        client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
+        client.delete(example_user.id)
 
-    mock_firestore_collection.document.assert_called_once_with(example_user.display_id)
-    mock_firestore_collection.document.return_value.update.assert_called_once_with({"deleted": True})
+        mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
+        mock_firestore_collection.document.return_value.update.assert_called_once_with({
+            "deleted": True, 
+            "deleted_at": mock_datetime
+        })

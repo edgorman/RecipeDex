@@ -2,6 +2,7 @@ from enum import Enum
 from uuid import UUID
 from collections.abc import Iterable
 from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime, timezone
 from dataclasses import dataclass, asdict, field, is_dataclass
 from pydantic import TypeAdapter
 
@@ -18,6 +19,10 @@ class Recipe:
 
     ingredients: List["Ingredient"] = field(default_factory=list)
     instructions: List["Instruction"] = field(default_factory=list)
+
+    created_at: datetime = datetime.now(tz=timezone.utc)
+    updated_at: datetime = datetime.now(tz=timezone.utc)
+    deleted_at: Optional[datetime] = None
 
     class Action(Enum):
         GET = "get"
