@@ -49,6 +49,8 @@ async function request(path, { method = 'GET', query, body, headers } = {}) {
 export const api = {
   root: () => request('/'),
   getUser: (userId) => request(`/user/${encodeURIComponent(userId)}`),
+  updateUser: (userId, update) => request(`/user/${encodeURIComponent(userId)}`, { method: 'PUT', body: { data: update } }),
+  deleteUser: (userId) => request(`/user/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
   getUserByProvider: (provider, provider_id) => request(`/user/provider/${encodeURIComponent(provider)}/${encodeURIComponent(provider_id)}`),
   listRecipes: (page, page_size) => request('/recipe/', { query: { page, page_size } }),
   getRecipe: (recipeId) => request(`/recipe/${encodeURIComponent(recipeId)}`),

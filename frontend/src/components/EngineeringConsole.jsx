@@ -145,13 +145,24 @@ export default function EngineeringConsole() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <input placeholder="user_id" value={state.userId || ''} onChange={(e) => setState((s) => ({ ...s, userId: e.target.value }))} />
           <button onClick={() => run('getUser', () => api.getUser(state.userId))}>GET /user/{'{user_id}'}</button>
+          <button onClick={() => run('deleteUser', () => api.deleteUser(state.userId))}>DELETE /user/{'{user_id}'}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <input placeholder="provider (e.g. firebase)" value={state.provider || ''} onChange={(e) => setState((s) => ({ ...s, provider: e.target.value }))} />
           <input placeholder="provider_id (e.g. Firebase UID)" value={state.providerId || ''} onChange={(e) => setState((s) => ({ ...s, providerId: e.target.value }))} />
           <button onClick={() => run('getUserByProvider', () => api.getUserByProvider(state.provider, state.providerId))}>GET /user/provider/{'{provider}/{provider_id}'}</button>
         </div>
-        <JsonView data={panel('getUser').data || panel('getUser').error || panel('getUserByProvider').data || panel('getUserByProvider').error} />
+        <JsonView data={panel('getUser').data || panel('getUser').error || panel('getUserByProvider').data || panel('getUserByProvider').error || panel('deleteUser').data || panel('deleteUser').error} />
+      </Section>
+
+      <Section title="Update User">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input placeholder="user_id" value={state.updateUserId || ''} onChange={(e) => setState((s) => ({ ...s, updateUserId: e.target.value }))} />
+          <input placeholder="name" value={state.updateUserName || ''} onChange={(e) => setState((s) => ({ ...s, updateUserName: e.target.value }))} />
+          <button onClick={() => run('updateUser', () => api.updateUser(state.updateUserId, { name: state.updateUserName || undefined }))}>PUT /user/{'{user_id}'}</button>
+          <button onClick={() => setState((s) => ({ ...s, updateUserId: '', updateUserName: '' }))}>Clear</button>
+        </div>
+        <JsonView data={panel('updateUser').data || panel('updateUser').error} />
       </Section>
 
       <Section title="List Recipes">
@@ -189,6 +200,28 @@ export default function EngineeringConsole() {
           const p = recipeResultKey ? panel(recipeResultKey) : {};
           return <JsonView data={p.data || p.error} />;
         })()}
+      </Section>
+
+      <Section title="Update Recipe">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input placeholder="recipe_id" value={recipeId} onChange={(e) => setRecipeId(e.target.value)} />
+          <input placeholder="name" value={state.updateRecipeName || ''} onChange={(e) => setState((s) => ({ ...s, updateRecipeName: e.target.value }))} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <input 
+              type="checkbox" 
+              checked={state.updateRecipePrivate || false} 
+              onChange={(e) => setState((s) => ({ ...s, updateRecipePrivate: e.target.checked }))} 
+            />
+            Private
+          </label>
+          <button onClick={() => {
+            const updateData = {};
+            if (state.updateRecipeName) updateData.name = state.updateRecipeName;
+            if (state.updateRecipePrivate !== undefined) updateData.private = state.updateRecipePrivate;
+            run('updateRecipe', () => api.updateRecipe(recipeId, updateData));
+          }}>PUT /recipe/{'{recipe_id}'}</button>
+        </div>
+        <JsonView data={panel('updateRecipe').data || panel('updateRecipe').error} />
       </Section>
 
       <Section title="Delete Recipe">

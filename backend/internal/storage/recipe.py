@@ -21,7 +21,7 @@ class RecipeStorage(ABC):
         ...
 
     @abstractmethod
-    def update(self, id_: UUID, **kwargs) -> None:
+    def update(self, id_: UUID, recipe: Recipe) -> None:
         ...
 
     @abstractmethod

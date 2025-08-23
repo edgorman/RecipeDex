@@ -1,6 +1,6 @@
 from enum import Enum
 from uuid import UUID
-from typing import Any, Dict, List
+from typing import Any, Dict
 from collections.abc import Iterable
 from dataclasses import dataclass, asdict, is_dataclass
 from starlette.authentication import BaseUser
@@ -82,7 +82,3 @@ class User(BaseUser):
     @staticmethod
     def from_dict(data: dict) -> "User":
         return TypeAdapter(User).validate_python(data)
-
-    @staticmethod
-    def updatable_keys() -> List[str]:
-        return ["name"]

@@ -176,8 +176,19 @@ class RecipeResource(APIRouter):
         try:
             if request.data is None:
                 raise ValueError("request body missing data")
+            if all([field is None for field in asdict(request.data).keys()]):
+                raise ValueError("request body fields are all null")
 
-            parsed_request = UpdateRecipeRequest.from_objects(request.data)
+            for field, value in asdict(request.data).items():
+                if not hasattr(recipe, field):
+                    raise ValueError(f"field {field} does not exist in Recipe")
+                if value is None:
+                    continue
+
+                try:
+                    setattr(recipe, field, value)
+                except Exception as e:
+                    raise ValueError(f"bad value for Recipe.{field}, `{value}`: {str(e)}")
         except Exception as e:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -185,7 +196,7 @@ class RecipeResource(APIRouter):
             )
 
         try:
-            self.__recipe_storage_handler.update(recipe.id, **asdict(parsed_request))
+            self.__recipe_storage_handler.update(recipe.id, recipe)
         except Exception as e:
             return HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

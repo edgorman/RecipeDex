@@ -158,36 +158,14 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
     mock_firestore_collection.add.assert_called_once_with(example_user.to_dict(), example_user.display_id)
 
 
-def test_update_success(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    kwargs = {"name": "updated_name"}
+def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
+    example_user.name = "updated_user_name"
 
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-    client.update(example_user.id, **kwargs)
+    client.update(example_user.id, example_user)
 
     mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
-    mock_firestore_collection.document.return_value.update.assert_called_once_with(kwargs)
-
-
-def test_update_raises_error_for_empty_kwargs(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-
-    with pytest.raises(ValueError, match="Could not update user: `no fields to update`."):
-        client.update(example_user.id, **{})
-
-    assert not mock_firestore_collection.document.called
-    assert not mock_firestore_collection.document.return_value.update.called
-
-
-def test_update_raises_error_for_forbidden_keys(mock_firestore_client, mock_collection_path, mock_firestore_collection):
-    kwargs = {"id": "forbidden_id"}
-
-    client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
-
-    with pytest.raises(ValueError, match="Could not update user: `forbidden field\\(s\\) in args:"):
-        client.update(example_user.id, **kwargs)
-
-    assert not mock_firestore_collection.document.called
-    assert not mock_firestore_collection.document.return_value.update.called
+    mock_firestore_collection.document.return_value.set.assert_called_once_with(example_user.to_dict())
 
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):

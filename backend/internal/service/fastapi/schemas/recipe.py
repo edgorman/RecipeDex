@@ -101,20 +101,9 @@ class CreateRecipeResponse:
 class UpdateRecipeRequest:
     name: Optional[str] = None
     private: Optional[bool] = None
-    user_role_mapping: Optional[Dict[str, str]] = field(default_factory=dict)
-    ingredients: List[str] = field(default_factory=list)
-    instructions: List[str] = field(default_factory=list)
-
-    @classmethod
-    def from_objects(cls, data: dict) -> "UpdateRecipeRequest":
-        """Create an UpdateRecipeRequest from a dict object"""
-        return cls(
-            name=data.get("name"),
-            private=data.get("private"),
-            user_role_mapping=data.get("user_role_mapping"),
-            ingredients=data.get("ingredients"),
-            instructions=data.get("instructions")
-        )
+    user_role_mapping: Optional[Dict[str, str]] = None
+    ingredients: Optional[List[str]] = None
+    instructions: Optional[List[str]] = None
 
 
 @dataclass

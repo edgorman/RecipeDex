@@ -50,29 +50,9 @@ class FirestoreUserStorage(UserStorage):
         except Exception as e:
             raise Exception(f"Could not create user: `{str(e)}`.")
 
-    def update(self, id_: UUID, **kwargs) -> None:
-        if len(kwargs) == 0:
-            raise ValueError("Could not update user: `no fields to update`.")
-
-        forbidden_keys = list(filter(lambda key: key not in User.updatable_keys(), kwargs.keys()))
-        if len(forbidden_keys) > 0:
-            raise ValueError(f"Could not update user: `forbidden field(s) in args: {forbidden_keys}`.")
-
-        processed_kwargs = {}
-        for key, item in kwargs.items():
-            if not isinstance(item, dict):
-                processed_kwargs[key] = item
-                continue
-
-            processed_kwargs = {
-                f"{key}.{inner_key}": inner_item
-                for inner_key, inner_item in item.items()
-            }
-
+    def update(self, id_: UUID, user: User) -> None:
         try:
-            # TODO: need to validate that kwargs only contains keys in class
-            #       and the values are the expected type
-            self.__collection.document(str(id_)).update(kwargs)
+            self.__collection.document(str(id_)).set(user.to_dict())
         except Exception as e:
             raise Exception(f"Could not update user: `{str(e)}`.")
 

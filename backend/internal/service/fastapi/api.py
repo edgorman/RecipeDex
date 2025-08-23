@@ -4,7 +4,7 @@ import uvicorn
 
 from internal.agent.recipe import RecipeAgent
 from internal.auth.recipe import RecipeAuthorize
-from internal.auth.user import UserAuthenticate
+from internal.auth.user import UserAuthenticate, UserAuthorize
 from internal.objects.user import User
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
@@ -29,7 +29,8 @@ class FastapiAPIService(APIService):
         recipe_storage_handler: RecipeStorage,
         recipe_authorize_handler: RecipeAuthorize,
         user_storage_handler: UserStorage,
-        user_authenticate_handler: UserAuthenticate
+        user_authenticate_handler: UserAuthenticate,
+        user_authorize_handler: UserAuthorize
     ):
         self.__name = name
         self.__version = version
@@ -38,6 +39,7 @@ class FastapiAPIService(APIService):
         self.__recipe_authorize_handler = recipe_authorize_handler
         self.__user_storage_handler = user_storage_handler
         self.__user_authenticate_handler = user_authenticate_handler
+        self.__user_authorize_handler = user_authorize_handler
 
         self.__api = FastAPI()
         add_authenticate_middleware(self.__api, self.__user_storage_handler, self.__user_authenticate_handler)
@@ -45,7 +47,10 @@ class FastapiAPIService(APIService):
 
         self.__api.add_api_route("/", self._root)
         self.__api.include_router(
-            UserResource(self.__user_storage_handler)
+            UserResource(
+                self.__user_storage_handler,
+                self.__user_authorize_handler
+            )
         )
         self.__api.include_router(
             RecipeResource(

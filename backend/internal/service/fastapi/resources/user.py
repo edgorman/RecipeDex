@@ -33,7 +33,7 @@ class UserResource(APIRouter):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Could not {request_action.value} user with id `{user_id}`: `invalid user id, {str(e)}`."
             )
-        
+
         if not request_user.is_authenticated:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -112,16 +112,27 @@ class UserResource(APIRouter):
         try:
             if request.data is None:
                 raise ValueError("request body missing data")
+            if all([field is None for field in asdict(request.data).keys()]):
+                raise ValueError("request body fields are all null")
 
-            parsed_request = UpdateUserRequest.from_objects(request.data)
+            for field, value in asdict(request.data).items():
+                if not hasattr(user, field):
+                    raise ValueError(f"field {field} does not exist in User")
+                if value is None:
+                    continue
+
+                try:
+                    setattr(user, field, value)
+                except Exception as e:
+                    raise ValueError(f"bad value for User.{field}, `{value}`: {str(e)}")
         except Exception as e:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Could not {User.Action.UPDATE.value} recipe: `{e}`."
+                detail=f"Could not {User.Action.UPDATE.value} user: `{e}`."
             )
 
         try:
-            self.__user_storage_handler.update(user.id, **asdict(parsed_request))
+            self.__user_storage_handler.update(user.id, user)
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

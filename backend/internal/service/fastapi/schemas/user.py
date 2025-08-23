@@ -37,13 +37,6 @@ class GetUserByProviderResponse:
 class UpdateUserRequest:
     name: Optional[str] = None
 
-    @classmethod
-    def from_objects(cls, data: dict) -> "UpdateUserRequest":
-        """Create an UpdateUserRequest from a dict object"""
-        return cls(
-            name=data.get("name")
-        )
-
 
 @dataclass
 class UpdateUserResponse:

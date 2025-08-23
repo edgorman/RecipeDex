@@ -101,9 +101,5 @@ class Recipe:
         return TypeAdapter(Recipe).validate_python(data)
 
     @staticmethod
-    def updatable_keys() -> List[str]:
-        return ["name", "private", "user_role_mapping", "ingrediets", "instructions"]
-
-    @staticmethod
     def generative_ai_actions() -> List["Action"]:
         return [Recipe.Action.GET_MESSAGES, Recipe.Action.MESSAGE]

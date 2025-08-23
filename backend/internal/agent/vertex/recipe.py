@@ -50,7 +50,7 @@ class VertexRecipeAgent(RecipeAgent):
             user_id=user.display_id,
         )
         recipe.user_session_mapping[user.id] = session.id
-        self.__recipe_storage_handler.update(recipe.id, user_session_mapping={user.id: session.id})
+        self.__recipe_storage_handler.update(recipe.id, recipe)
 
     async def create_message(
         self, recipe: Recipe, user: User, message: Recipe.Message

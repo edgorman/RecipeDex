@@ -48,7 +48,7 @@ class RBACRecipeAuthorize(RecipeAuthorize):
         if role is Recipe.Role.UNDEFINED:
             role = Recipe.Role.VIEWER
 
-        if action in Recipe.generative_ai_actions and not action_user.can_call_generative_ai:
+        if action in Recipe.generative_ai_actions() and not action_user.can_call_generative_ai:
             return False
 
         return action in cls.ROLE_ACTION_MAPPING[role]

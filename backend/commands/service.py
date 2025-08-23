@@ -12,6 +12,7 @@ from internal.config.storage import (
     STORAGE_PROJECT_ID, STORAGE_DATABASE_NAME, STORAGE_COLLECTION_RECIPE_NAME, STORAGE_COLLECTION_USER_NAME
 )
 from internal.auth.firebase.user import FirebaseUserAuthenticate
+from internal.auth.mac.user import MACUserAuthorize
 from internal.agent.vertex.recipe import VertexRecipeAgent
 from internal.agent.vertex.subagents.coordinator.agent import root_agent as base_agent
 from internal.auth.rbac.recipe import RBACRecipeAuthorize
@@ -38,6 +39,7 @@ def run():
 
     # Initialise auth handlers
     user_authenticate_handler = FirebaseUserAuthenticate(AUTH_USER_FIREBASE_AUDIENCE)
+    user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
     # agent_artifact_service = GcsArtifactService(bucket_name=AGENT_ARTIFACT_BUCKET, project=AGENT_PROJECT_ID)
@@ -70,6 +72,7 @@ def run():
         recipe_authorize_handler=RBACRecipeAuthorize,
         user_storage_handler=user_storage_handler,
         user_authenticate_handler=user_authenticate_handler,
+        user_authorize_handler=user_authorize_handler
     )
     service.run()
 
