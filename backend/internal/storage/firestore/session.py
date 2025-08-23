@@ -1,3 +1,4 @@
+from uuid import uuid4
 from typing import Optional, Tuple
 from datetime import datetime, timezone
 from google.cloud.firestore import FieldFilter, Client as FirestoreClient
@@ -18,8 +19,8 @@ class FirestoreSessionStorage(SessionStorage):
         *,
         app_name: str,
         user_id: str,
-        session_id: str,
         state: dict = {},
+        session_id: str = str(uuid4()),
     ) -> Session:
         try:
             session = Session(
