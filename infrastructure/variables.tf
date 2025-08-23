@@ -43,6 +43,11 @@ variable "firestore_collection_user_name" {
   default = "user"
 }
 
+variable "firestore_collection_session_name" {
+  type    = string
+  default = "session"
+}
+
 variable "artifact_registry_repository_name" {
   type    = string
   default = "recipedex"
