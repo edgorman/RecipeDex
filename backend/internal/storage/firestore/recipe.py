@@ -28,13 +28,13 @@ class FirestoreRecipeStorage(RecipeStorage):
 
     def list(self, page: int = 0, page_size: int = 25) -> List[Recipe]:
         try:
-            result = self.__collection \
+            results = self.__collection \
                 .where(filter=FieldFilter("deleted", "==", False)) \
                 .order_by("name") \
                 .offset(max(self.__list_min_offset, page * page_size)) \
                 .limit(min(max(self.__list_min_limit, page_size), self.__list_max_limit)) \
                 .get()
-            documents = result[:page_size]
+            documents = results[:page_size]
 
             return [
                 Recipe.from_dict(document.to_dict())

@@ -204,11 +204,11 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
 
 def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
     mock_datetime = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    
+
     with patch('internal.storage.firestore.recipe.datetime') as mock_datetime_module:
         mock_datetime_module.now.return_value = mock_datetime
         mock_datetime_module.timezone = timezone
-        
+
         client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
         client.update(example_recipe.id, example_recipe)
 
@@ -220,16 +220,16 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):
     mock_datetime = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    
+
     with patch('internal.storage.firestore.recipe.datetime') as mock_datetime_module:
         mock_datetime_module.now.return_value = mock_datetime
         mock_datetime_module.timezone = timezone
-        
+
         client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
         client.delete(example_recipe.id)
 
         mock_firestore_collection.document.assert_called_once_with(str(example_recipe.id))
         mock_firestore_collection.document.return_value.update.assert_called_once_with({
-            "deleted": True, 
+            "deleted": True,
             "deleted_at": mock_datetime
         })

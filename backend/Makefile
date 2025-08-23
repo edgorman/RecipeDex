@@ -9,6 +9,14 @@ help: ## prints this help output
 install: ## install the backend
 	@uv sync
 
+.PHONY: add
+add: ## add a new package (usage: make add PACKAGE=package-name)
+	@if [ -z "$(PACKAGE)" ]; then \
+		echo "Error: PACKAGE variable is required. Usage: make add PACKAGE=package-name"; \
+		exit 1; \
+	fi
+	@uv add $(PACKAGE)
+
 .PHONY: lint
 lint: ## lint the backend
 	@uv run -- flake8 . --exclude .venv --max-line-length 120

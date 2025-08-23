@@ -97,6 +97,7 @@ dependencies = [
     "PyJWT==2.10.1",
     "pyparsing==3.2.3",
     "pytest==8.4.0",
+    "pytest-asyncio>=1.1.0",
     "python-dateutil==2.9.0.post0",
     "python-dotenv==1.1.0",
     "python-multipart==0.0.20",
