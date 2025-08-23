@@ -125,7 +125,7 @@ resource "google_firestore_index" "recipedex_firestore_recipe_index" {
   }
 }
 
-resource "google_firestore_index" "recipedex_firestore_user_provider_index" {
+resource "google_firestore_index" "recipedex_firestore_user_index" {
   project    = var.gcp_project_id
   database   = google_firestore_database.recipedex_firestore.name
   collection = var.firestore_collection_user_name
@@ -137,6 +137,22 @@ resource "google_firestore_index" "recipedex_firestore_user_provider_index" {
 
   fields {
     field_path = "provider.id"
+    order      = "ASCENDING"
+  }
+}
+
+resource "google_firestore_index" "recipedex_firestore_session_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_session_name
+
+  fields {
+    field_path = "app_name"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "user_id"
     order      = "ASCENDING"
   }
 }
