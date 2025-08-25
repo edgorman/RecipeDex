@@ -40,7 +40,7 @@ export default function EngineeringConsole() {
   const [recipeResultKey, setRecipeResultKey] = React.useState(null);
 
   // WebSocket state for Recipe Messages
-  const [ws, setWs] = React.useState(null);
+  const [wsConnection, setWsConnection] = React.useState(null);
   const [wsConnected, setWsConnected] = React.useState(false);
   const [wsLog, setWsLog] = React.useState([]);
   const [wsMessage, setWsMessage] = React.useState('');
@@ -67,60 +67,58 @@ export default function EngineeringConsole() {
   // Cleanup WebSocket on unmount or recipe change
   React.useEffect(() => {
     return () => {
-      try { ws?.close(); } catch {}
+      wsConnection?.disconnect();
     };
-  }, [ws]);
+  }, [wsConnection]);
 
   async function connectWs() {
     if (!recipeId) {
       setWsLog((l) => [...l, { type: 'error', message: 'Provide recipe_id before connecting' }]);
       return;
     }
-    try {
-      const base = new URL(`/recipe/${encodeURIComponent(recipeId)}/message`, BASE_URL);
-      base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
-      const idToken = await auth.currentUser?.getIdToken();
-      if (idToken) {
-        base.searchParams.set('authorization', `Bearer ${idToken}`);
-        base.searchParams.set('authorization_provider', 'firebase');
-      }
-      const socket = new WebSocket(base.toString());
-      socket.onopen = () => {
+
+    const connection = api.createRecipeMessageWebSocket(recipeId, {
+      onOpen: () => {
         setWsConnected(true);
         setWsLog((l) => [...l, { type: 'open', at: new Date().toISOString() }]);
-      };
-      socket.onmessage = (ev) => {
-        let data;
-        try { data = JSON.parse(ev.data); } catch { data = ev.data; }
+      },
+      onMessage: (data) => {
         setWsLog((l) => [...l, { type: 'message', at: new Date().toISOString(), data }]);
-      };
-      socket.onerror = (ev) => {
-        setWsLog((l) => [...l, { type: 'error', at: new Date().toISOString(), data: String(ev?.message || 'ws error') }]);
-      };
-      socket.onclose = () => {
+      },
+      onError: (error) => {
+        setWsLog((l) => [...l, { type: 'error', at: new Date().toISOString(), data: String(error?.message || 'ws error') }]);
+      },
+      onClose: () => {
         setWsConnected(false);
         setWsLog((l) => [...l, { type: 'close', at: new Date().toISOString() }]);
-      };
-      setWs(socket);
+      }
+    });
+
+    try {
+      await connection.connect();
+      setWsConnection(connection);
     } catch (e) {
       setWsLog((l) => [...l, { type: 'error', at: new Date().toISOString(), data: e?.message }]);
     }
   }
 
   function disconnectWs() {
-    try { ws?.close(); } catch {}
-    setWs(null);
+    wsConnection?.disconnect();
+    setWsConnection(null);
   }
 
   function sendWs() {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
+    if (!wsConnection || !wsConnection.isConnected) {
       setWsLog((l) => [...l, { type: 'error', message: 'WebSocket not connected' }]);
       return;
     }
-    const payload = { value: wsMessage };
-    ws.send(JSON.stringify(payload));
-    setWsLog((l) => [...l, { type: 'sent', at: new Date().toISOString(), data: payload }]);
-    setWsMessage('');
+    try {
+      wsConnection.send(wsMessage);
+      setWsLog((l) => [...l, { type: 'sent', at: new Date().toISOString(), data: { value: wsMessage } }]);
+      setWsMessage('');
+    } catch (error) {
+      setWsLog((l) => [...l, { type: 'error', at: new Date().toISOString(), data: error.message }]);
+    }
   }
 
   return (

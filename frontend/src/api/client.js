@@ -46,6 +46,93 @@ async function request(path, { method = 'GET', query, body, headers } = {}) {
   return json;
 }
 
+// WebSocket connection manager for recipe messages
+export class RecipeMessageWebSocket {
+  constructor(recipeId, options = {}) {
+    this.recipeId = recipeId;
+    this.options = {
+      onOpen: () => {},
+      onMessage: () => {},
+      onError: () => {},
+      onClose: () => {},
+      ...options
+    };
+    this.socket = null;
+    this.isConnected = false;
+  }
+
+  async connect() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      return; // Already connected
+    }
+
+    try {
+      const base = new URL(`/recipe/${encodeURIComponent(this.recipeId)}/message`, BASE_URL);
+      base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+      
+      const token = await getIdToken();
+      if (token) {
+        base.searchParams.set('authorization', `Bearer ${token}`);
+        base.searchParams.set('authorization_provider', 'firebase');
+      }
+
+      this.socket = new WebSocket(base.toString());
+
+      this.socket.onopen = () => {
+        this.isConnected = true;
+        this.options.onOpen();
+      };
+
+      this.socket.onmessage = (event) => {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch {
+          data = event.data;
+        }
+        this.options.onMessage(data);
+      };
+
+      this.socket.onerror = (event) => {
+        this.options.onError(event);
+      };
+
+      this.socket.onclose = () => {
+        this.isConnected = false;
+        this.options.onClose();
+      };
+
+    } catch (error) {
+      this.options.onError(error);
+    }
+  }
+
+  send(message) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket not connected');
+    }
+    
+    const payload = typeof message === 'string' ? { value: message } : message;
+    this.socket.send(JSON.stringify(payload));
+  }
+
+  disconnect() {
+    if (this.socket) {
+      try {
+        this.socket.close();
+      } catch (error) {
+        // Ignore close errors
+      }
+      this.socket = null;
+      this.isConnected = false;
+    }
+  }
+
+  get readyState() {
+    return this.socket ? this.socket.readyState : WebSocket.CLOSED;
+  }
+}
+
 export const api = {
   root: () => request('/'),
   getUser: (userId) => request(`/user/${encodeURIComponent(userId)}`),
@@ -59,6 +146,9 @@ export const api = {
   deleteRecipe: (recipeId) => request(`/recipe/${encodeURIComponent(recipeId)}`, { method: 'DELETE' }),
   getRecipeMetadata: (recipeId) => request(`/recipe/${encodeURIComponent(recipeId)}/metadata`),
   getRecipeMessages: (recipeId) => request(`/recipe/${encodeURIComponent(recipeId)}/message`),
+  
+  // WebSocket helper method
+  createRecipeMessageWebSocket: (recipeId, options) => new RecipeMessageWebSocket(recipeId, options),
 };
 
 export { BASE_URL };
