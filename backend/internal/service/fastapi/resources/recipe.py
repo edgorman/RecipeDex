@@ -233,8 +233,8 @@ class RecipeResource(APIRouter):
                 try:
                     request_data = SendMessageRequest.from_objects(data)
                     request_message = Recipe.Message(
-                        Recipe.Message.Role.USER,
-                        request_data.value
+                        role=Recipe.Message.Role.USER,
+                        value=request_data.value
                     )
                 except Exception as e:
                     await connection.send_json(

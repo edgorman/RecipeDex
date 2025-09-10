@@ -17,9 +17,9 @@ def mock_user_dict():
             "type": User.ProviderType.UNDEFINED.value,
             "info": {"email": "test@example.com"}
         },
-        "created_at": datetime.now(tz=timezone.utc),
-        "updated_at": datetime.now(tz=timezone.utc),
-        "deleted_at": datetime.now(tz=timezone.utc),
+        "created_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "updated_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "deleted_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
     }
 
 
@@ -35,9 +35,9 @@ def mock_user(mock_user_dict):
             type=User.ProviderType(mock_user_dict["provider"]["type"]),
             info=mock_user_dict["provider"]["info"]
         ),
-        created_at=mock_user_dict["created_at"],
-        updated_at=mock_user_dict["updated_at"],
-        deleted_at=mock_user_dict["deleted_at"],
+        created_at=datetime.fromisoformat(mock_user_dict["created_at"]),
+        updated_at=datetime.fromisoformat(mock_user_dict["updated_at"]),
+        deleted_at=datetime.fromisoformat(mock_user_dict["deleted_at"]),
     )
 
 

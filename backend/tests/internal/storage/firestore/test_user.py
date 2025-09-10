@@ -170,7 +170,7 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
         client.update(example_user.id, example_user)
 
         expect_user = example_user.to_dict()
-        expect_user["updated_at"] = mock_datetime
+        expect_user["updated_at"] = mock_datetime.isoformat().replace('+00:00', 'Z')
         mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
         mock_firestore_collection.document.return_value.set.assert_called_once_with(expect_user)
 

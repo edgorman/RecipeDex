@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocket, WebSocketDisconnect
 from unittest.mock import Mock
+from uuid import uuid4
 
 from internal.config.service import (
     SERVICE_AUTH_TOKEN_HEADER,
@@ -17,7 +18,7 @@ from internal.service.fastapi.middleware.authenticate import add_authenticate_mi
 
 
 example_user = User(
-    id="mock_id",
+    id=uuid4(),
     name="mock_name",
     role=User.Role.UNDEFINED,
     provider=User.Provider(

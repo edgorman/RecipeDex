@@ -1,15 +1,12 @@
 from enum import Enum
 from uuid import UUID
 from typing import Any, Dict, Optional
-from collections.abc import Iterable
 from datetime import datetime, timezone
-from dataclasses import dataclass, asdict, is_dataclass
+from pydantic import BaseModel, Field
 from starlette.authentication import BaseUser
-from pydantic import TypeAdapter
 
 
-@dataclass
-class User(BaseUser):
+class User(BaseModel, BaseUser):
     """Object that stores User information"""
     id: UUID
     name: str
@@ -17,8 +14,8 @@ class User(BaseUser):
     provider: "Provider"
     deleted: bool = False
 
-    created_at: datetime = datetime.now(tz=timezone.utc)
-    updated_at: datetime = datetime.now(tz=timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     deleted_at: Optional[datetime] = None
 
     class Action(Enum):
@@ -36,8 +33,7 @@ class User(BaseUser):
         UNDEFINED = "undefined"
         FIREBASE = "firebase"
 
-    @dataclass
-    class Provider:
+    class Provider(BaseModel):
         id: Any
         type: "User.ProviderType"
         info: Dict[str, Any]
@@ -69,21 +65,10 @@ class User(BaseUser):
         return self.role == self.Role.ADMIN
 
     def to_dict(self) -> dict:
-        def default(obj):
-            if isinstance(obj, UUID):
-                return str(obj)
-            if isinstance(obj, Enum):
-                return obj.value
-            if is_dataclass(obj):
-                return default(asdict(obj))
-            if isinstance(obj, dict):
-                return {default(k): default(v) for k, v in obj.items()}
-            if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
-                return [default(v) for v in obj]
-            return obj
-
-        return {k: default(v) for k, v in asdict(self).items()}
+        """Convert the User to a dictionary with proper serialization"""
+        return self.model_dump(mode='json')
 
     @staticmethod
     def from_dict(data: dict) -> "User":
-        return TypeAdapter(User).validate_python(data)
+        """Create a User instance from a dictionary"""
+        return User.model_validate(data)

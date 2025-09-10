@@ -1,27 +1,24 @@
 from enum import Enum
 from uuid import UUID
-from collections.abc import Iterable
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timezone
-from dataclasses import dataclass, asdict, field, is_dataclass
-from pydantic import TypeAdapter
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class Recipe:
+class Recipe(BaseModel):
     """Object that stores Recipe information"""
     id: UUID
     name: str
     deleted: bool = False
     private: bool = False
-    user_session_mapping: Dict[UUID, str] = field(default_factory=dict)
-    user_role_mapping: Dict[UUID, "Role"] = field(default_factory=dict)
+    user_session_mapping: Dict[UUID, str] = Field(default_factory=dict)
+    user_role_mapping: Dict[UUID, "Role"] = Field(default_factory=dict)
 
-    ingredients: List["Ingredient"] = field(default_factory=list)
-    instructions: List["Instruction"] = field(default_factory=list)
+    ingredients: List["Ingredient"] = Field(default_factory=list)
+    instructions: List["Instruction"] = Field(default_factory=list)
 
-    created_at: datetime = datetime.now(tz=timezone.utc)
-    updated_at: datetime = datetime.now(tz=timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     deleted_at: Optional[datetime] = None
 
     class Action(Enum):
@@ -39,18 +36,15 @@ class Recipe:
         EDITOR = "editor"
         OWNER = "owner"
 
-    @dataclass
-    class Ingredient:
+    class Ingredient(BaseModel):
         name: str
         unit: str
         quantity: float
 
-    @dataclass
-    class Instruction:
+    class Instruction(BaseModel):
         value: str
 
-    @dataclass
-    class Message:
+    class Message(BaseModel):
         role: "Role"
         value: str
 
@@ -86,24 +80,13 @@ class Recipe:
         return self.name
 
     def to_dict(self) -> Dict[str, Any]:
-        def default(obj: Any) -> Any:
-            if isinstance(obj, UUID):
-                return str(obj)
-            if isinstance(obj, Enum):
-                return obj.value
-            if is_dataclass(obj):
-                return default(asdict(obj))
-            if isinstance(obj, dict):
-                return {default(k): default(v) for k, v in obj.items()}
-            if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
-                return [default(v) for v in obj]
-            return obj
-
-        return {k: default(v) for k, v in asdict(self).items()}
+        """Convert the Recipe to a dictionary with proper serialization"""
+        return self.model_dump(mode='json')
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> "Recipe":
-        return TypeAdapter(Recipe).validate_python(data)
+        """Create a Recipe instance from a dictionary"""
+        return Recipe.model_validate(data)
 
     @staticmethod
     def generative_ai_actions() -> List["Action"]:

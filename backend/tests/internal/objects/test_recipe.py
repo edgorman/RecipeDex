@@ -21,9 +21,9 @@ def mock_recipe_dict():
         },
         "ingredients": [],
         "instructions": [],
-        "created_at": datetime.now(tz=timezone.utc),
-        "updated_at": datetime.now(tz=timezone.utc),
-        "deleted_at": datetime.now(tz=timezone.utc),
+        "created_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "updated_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "deleted_at": datetime.now(tz=timezone.utc).isoformat().replace('+00:00', 'Z'),
     }
 
 
@@ -50,9 +50,9 @@ def mock_recipe(mock_recipe_dict):
             )
             for instruction in mock_recipe_dict["instructions"]
         ],
-        created_at=mock_recipe_dict["created_at"],
-        updated_at=mock_recipe_dict["updated_at"],
-        deleted_at=mock_recipe_dict["deleted_at"],
+        created_at=datetime.fromisoformat(mock_recipe_dict["created_at"]),
+        updated_at=datetime.fromisoformat(mock_recipe_dict["updated_at"]),
+        deleted_at=datetime.fromisoformat(mock_recipe_dict["deleted_at"]),
     )
 
 
