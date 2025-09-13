@@ -19,7 +19,7 @@ class FirestoreUserStorage(UserStorage):
             raise Exception(f"Could not get user: `{str(e)}`.")
 
         if document.exists:
-            return User.from_dict(document.to_dict())
+            return User.model_validate(document.to_dict())
         return None
 
     def get_by_provider_id(self, id_: Any, type_: User.ProviderType) -> Optional[User]:
@@ -42,19 +42,19 @@ class FirestoreUserStorage(UserStorage):
 
         document = documents[0]
         if document.exists:
-            return User.from_dict(document.to_dict())
+            return User.model_validate(document.to_dict())
         return None
 
     def create(self, user: User) -> None:
         try:
-            self.__collection.add(user.to_dict(), user.display_id)
+            self.__collection.add(user.model_dump(mode="json"), user.display_id)
         except Exception as e:
             raise Exception(f"Could not create user: `{str(e)}`.")
 
     def update(self, id_: UUID, user: User) -> None:
         try:
             user.updated_at = datetime.now(tz=timezone.utc)
-            self.__collection.document(str(id_)).set(user.to_dict())
+            self.__collection.document(str(id_)).set(user.model_dump(mode="json"))
         except Exception as e:
             raise Exception(f"Could not update user: `{str(e)}`.")
 

@@ -303,7 +303,7 @@ class RecipeResource(APIRouter):
                             detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                                    f"invalid request data: {str(e)}.",
                             data=None
-                        ).to_dict()
+                        ).model_dump(mode="json")
                     )
 
                 try:
@@ -311,7 +311,7 @@ class RecipeResource(APIRouter):
                         BaseResponse(
                             detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} received data successfully.",
                             data=None
-                        ).to_dict()
+                        ).model_dump(mode="json")
                     )
 
                     async for response_message in self.__recipe_agent_handler.create_message(
@@ -321,7 +321,7 @@ class RecipeResource(APIRouter):
                             BaseResponse(
                                 detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} responded successfully.",
                                 data=SendMessageResponse.model_validate(response_message)
-                            ).to_dict()
+                            ).model_dump(mode="json")
                         )
                 except Exception as e:
                     await connection.send_json(
@@ -329,7 +329,7 @@ class RecipeResource(APIRouter):
                             detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                                    f"experienced internal error: {str(e)}.",
                             data=None
-                        ).to_dict()
+                        ).model_dump(mode="json")
                     )
 
         except WebSocketException as we:
@@ -338,7 +338,7 @@ class RecipeResource(APIRouter):
                     detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
                            f"experienced websocket error: `{str(we.reason)}`.",
                     data=None
-                ).to_dict()
+                ).model_dump(mode="json")
             )
         except WebSocketDisconnect:
             pass

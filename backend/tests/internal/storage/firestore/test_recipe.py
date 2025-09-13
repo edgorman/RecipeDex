@@ -60,7 +60,7 @@ def test_get(
 ):
     mock_firestore_collection.document.return_value.get.return_value = DocumentSnapshot(
         reference=DocumentReference("a", "b"),
-        data=mock_recipe.to_dict() if mock_recipe else None,
+        data=mock_recipe.model_dump(mode="json") if mock_recipe else None,
         exists=mock_recipe is not None,
         read_time=None,
         create_time=None,
@@ -76,7 +76,7 @@ def test_get(
     if mock_recipe is None:
         assert response_recipe is None
     else:
-        assert response_recipe.to_dict() == expect_recipe.to_dict()
+        assert response_recipe.model_dump(mode="json") == expect_recipe.model_dump(mode="json")
 
 
 @pytest.mark.parametrize(
@@ -107,7 +107,7 @@ def test_list_paginates_and_filters_deleted(
     documents = QueryResultsList([
         DocumentSnapshot(
             reference=DocumentReference("a", "b"),
-            data=r.to_dict(),
+            data=r.model_dump(mode="json"),
             exists=True,
             read_time=None,
             create_time=None,
@@ -163,7 +163,7 @@ def test_list_skips_nonexistent_documents(
     documents = QueryResultsList([
         DocumentSnapshot(
             reference=DocumentReference("a", "b"),
-            data=existing_recipe.to_dict(),
+            data=existing_recipe.model_dump(mode="json"),
             exists=True,
             read_time=None,
             create_time=None,
@@ -189,7 +189,7 @@ def test_list_skips_nonexistent_documents(
     result = client.list(page=0, page_size=10)
 
     assert len(result) == 1
-    assert result[0].to_dict() == existing_recipe.to_dict()
+    assert result[0].model_dump(mode="json") == existing_recipe.model_dump(mode="json")
 
 
 def test_create(mock_firestore_client, mock_collection_path, mock_firestore_collection):
@@ -197,7 +197,7 @@ def test_create(mock_firestore_client, mock_collection_path, mock_firestore_coll
     client.create(example_recipe)
 
     mock_firestore_collection.add.assert_called_once_with(
-        document_data=example_recipe.to_dict(),
+        document_data=example_recipe.model_dump(mode="json"),
         document_id=example_recipe.display_id,
     )
 
@@ -212,7 +212,7 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
         client = FirestoreRecipeStorage(mock_firestore_client, mock_collection_path)
         client.update(example_recipe.id, example_recipe)
 
-        expect_recipe = example_recipe.to_dict()
+        expect_recipe = example_recipe.model_dump(mode="json")
         expect_recipe["updated_at"] = mock_datetime.isoformat().replace('+00:00', 'Z')
         mock_firestore_collection.document.assert_called_once_with(str(example_recipe.id))
         mock_firestore_collection.document.return_value.set.assert_called_once_with(expect_recipe)

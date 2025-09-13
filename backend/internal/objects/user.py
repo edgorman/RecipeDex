@@ -63,12 +63,3 @@ class User(BaseModel, BaseUser):
         # for now, only admins are authorized
         # in the future, this will depend on whether the user is paying
         return self.role == self.Role.ADMIN
-
-    def to_dict(self) -> dict:
-        """Convert the User to a dictionary with proper serialization"""
-        return self.model_dump(mode='json')
-
-    @staticmethod
-    def from_dict(data: dict) -> "User":
-        """Create a User instance from a dictionary"""
-        return User.model_validate(data)

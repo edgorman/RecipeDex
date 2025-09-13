@@ -54,7 +54,7 @@ class FirestoreSessionStorage(SessionStorage):
         if not document.exists:
             return None
 
-        session = Session(**document.to_dict())
+        session = Session.model_validate(document.to_dict())
 
         return session
 
@@ -79,11 +79,7 @@ class FirestoreSessionStorage(SessionStorage):
             sessions = []
             for document in results:
                 if document.exists:
-                    sessions.append(
-                        Session(
-                            **document.to_dict()
-                        )
-                    )
+                    sessions.append(Session.model_validate(document.to_dict()))
 
             return ListSessionsResponse(sessions=sessions)
         except Exception as e:

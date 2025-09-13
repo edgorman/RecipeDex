@@ -1,6 +1,6 @@
 from enum import Enum
 from uuid import UUID
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
@@ -78,16 +78,3 @@ class Recipe(BaseModel):
     @property
     def display_name(self) -> str:
         return self.name
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert the Recipe to a dictionary with proper serialization"""
-        return self.model_dump(mode='json')
-
-    @staticmethod
-    def from_dict(data: Dict[str, Any]) -> "Recipe":
-        """Create a Recipe instance from a dictionary"""
-        return Recipe.model_validate(data)
-
-    @staticmethod
-    def generative_ai_actions() -> List["Action"]:
-        return [Recipe.Action.GET_MESSAGES, Recipe.Action.MESSAGE]

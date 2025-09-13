@@ -21,9 +21,17 @@ example_user = User(
         info={}
     )
 )
-example_deleted_dict = example_user.to_dict()
-example_deleted_dict["deleted"] = True
-example_deleted_user = User.from_dict(example_deleted_dict)
+example_deleted_user = User(
+    id=uuid4(),
+    name="mock_deleted_name",
+    role=User.Role.UNDEFINED,
+    provider=User.Provider(
+        id="mock_provider_id",
+        type=User.ProviderType.UNDEFINED,
+        info={}
+    ),
+    deleted=True
+)
 
 
 @pytest.fixture
@@ -115,7 +123,7 @@ def mock_client(example_user_storage_handler, example_user_authorize_handler, mo
             (AuthCredentials([SERVICE_AUTH_SCOPE]), example_deleted_user),
             example_deleted_user, True,
             404,
-            {"detail": f"Could not get user with id `{example_user.display_id}`: `it does not exist`."}
+            {"detail": f"Could not get user with id `{example_deleted_user.display_id}`: `it does not exist`."}
         ),
     ]
 )

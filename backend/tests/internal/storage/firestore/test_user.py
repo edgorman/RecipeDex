@@ -67,7 +67,7 @@ def test_get(
     # use user id if exists, else random uuid
     mock_firestore_collection.document.return_value.get.return_value = DocumentSnapshot(
         reference=DocumentReference("a", "b"),
-        data=mock_user.to_dict() if mock_user else None,
+        data=mock_user.model_dump(mode="json") if mock_user else None,
         exists=mock_user is not None,
         read_time=None,
         create_time=None,
@@ -83,7 +83,7 @@ def test_get(
     if mock_user is None:
         assert response_user is None
     else:
-        assert response_user.to_dict() == expect_user.to_dict()
+        assert response_user.model_dump(mode="json") == expect_user.model_dump(mode="json")
 
 
 @pytest.mark.parametrize(
@@ -111,7 +111,7 @@ def test_get_by_provider_id(
         QueryResultsList([
             DocumentSnapshot(
                 reference=DocumentReference("a", "b"),
-                data=mock_user.to_dict() if mock_user else None,
+                data=mock_user.model_dump(mode="json") if mock_user else None,
                 exists=mock_user is not None,
                 read_time=None,
                 create_time=None,
@@ -149,14 +149,16 @@ def test_get_by_provider_id(
     if len(mock_users) != 1:
         assert response_user is None
     else:
-        assert response_user.to_dict() == expect_user.to_dict()
+        assert response_user.model_dump(mode="json") == expect_user.model_dump(mode="json")
 
 
 def test_create(mock_firestore_client, mock_collection_path, mock_firestore_collection):
     client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
     client.create(example_user)
 
-    mock_firestore_collection.add.assert_called_once_with(example_user.to_dict(), example_user.display_id)
+    mock_firestore_collection.add.assert_called_once_with(
+        example_user.model_dump(mode="json"), example_user.display_id
+    )
 
 
 def test_update(mock_firestore_client, mock_collection_path, mock_firestore_collection):
@@ -169,10 +171,10 @@ def test_update(mock_firestore_client, mock_collection_path, mock_firestore_coll
         client = FirestoreUserStorage(mock_firestore_client, mock_collection_path)
         client.update(example_user.id, example_user)
 
-        expect_user = example_user.to_dict()
-        expect_user["updated_at"] = mock_datetime.isoformat().replace('+00:00', 'Z')
+        expect_user_dict = example_user.model_dump(mode="json")
+        expect_user_dict["updated_at"] = mock_datetime.isoformat().replace('+00:00', 'Z')
         mock_firestore_collection.document.assert_called_once_with(str(example_user.id))
-        mock_firestore_collection.document.return_value.set.assert_called_once_with(expect_user)
+        mock_firestore_collection.document.return_value.set.assert_called_once_with(expect_user_dict)
 
 
 def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_collection):

@@ -23,7 +23,7 @@ class FirestoreRecipeStorage(RecipeStorage):
             raise Exception(f"Could not get recipe: `{str(e)}`.")
 
         if document.exists:
-            return Recipe.from_dict(document.to_dict())
+            return Recipe.model_validate(document.to_dict())
         return None
 
     def list(self, page: int = 0, page_size: int = 25) -> List[Recipe]:
@@ -37,7 +37,7 @@ class FirestoreRecipeStorage(RecipeStorage):
             documents = results[:page_size]
 
             return [
-                Recipe.from_dict(document.to_dict())
+                Recipe.model_validate(document.to_dict())
                 for document in documents if document.exists
             ]
         except Exception as e:
@@ -46,7 +46,7 @@ class FirestoreRecipeStorage(RecipeStorage):
     def create(self, recipe: Recipe) -> None:
         try:
             self.__collection.add(
-                document_data=recipe.to_dict(),
+                document_data=recipe.model_dump(mode="json"),
                 document_id=recipe.display_id,
             )
         except Exception as e:
@@ -55,7 +55,7 @@ class FirestoreRecipeStorage(RecipeStorage):
     def update(self, id_: UUID, recipe: Recipe) -> None:
         try:
             recipe.updated_at = datetime.now(tz=timezone.utc)
-            self.__collection.document(str(id_)).set(recipe.to_dict())
+            self.__collection.document(str(id_)).set(recipe.model_dump(mode="json"))
         except Exception as e:
             raise Exception(f"Could not update recipe: `{str(e)}`.")
 
