@@ -4,6 +4,7 @@ from internal.objects.user import User
 
 
 class RBACRecipeAuthorize(RecipeAuthorize):
+    """The RBACRecipeAuthorize authorizes Users using role based access control."""
 
     ROLE_ACTION_MAPPING = {
         Recipe.Role.UNDEFINED: {},

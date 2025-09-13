@@ -22,9 +22,20 @@ from internal.storage.user import UserStorage
 
 
 class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
-    """Async version of `starlette.middleware.authentication.AuthenticationMiddleware`"""
+    """
+    Async version of `starlette.middleware.authentication.AuthenticationMiddleware`.
+    This middleware handles authentication for both HTTP and WebSocket connections.
+    """
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """
+        The main entrypoint for the middleware.
+
+        Args:
+            scope: the ASGI scope.
+            receive: the ASGI receive channel.
+            send: the ASGI send channel.
+        """
         if scope["type"] not in ["http", "websocket"]:
             await self.app(scope, receive, send)
             return
@@ -33,6 +44,7 @@ class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
         try:
             auth_result = await self.backend.authenticate(conn)
         except HTTPException as he:
+            # If an HTTPException is raised during authentication, handle it gracefully.
             if scope["type"] == "websocket":
                 try:
                     await send({"type": "websocket.send", "detail": he.detail})
@@ -51,18 +63,40 @@ class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
 
 
 class AuthenticateBackend(AuthenticationBackend):
+    """The AuthenticateBackend handles the authentication logic for the middleware."""
+
     def __init__(self, user_storage_handler: UserStorage, user_authenticate_handler: UserAuthenticate):
+        """
+        Initialise the AuthenticateBackend.
+
+        Args:
+            user_storage_handler: the handler for user storage.
+            user_authenticate_handler: the handler for user authentication.
+        """
         self.__user_storage_handler = user_storage_handler
         self.__user_authenticate_handler = user_authenticate_handler
 
     async def authenticate(self, connection: HTTPConnection) -> Tuple[AuthCredentials, User] | None:
+        """
+        Authenticate a user based on the connection.
+
+        Args:
+            connection: the connection to authenticate.
+
+        Returns:
+            a tuple containing the auth credentials and the user, or None if not authenticated.
+
+        Raises:
+            HTTPException: if there is an error during authentication.
+        """
         try:
+            # Parse authentication parameters from the connection.
             if connection.get("type") == "websocket":
                 provider, token = await self._parse_websocket_parameters(connection)
             else:
                 provider, token = await self._parse_http_headers(connection)
                 if provider is None and token is None:
-                    # Allow unauthenticated requests
+                    # Allow unauthenticated requests.
                     return  # TODO: should this be `AuthCredentials(), UnauthenticatedUser()`?
         except HTTPException as he:
             raise HTTPException(
@@ -70,6 +104,7 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
+            # Parse the provider type.
             provider_type = User.ProviderType(provider)
         except ValueError:
             code = status.HTTP_400_BAD_REQUEST
@@ -81,6 +116,7 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
+            # Authenticate the user with the provider.
             provider_id, provider_name, provider_info = self.__user_authenticate_handler.authenticate(
                 provider_type, token
             )
@@ -94,6 +130,7 @@ class AuthenticateBackend(AuthenticationBackend):
             )
 
         try:
+            # Get the user from storage, or create a new one if they don't exist.
             user = self.__user_storage_handler.get_by_provider_id(provider_id, provider_type)
 
             # if no user is found, create one
@@ -122,6 +159,18 @@ class AuthenticateBackend(AuthenticationBackend):
         return AuthCredentials([SERVICE_AUTH_SCOPE]), user
 
     async def _parse_http_headers(self, connection: Request) -> Tuple[str, str]:
+        """
+        Parse authentication parameters from HTTP headers.
+
+        Args:
+            connection: the request to parse.
+
+        Returns:
+            a tuple containing the provider and token.
+
+        Raises:
+            HTTPException: if the headers are malformed.
+        """
         if SERVICE_AUTH_TOKEN_HEADER not in connection.headers:
             return None, None  # allow requests that have no authentication
         auth = connection.headers[SERVICE_AUTH_TOKEN_HEADER]
@@ -143,6 +192,18 @@ class AuthenticateBackend(AuthenticationBackend):
         return provider, token
 
     async def _parse_websocket_parameters(self, connection: WebSocket) -> Tuple[str, str]:
+        """
+        Parse authentication parameters from WebSocket query parameters.
+
+        Args:
+            connection: the WebSocket to parse.
+
+        Returns:
+            a tuple containing the provider and token.
+
+        Raises:
+            HTTPException: if the query parameters are malformed.
+        """
         if SERVICE_AUTH_TOKEN_QUERY not in connection.query_params:
             raise HTTPException(
                 status.WS_1008_POLICY_VIOLATION,
@@ -170,6 +231,14 @@ class AuthenticateBackend(AuthenticationBackend):
 def add_authenticate_middleware(
     app: FastAPI, user_storage_handler: UserStorage, user_authenticate_handler: UserAuthenticate
 ):
+    """
+    Add the authentication middleware to the FastAPI app.
+
+    Args:
+        app: the FastAPI app.
+        user_storage_handler: the handler for user storage.
+        user_authenticate_handler: the handler for user authentication.
+    """
     backend = AuthenticateBackend(
         user_storage_handler=user_storage_handler, user_authenticate_handler=user_authenticate_handler
     )
@@ -177,4 +246,13 @@ def add_authenticate_middleware(
 
 
 def get_user_from_request(request: Request) -> BaseUser:
+    """
+    Get the user from the request.
+
+    Args:
+        request: the request to get the user from.
+
+    Returns:
+        the user from the request.
+    """
     return request.user

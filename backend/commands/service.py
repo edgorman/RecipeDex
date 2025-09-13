@@ -1,15 +1,8 @@
 import click
 from google.adk.runners import Runner as AgentRunner
-# from google.adk.artifacts.gcs_artifact_service import GcsArtifactService
-# from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService
-# from google.adk.sessions import VertexAiSessionService
 from google.cloud.firestore import Client as FirestoreClient
 
-from internal.config.agent import (
-    AGENT_APP_NAME,
-    # AGENT_PROJECT_ID,
-    # AGENT_PROJECT_REGION
-)
+from internal.config.agent import AGENT_APP_NAME
 from internal.config.auth import AUTH_USER_FIREBASE_AUDIENCE
 from internal.config.service import (
     SERVICE_NAME,
@@ -57,19 +50,14 @@ def run():
     user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
-    # agent_artifact_service = GcsArtifactService(bucket_name=AGENT_ARTIFACT_BUCKET, project=AGENT_PROJECT_ID)
-    # agent_memory_service = VertexAiRagMemoryService(
-    #     rag_corpus=f"projects/{AGENT_PROJECT_ID}/locations/{AGENT_PROJECT_REGION}/ragCorpora/{AGENT_MEMORY_CORPUS}"
-    # )
-    # TODO: for local development only, not suitable for deployments
     agent_sessions_service = FirestoreSessionStorage(
         firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
     )
     agent_runner_service = AgentRunner(
         app_name=AGENT_APP_NAME,
         agent=base_agent,
-        artifact_service=None,  # agent_artifact_service,
-        memory_service=None,  # agent_memory_service,
+        artifact_service=None,
+        memory_service=None,
         session_service=agent_sessions_service
     )
     recipe_agent_handler = VertexRecipeAgent(

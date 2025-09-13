@@ -67,7 +67,7 @@ class Recipe(BaseModel):
         )
 
         if owner_mapping is None:
-            raise ValueError("No owner mapping exists in this Recipe")
+            raise ValueError("no owner mapping exists in this Recipe")
         return owner_mapping[0]
 
     @property

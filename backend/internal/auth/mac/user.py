@@ -3,6 +3,7 @@ from internal.objects.user import User
 
 
 class MACUserAuthorize(UserAuthorize):
+    """The MACUserAuthorize authorizes Users using mandatory access control."""
 
     @classmethod
     def authorize(self, user: User, _: User.Action, action_user: User) -> bool:

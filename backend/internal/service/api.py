@@ -6,4 +6,5 @@ class APIService(ABC):
 
     @abstractmethod
     def run(self):
+        """Run the API service."""
         ...
