@@ -9,7 +9,6 @@ class Recipe(BaseModel):
     """Object that stores Recipe information"""
     id: UUID
     name: str
-    deleted: bool = False
     private: bool = False
     user_session_mapping: Dict[UUID, str] = Field(default_factory=dict)
     user_role_mapping: Dict[UUID, "Role"] = Field(default_factory=dict)
@@ -55,7 +54,7 @@ class Recipe(BaseModel):
 
     @property
     def is_deleted(self) -> bool:
-        return self.deleted
+        return self.deleted_at is not None
 
     @property
     def owner_id(self) -> UUID:

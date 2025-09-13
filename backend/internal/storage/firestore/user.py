@@ -25,7 +25,7 @@ class FirestoreUserStorage(UserStorage):
     def get_by_provider_id(self, id_: Any, type_: User.ProviderType) -> Optional[User]:
         query = (
             self.__collection
-            .where(filter=FieldFilter("deleted", "==", False))
+            .where(filter=FieldFilter("deleted_at", "==", None))
             .where(filter=FieldFilter("provider.type", "==", type_.value))
             .where(filter=FieldFilter("provider.id", "==", id_))
         )
@@ -60,6 +60,6 @@ class FirestoreUserStorage(UserStorage):
 
     def delete(self, id_: UUID) -> None:
         try:
-            self.__collection.document(str(id_)).update({"deleted": True, "deleted_at": datetime.now(tz=timezone.utc)})
+            self.__collection.document(str(id_)).update({"deleted_at": datetime.now(tz=timezone.utc)})
         except Exception as e:
             raise Exception(f"Could not delete user: `{str(e)}`.")

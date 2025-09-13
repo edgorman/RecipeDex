@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from uuid import uuid4
 from unittest.mock import Mock
 from fastapi import FastAPI, HTTPException
@@ -23,7 +24,7 @@ example_user = User(
     )
 )
 
-example_deleted_recipe = Recipe(id=uuid4(), name="mock_recipe", deleted=True)
+example_deleted_recipe = Recipe(id=uuid4(), name="mock_recipe", deleted_at=datetime.now())
 example_public_recipe = Recipe(id=uuid4(), name="mock_recipe", private=False)
 example_private_recipe = Recipe(id=uuid4(), name="mock_recipe", private=True)
 

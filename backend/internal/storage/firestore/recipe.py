@@ -29,7 +29,7 @@ class FirestoreRecipeStorage(RecipeStorage):
     def list(self, page: int = 0, page_size: int = 25) -> List[Recipe]:
         try:
             results = self.__collection \
-                .where(filter=FieldFilter("deleted", "==", False)) \
+                .where(filter=FieldFilter("deleted_at", "==", None)) \
                 .order_by("name") \
                 .offset(max(self.__list_min_offset, page * page_size)) \
                 .limit(min(max(self.__list_min_limit, page_size), self.__list_max_limit)) \
@@ -61,6 +61,6 @@ class FirestoreRecipeStorage(RecipeStorage):
 
     def delete(self, id_: UUID) -> None:
         try:
-            self.__collection.document(str(id_)).update({"deleted": True, "deleted_at": datetime.now(tz=timezone.utc)})
+            self.__collection.document(str(id_)).update({"deleted_at": datetime.now(tz=timezone.utc)})
         except Exception as e:
             raise Exception(f"Could not delete recipe: `{str(e)}`.")

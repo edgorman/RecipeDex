@@ -36,7 +36,6 @@ class GetMetadataResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    deleted: bool
     private: bool
     user_session_mapping: Dict[UUID, str]
     user_role_mapping: Dict[UUID, Recipe.Role]

@@ -12,7 +12,6 @@ class User(BaseModel, BaseUser):
     name: str
     role: "Role"
     provider: "Provider"
-    deleted: bool = False
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
@@ -40,7 +39,7 @@ class User(BaseModel, BaseUser):
 
     @property
     def is_deleted(self) -> bool:
-        return self.deleted
+        return self.deleted_at is not None
 
     @property
     def is_authenticated(self) -> bool:

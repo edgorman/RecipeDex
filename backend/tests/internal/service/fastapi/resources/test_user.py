@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from uuid import uuid4
 from unittest.mock import Mock
 from fastapi import FastAPI, HTTPException
@@ -30,7 +31,7 @@ example_deleted_user = User(
         type=User.ProviderType.UNDEFINED,
         info={}
     ),
-    deleted=True
+    deleted_at=datetime.now()
 )
 
 

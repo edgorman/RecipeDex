@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime, timezone
 import pytest
 from google.cloud.firestore_v1 import DocumentSnapshot, DocumentReference
+from google.cloud.firestore_v1.types import StructuredQuery
 from google.cloud.firestore_v1.query_results import QueryResultsList
 
 from internal.objects.recipe import Recipe
@@ -128,9 +129,9 @@ def test_list_paginates_and_filters_deleted(
     mock_firestore_collection.where.assert_called_once()
     call_args = mock_firestore_collection.where.call_args
     filter_arg = call_args.kwargs['filter']
-    assert filter_arg.field_path == "deleted"
-    assert filter_arg.op_string == "=="
-    assert filter_arg.value is False
+    assert filter_arg.field_path == "deleted_at"
+    assert filter_arg.op_string == StructuredQuery.UnaryFilter.Operator.IS_NULL
+    assert filter_arg.value is None
 
     mock_firestore_collection.where.return_value.order_by.assert_called_once_with("name")
     mock_firestore_collection.where.return_value.order_by.return_value.offset.assert_called_once_with(page * page_size)
@@ -229,7 +230,4 @@ def test_delete(mock_firestore_client, mock_collection_path, mock_firestore_coll
         client.delete(example_recipe.id)
 
         mock_firestore_collection.document.assert_called_once_with(str(example_recipe.id))
-        mock_firestore_collection.document.return_value.update.assert_called_once_with({
-            "deleted": True,
-            "deleted_at": mock_datetime
-        })
+        mock_firestore_collection.document.return_value.update.assert_called_once_with({"deleted_at": mock_datetime})
