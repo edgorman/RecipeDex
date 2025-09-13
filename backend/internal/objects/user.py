@@ -62,3 +62,9 @@ class User(BaseModel, BaseUser):
         # for now, only admins are authorized
         # in the future, this will depend on whether the user is paying
         return self.role == self.Role.ADMIN
+
+    @property
+    def can_create_recipe(self) -> bool:
+        # for now, only admins are authorized
+        # in the future, this will depend on whether the user is paying
+        return self.role == self.Role.ADMIN

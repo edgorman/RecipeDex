@@ -56,4 +56,7 @@ class RBACRecipeAuthorize(RecipeAuthorize):
         if action in cls.GENERATIVE_AI_ACTIONS and not action_user.can_call_generative_ai:
             return False
 
+        if action is Recipe.Action.CREATE and not action_user.can_create_recipe:
+            return False
+
         return action in cls.ROLE_ACTION_MAPPING[role]

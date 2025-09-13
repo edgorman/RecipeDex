@@ -274,7 +274,7 @@ class RecipeResource(APIRouter):
         try:
             # Create the recipe object from the request data.
             data = request.data.model_dump()
-            recipe_args = {"id": uuid4(), "user_role_mapping": {authenticated_user.id}} | data
+            recipe_args = {"id": uuid4(), "user_role_mapping": {authenticated_user.id: Recipe.Role.OWNER}} | data
             recipe = Recipe(**recipe_args)
         except Exception as e:
             raise HTTPException(
@@ -344,7 +344,7 @@ class RecipeResource(APIRouter):
                 except Exception as e:
                     raise ValueError(f"bad value for Recipe.{field}, `{value}`: {str(e)}")
         except Exception as e:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
             )
@@ -353,7 +353,7 @@ class RecipeResource(APIRouter):
             # Update the recipe in storage.
             self.__recipe_storage_handler.update(recipe.id, recipe)
         except Exception as e:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
             )
