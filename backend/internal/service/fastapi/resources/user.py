@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.authentication import BaseUser
 from uuid import UUID
@@ -20,10 +19,30 @@ class UserResource(APIRouter):
         self.__user_storage_handler = user_storage_handler
         self.__user_authorize_handler = user_authorize_handler
 
-        self.add_api_route("/{user_id}", self._get, methods=["GET"])
-        self.add_api_route("/provider/{provider}/{provider_id}", self._get_by_provider, methods=["GET"])
-        self.add_api_route("/{user_id}", self._update, methods=["PUT"])
-        self.add_api_route("/{user_id}", self._delete, methods=["DELETE"])
+        self.add_api_route(
+            "/{user_id}",
+            self._get,
+            methods=["GET"],
+            response_model=BaseResponse[GetUserResponse]
+        )
+        self.add_api_route(
+            "/provider/{provider}/{provider_id}",
+            self._get_by_provider,
+            methods=["GET"],
+            response_model=BaseResponse[GetUserByProviderResponse]
+        )
+        self.add_api_route(
+            "/{user_id}",
+            self._update,
+            methods=["PUT"],
+            response_model=BaseResponse[UpdateUserResponse]
+        )
+        self.add_api_route(
+            "/{user_id}",
+            self._delete,
+            methods=["DELETE"],
+            response_model=BaseResponse[DeleteUserResponse]
+        )
 
     def __preprocess(self, user_id: str, request_user: User, request_action: User.Action) -> User:
         try:
@@ -61,10 +80,14 @@ class UserResource(APIRouter):
     ) -> BaseResponse[GetUserResponse]:
         user = self.__preprocess(user_id, request_user, User.Action.GET)
 
-        return BaseResponse(
-            detail=f"User {User.Action.GET.value} finished successfully.",
-            data=GetUserResponse.from_objects(user)
-        )
+        try:
+            data = GetUserResponse.model_validate(user)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"User {User.Action.GET.value} finished successfully.", data=data)
 
     async def _get_by_provider(
         self,
@@ -96,10 +119,14 @@ class UserResource(APIRouter):
                        "`user does not exist`."
             )
 
-        return BaseResponse(
-            detail=f"User {User.Action.GET_BY_PROVIDER.value} finished successfully.",
-            data=GetUserByProviderResponse.from_objects(user)
-        )
+        try:
+            data = GetUserByProviderResponse.model_validate(user)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"User {User.Action.GET_BY_PROVIDER.value} finished successfully.", data=data)
 
     async def _update(
         self,
@@ -110,14 +137,12 @@ class UserResource(APIRouter):
         user = self.__preprocess(user_id, request_user, User.Action.UPDATE)
 
         try:
-            if request.data is None:
-                raise ValueError("request body missing data")
-            if all([field is None for field in asdict(request.data).keys()]):
-                raise ValueError("request body fields are all null")
+            data = request.data.model_dump()
 
-            for field, value in asdict(request.data).items():
-                if not hasattr(user, field):
-                    raise ValueError(f"field {field} does not exist in User")
+            if all([field is None for field in data.values()]):
+                raise ValueError("all data fields cannot be null")
+
+            for field, value in data.items():
                 if value is None:
                     continue
 
@@ -139,10 +164,14 @@ class UserResource(APIRouter):
                 detail=f"Could not {User.Action.UPDATE.value} user with id `{user_id}`: `{e}`."
             )
 
-        return BaseResponse(
-            detail=f"User {User.Action.UPDATE.value} finished successfully.",
-            data=UpdateUserResponse.from_objects(user)
-        )
+        try:
+            data = UpdateUserResponse.model_validate(user)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"User {User.Action.UPDATE.value} finished successfully.", data=data)
 
     async def _delete(
         self, user_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -157,7 +186,11 @@ class UserResource(APIRouter):
                 detail=f"Could not {User.Action.DELETE.value} user with id `{user_id}`: `{e}`."
             )
 
-        return BaseResponse(
-            detail=f"User {User.Action.DELETE.value} finished successfully.",
-            data=DeleteUserResponse.from_objects(user)
-        )
+        try:
+            data = DeleteUserResponse.model_validate(user)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"User {User.Action.DELETE.value} finished successfully.", data=data)

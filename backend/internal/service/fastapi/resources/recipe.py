@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from uuid import uuid4, UUID
 from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status, Query
 from starlette.authentication import BaseUser
@@ -11,9 +10,9 @@ from internal.storage.recipe import RecipeStorage
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
 from internal.service.fastapi.schemas import BaseRequest, BaseResponse
 from internal.service.fastapi.schemas.recipe import (
-    ListRecipesResponse, GetRecipeResponse, GetMetadataResponse, GetMessagesResponse,
-    CreateRecipeRequest, CreateRecipeResponse, UpdateRecipeRequest, UpdateRecipeResponse,
-    DeleteRecipeResponse, SendMessageRequest, SendMessageResponse
+    ListRecipesResponse, ListRecipesItem, GetRecipeResponse, GetMetadataResponse, GetMessagesResponse, GetMessagesItem,
+    CreateRecipeRequest, CreateRecipeResponse, UpdateRecipeRequest, UpdateRecipeResponse, DeleteRecipeResponse,
+    SendMessageRequest, SendMessageResponse
 )
 
 
@@ -31,14 +30,53 @@ class RecipeResource(APIRouter):
         self.__recipe_agent_handler = recipe_agent_handler
         self.__recipe_authorize_handler = recipe_authorize_handler
 
-        self.add_api_route("/", self._list, methods=["GET"])
-        self.add_api_route("/{recipe_id}", self._get, methods=["GET"])
-        self.add_api_route("/{recipe_id}/metadata", self._get_metadata, methods=["GET"])
-        self.add_api_route("/{recipe_id}/message", self._get_messages, methods=["GET"])
-        self.add_api_route("/", self._create, methods=["POST"])
-        self.add_api_route("/{recipe_id}", self._update, methods=["PUT"])
-        self.add_api_route("/{recipe_id}", self._delete, methods=["DELETE"])
-        self.add_api_websocket_route("/{recipe_id}/message", self._message, "message")
+        self.add_api_route(
+            "/",
+            self._list,
+            methods=["GET"],
+            response_model=BaseResponse[ListRecipesResponse]
+        )
+        self.add_api_route(
+            "/{recipe_id}",
+            self._get,
+            methods=["GET"],
+            response_model=BaseResponse[GetRecipeResponse]
+        )
+        self.add_api_route(
+            "/{recipe_id}/metadata",
+            self._get_metadata,
+            methods=["GET"],
+            response_model=BaseResponse[GetMetadataResponse]
+        )
+        self.add_api_route(
+            "/{recipe_id}/message",
+            self._get_messages,
+            methods=["GET"],
+            response_model=BaseResponse[GetMessagesResponse]
+        )
+        self.add_api_route(
+            "/",
+            self._create,
+            methods=["POST"],
+            response_model=BaseResponse[CreateRecipeResponse]
+        )
+        self.add_api_route(
+            "/{recipe_id}",
+            self._update,
+            methods=["PUT"],
+            response_model=BaseResponse[UpdateRecipeResponse]
+        )
+        self.add_api_route(
+            "/{recipe_id}",
+            self._delete,
+            methods=["DELETE"],
+            response_model=BaseResponse[DeleteRecipeResponse]
+        )
+        self.add_api_websocket_route(
+            "/{recipe_id}/message",
+            self._message,
+            "message"
+        )
 
     def __preprocess(self, recipe_id: str, request_user: User, request_action: Recipe.Action) -> Recipe:
         try:
@@ -75,38 +113,51 @@ class RecipeResource(APIRouter):
             recipes = self.__recipe_storage_handler.list(page=page, page_size=page_size)
         except Exception as e:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not list recipes: `{str(e)}`."
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Could not {Recipe.Action.GET.value} recipes: `{str(e)}`."
             )
 
-        authorized_recipes = [
+        recipes = [
             recipe
             for recipe in recipes if self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.GET, request_user)
         ]
 
-        return BaseResponse(
-            detail="Recipe list finished successfully.",
-            data=ListRecipesResponse.from_objects(authorized_recipes)
-        )
+        try:
+            data = ListRecipesResponse(recipes=[ListRecipesItem.model_validate(recipe) for recipe in recipes])
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.GET.value} finished successfully.", data=data)
 
     async def _get(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[GetRecipeResponse]:
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET)
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.GET.value} finished successfully.",
-            data=GetRecipeResponse.from_objects(recipe)
-        )
+        try:
+            data = GetRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.GET.value} finished successfully.", data=data)
 
     async def _get_metadata(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
     ) -> BaseResponse[GetMetadataResponse]:
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_METADATA)
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.GET_METADATA.value} finished successfully.",
-            data=GetMetadataResponse.from_objects(recipe)
-        )
+        try:
+            data = GetMetadataResponse.model_validate(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.GET_METADATA.value} finished successfully.", data=data)
 
     async def _get_messages(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -114,10 +165,14 @@ class RecipeResource(APIRouter):
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.GET_MESSAGES)
         messages = [m async for m in self.__recipe_agent_handler.get_messages(recipe, request_user)]
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} finished successfully.",
-            data=GetMessagesResponse.from_objects(messages)
-        )
+        try:
+            data = GetMessagesResponse(messages=[GetMessagesItem.model_validate(message) for message in messages])
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} finished successfully.", data=data)
 
     async def _create(
         self,
@@ -132,21 +187,17 @@ class RecipeResource(APIRouter):
         authenticated_user: User = request_user
 
         try:
-            if request.data is None:
-                raise ValueError("request body missing data")
-
-            parsed_request = CreateRecipeRequest.from_objects(request.data)
+            data = request.data.model_dump()
+            recipe_args = {"id": uuid4(), "user_role_mapping": {authenticated_user.id}} | data
+            recipe = Recipe(**recipe_args)
         except Exception as e:
-            return HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
+                detail=f"Could not {Recipe.Action.CREATE.value} recipe: `{str(e)}`."
             )
 
-        recipe_args = {"id": uuid4(), "user_role_mapping": {authenticated_user.id}} | asdict(parsed_request)
-        recipe = Recipe(**recipe_args)
-
-        authorized = self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.CREATE, authenticated_user)
-        if not authorized:
+        is_authorized = self.__recipe_authorize_handler.authorize(recipe, Recipe.Action.CREATE, authenticated_user)
+        if not is_authorized:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `user is not authorized`."
@@ -160,10 +211,14 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {Recipe.Action.CREATE.value} recipe: `{e}`."
             )
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.",
-            data=CreateRecipeResponse.from_objects(recipe)
-        )
+        try:
+            data = CreateRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.", data=data)
 
     async def _update(
         self,
@@ -174,14 +229,12 @@ class RecipeResource(APIRouter):
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.UPDATE)
 
         try:
-            if request.data is None:
-                raise ValueError("request body missing data")
-            if all([field is None for field in asdict(request.data).keys()]):
-                raise ValueError("request body fields are all null")
+            data = request.data.model_dump()
 
-            for field, value in asdict(request.data).items():
-                if not hasattr(recipe, field):
-                    raise ValueError(f"field {field} does not exist in Recipe")
+            if all([field is None for field in data.values()]):
+                raise ValueError("all data fields cannot be null")
+
+            for field, value in data.items():
                 if value is None:
                     continue
 
@@ -203,10 +256,14 @@ class RecipeResource(APIRouter):
                 detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
             )
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.",
-            data=UpdateRecipeResponse.from_objects(recipe)
-        )
+        try:
+            data = UpdateRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.", data=data)
 
     async def _delete(
         self, recipe_id: str, request_user: BaseUser = Depends(get_user_from_request)
@@ -215,10 +272,14 @@ class RecipeResource(APIRouter):
 
         self.__recipe_storage_handler.delete(recipe.id)
 
-        return BaseResponse(
-            detail=f"Recipe {Recipe.Action.DELETE.value} finished successfully.",
-            data=DeleteRecipeResponse.from_objects(recipe)
-        )
+        try:
+            data = DeleteRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
+            )
+
+        return BaseResponse(detail=f"Recipe {Recipe.Action.DELETE.value} finished successfully.", data=data)
 
     async def _message(self, connection: WebSocket, recipe_id: str) -> None:
         request_user: User = get_user_from_request(connection)
@@ -231,7 +292,7 @@ class RecipeResource(APIRouter):
                 data = await connection.receive_json()
 
                 try:
-                    request_data = SendMessageRequest.from_objects(data)
+                    request_data = SendMessageRequest.model_validate(data)
                     request_message = Recipe.Message(
                         role=Recipe.Message.Role.USER,
                         value=request_data.value
@@ -259,7 +320,7 @@ class RecipeResource(APIRouter):
                         await connection.send_json(
                             BaseResponse(
                                 detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} responded successfully.",
-                                data=SendMessageResponse.from_objects(response_message)
+                                data=SendMessageResponse.model_validate(response_message)
                             ).to_dict()
                         )
                 except Exception as e:

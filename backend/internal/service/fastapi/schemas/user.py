@@ -1,58 +1,33 @@
-from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
-
-from internal.objects.user import User
-
-
-@dataclass
-class GetUserResponse:
-    user_id: UUID
-    user_name: str
-
-    @classmethod
-    def from_objects(cls, user: User) -> "GetUserResponse":
-        """Create a GetUserResponse from a User object"""
-        return cls(
-            user_id=user.id,
-            user_name=user.display_name
-        )
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass
-class GetUserByProviderResponse:
-    user_id: UUID
-    user_name: str
+class GetUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    @classmethod
-    def from_objects(cls, user: User) -> "GetUserByProviderResponse":
-        """Create a GetUserByProviderResponse from a User object"""
-        return cls(
-            user_id=user.id,
-            user_name=user.display_name
-        )
+    id: UUID
+    name: str
 
 
-@dataclass
-class UpdateUserRequest:
+class GetUserByProviderResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+
+
+class UpdateUserRequest(BaseModel):
     name: Optional[str] = None
 
 
-@dataclass
-class UpdateUserResponse:
-    user_id: UUID
+class UpdateUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    @classmethod
-    def from_objects(cls, user: User) -> "UpdateUserResponse":
-        """Create an UpdateUserResponse from a User object"""
-        return cls(user_id=user.id)
+    id: UUID
 
 
-@dataclass
-class DeleteUserResponse:
-    user_id: UUID
+class DeleteUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    @classmethod
-    def from_objects(cls, user: User) -> "DeleteUserResponse":
-        """Create a DeleteUserResponse from a User object"""
-        return cls(user_id=user.id)
+    id: UUID

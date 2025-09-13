@@ -78,8 +78,8 @@ def mock_client(example_user_storage_handler, example_user_authorize_handler, mo
             {
                 "detail": "User get finished successfully.",
                 "data": {
-                    "user_id": example_user.display_id,
-                    "user_name": example_user.display_name
+                    "id": example_user.display_id,
+                    "name": example_user.display_name
                 }
             }
         ),

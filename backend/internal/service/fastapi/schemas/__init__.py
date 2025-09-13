@@ -24,11 +24,13 @@ class BaseResponse(BaseModel, Generic[T]):
                 return str(obj)
             if isinstance(obj, Enum):
                 return obj.value
+            if isinstance(obj, BaseModel):
+                return default(obj.model_dump())
             if is_dataclass(obj):
                 return default(asdict(obj))
             if isinstance(obj, dict):
                 return {default(k): default(v) for k, v in obj.items()}
-            if isinstance(obj, Iterable) and not isinstance(obj, str) and len(obj) > 1:
+            if isinstance(obj, Iterable) and not isinstance(obj, str):
                 return [default(v) for v in obj]
             return obj
 

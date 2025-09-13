@@ -128,8 +128,8 @@ export default function EngineeringConsole() {
       {user && (
         <p>
           Firebase UID: <code>{user.uid}</code>
-          {panel('currentAppUser').data?.user_id && (
-            <> &nbsp;| App User ID: <code>{panel('currentAppUser').data.user_id}</code></>
+          {panel('currentAppUser').data?.id && (
+            <> &nbsp;| RecipeDex User ID: <code>{panel('currentAppUser').data.id}</code></>
           )}
         </p>
       )}
