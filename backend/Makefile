@@ -27,7 +27,7 @@ test: ## test the backend
 
 .PHONY: run-agent
 run-agent: ## run the backend agents in adk web ui
-	@adk web internal/agents/vertex/subagents
+	@adk web internal/agent/vertex/subagents
 
 .PHONY: run-service
 run-service: ## run the backend service

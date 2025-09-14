@@ -21,7 +21,7 @@ from internal.config.storage import (
 from internal.auth.firebase.user import FirebaseUserAuthenticate
 from internal.auth.mac.user import MACUserAuthorize
 from internal.agent.vertex.recipe import VertexRecipeAgent
-from internal.agent.vertex.subagents.coordinator.agent import root_agent as base_agent
+from internal.agent.vertex.subagents.coordinator.agent import CoordinatorAgent
 from internal.auth.rbac.recipe import RBACRecipeAuthorize
 from internal.storage.firestore.user import FirestoreUserStorage
 from internal.storage.firestore.recipe import FirestoreRecipeStorage
@@ -53,9 +53,10 @@ def run():
     agent_sessions_service = FirestoreSessionStorage(
         firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
     )
+    coordinator_agent = CoordinatorAgent(recipe_storage_handler)
     agent_runner_service = AgentRunner(
         app_name=AGENT_APP_NAME,
-        agent=base_agent,
+        agent=coordinator_agent,
         artifact_service=None,
         memory_service=None,
         session_service=agent_sessions_service
