@@ -1,9 +1,109 @@
 from uuid import UUID
 from typing import Any, Dict, List
+from pydantic import BaseModel
 from google.adk.tools import FunctionTool, ToolContext
 
 from internal.storage.recipe import RecipeStorage
 from internal.objects.recipe import Recipe
+
+
+def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, FunctionTool]:
+    """
+    Creates multiple tools used to get a field of a recipe.
+
+    Args:
+        recipe_storage_handler: The storage handler for recipes.
+
+    Returns:
+        A list of FunctionTool objects for getting recipe fields.
+    """
+
+    def _get_recipe_field(id_: UUID, field: str) -> Dict[str, str]:
+        """
+        Gets the field of a recipe.
+
+        Args:
+            id_: The id of the recipe to get.
+            field: the field of the recipe to get.
+
+        Returns:
+            A dict describing the outcome of the tool usage.
+            see https://google.github.io/adk-docs/tools/function-tools/#return-type
+        """
+        try:
+            recipe = recipe_storage_handler.get(id_)
+        except Exception as e:
+            return {"status": "error", "message": f"Could not load recipe from internal state: `{str(e)}`."}
+
+        try:
+            value = getattr(recipe, field)
+        except Exception as e:
+            return {"status": "error", "message": f"Could not get recipe {field}: `{str(e)}`."}
+
+        try:
+            if isinstance(value, BaseModel):
+                value = value.model_dump(mode="json")
+            elif isinstance(value, list):
+                value = [v.model_dump(mode="json") if isinstance(v, BaseModel) else v for v in value]
+        except Exception as e:
+            return {"status": "error", "message": f"Could not format recipe {field}: `{str(e)}`"}
+
+        return {"status": "success", "value": value, "message": f"Recipe {field} retrieved"}
+
+    def get_recipe_name_tool(tool_context: ToolContext) -> Dict[str, str]:
+        """
+        Gets the name field of the recipe.
+
+        Args:
+            tool_context: The context of the tool usage.
+
+        Returns:
+            A dict describing the outcome
+        """
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "name")
+
+    def get_recipe_private_tool(tool_context: ToolContext) -> Dict[str, str]:
+        """
+        Gets the private field of the recipe.
+
+        Args:
+            tool_context: The context of the tool usage.
+
+        Returns:
+            A dict describing the outcome
+        """
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "private")
+
+    def get_recipe_ingredients_tool(tool_context: ToolContext) -> Dict[str, str]:
+        """
+        Gets the ingredients field of the recipe.
+
+        Args:
+            tool_context: The context of the tool usage.
+
+        Returns:
+            A dict describing the outcome
+        """
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "ingredients")
+
+    def get_recipe_instructions_tool(tool_context: ToolContext) -> Dict[str, str]:
+        """
+        Gets the instructions field of the recipe.
+
+        Args:
+            tool_context: The context of the tool usage.
+
+        Returns:
+            A dict describing the outcome
+        """
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "instructions")
+
+    return {
+        "name": FunctionTool(get_recipe_name_tool),
+        "private": FunctionTool(get_recipe_private_tool),
+        "ingredients": FunctionTool(get_recipe_ingredients_tool),
+        "instructions": FunctionTool(get_recipe_instructions_tool),
+    }
 
 
 def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, FunctionTool]:

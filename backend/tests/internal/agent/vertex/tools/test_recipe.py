@@ -4,12 +4,15 @@ from unittest.mock import Mock
 
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
-from internal.agent.vertex.tools.recipe import create_update_recipe_tools
+from internal.agent.vertex.tools.recipe import create_get_recipe_tools, create_update_recipe_tools
 
 
 example_recipe = Recipe(
     id=uuid4(),
-    name="example_recipe"
+    name="example_recipe",
+    private=False,
+    ingredients=[Recipe.Ingredient(name="flour", unit="grams", quantity=500)],
+    instructions=[Recipe.Instruction(value="mix it")]
 )
 example_user = User(
     id=uuid4(),
@@ -31,6 +34,34 @@ def mock_recipe_storage_handler():
 @pytest.fixture
 def mock_tool_context():
     return Mock()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "get_field,expected_value",
+    [
+        ("name", example_recipe.name),
+        ("private", example_recipe.private),
+        ("ingredients", [ingredient.model_dump(mode="json") for ingredient in example_recipe.ingredients]),
+        ("instructions", [instruction.model_dump(mode="json") for instruction in example_recipe.instructions]),
+    ]
+)
+async def test_get_recipe_field_tool(
+    mock_recipe_storage_handler,
+    mock_tool_context,
+    get_field,
+    expected_value
+):
+    mock_tool_context.state.get.return_value = example_recipe.id
+    mock_recipe_storage_handler.get.return_value = example_recipe
+
+    tool = create_get_recipe_tools(mock_recipe_storage_handler)[get_field]
+    response = await tool.run_async(args={}, tool_context=mock_tool_context)
+    assert response["status"] == "success", response["message"]
+    assert response["value"] == expected_value
+
+    mock_recipe_storage_handler.get.assert_called_once_with(example_recipe.id)
+    mock_recipe_storage_handler.update.assert_not_called()
 
 
 @pytest.mark.asyncio
