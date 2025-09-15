@@ -7,21 +7,30 @@ from google.genai.types import Content, Part
 from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
+from internal.objects.session import SessionState
 from internal.storage.recipe import RecipeStorage
+from internal.storage.session import SessionStorage
 
 
 class VertexRecipeAgent(RecipeAgent):
     """The VertexRecipeAgent is an implementation of the RecipeAgent class"""
 
-    def __init__(self, agent_runner_service: Runner, recipe_storage_handler: RecipeStorage) -> None:
+    def __init__(
+        self,
+        agent_runner_service: Runner,
+        session_storage_handler: SessionStorage,
+        recipe_storage_handler: RecipeStorage
+    ) -> None:
         """
         Initializes the VertexRecipeAgent.
 
         Args:
             agent_runner_service: The runner service for the agent.
+            session_storage_handler: The session service for the agent.
             recipe_storage_handler: The storage handler for recipes.
         """
         self.__agent_runner_service = agent_runner_service
+        self.__session_storage_handler = session_storage_handler
         self.__recipe_storage_handler = recipe_storage_handler
 
     @staticmethod
@@ -53,11 +62,33 @@ class VertexRecipeAgent(RecipeAgent):
             return None
 
         # Get the session from the agent runner service
-        return await self.__agent_runner_service.session_service.get_session(
+        return await self.__session_storage_handler.get_session(
             app_name=self.__agent_runner_service.app_name,
             user_id=user.display_id,
             session_id=recipe.user_session_mapping[user.id]
         )
+
+    async def _create_session(self, recipe: Recipe, user: User) -> None:
+        """
+        Creates a session for a user and recipe.
+
+        Args:
+            recipe: The recipe to create the session for.
+            user: The user to create the session for.
+        """
+        # Create a new session for the user
+        session = await self.__session_storage_handler.create_session(
+            app_name=self.__agent_runner_service.app_name,
+            user_id=user.display_id,
+            state=SessionState(
+                recipe_id=recipe.id,
+                user_id=user.id
+            ).model_dump(mode="json")
+        )
+
+        # Update the recipe with the new session id
+        recipe.user_session_mapping[user.id] = session.id
+        self.__recipe_storage_handler.update(recipe.id, recipe)
 
     async def get_messages(self, recipe: Recipe, user: User) -> AsyncGenerator[Recipe.Message, None]:
         """
@@ -77,35 +108,13 @@ class VertexRecipeAgent(RecipeAgent):
 
         # Yield the messages from the session
         for event in session.events:
-            for part in event.content.parts:
-                if part and part.text:
-                    yield Recipe.Message(
-                        role=self._parse_role(event),
-                        value=part.text
-                    )
-
-    async def _create_session(self, recipe: Recipe, user: User) -> None:
-        """
-        Creates a session for a user and recipe.
-
-        Args:
-            recipe: The recipe to create the session for.
-            user: The user to create the session for.
-        """
-        # Create a new session for the user
-        session = await self.__agent_runner_service.session_service.create_session(
-            app_name=self.__agent_runner_service.app_name,
-            user_id=user.display_id,
-            state={
-                "recipe_id": recipe.display_id,
-                # TODO: add more state information from the user, e.g. allergies
-                #       see https://google.github.io/adk-docs/sessions/state/#organizing-state-with-prefixes-scope-matters
-                "user_name": user.name
-            }
-        )
-        # Update the recipe with the new session id
-        recipe.user_session_mapping[user.id] = session.id
-        self.__recipe_storage_handler.update(recipe.id, recipe)
+            if event.content:
+                for part in event.content.parts:
+                    if part and part.text:
+                        yield Recipe.Message(
+                            role=self._parse_role(event),
+                            value=part.text
+                        )
 
     async def create_message(
         self, recipe: Recipe, user: User, message: Recipe.Message
@@ -123,7 +132,6 @@ class VertexRecipeAgent(RecipeAgent):
         """
         # Get the session for the user and recipe
         session = await self._get_session(recipe, user)
-        # If the session does not exist, create a new one
         if session is None:
             await self._create_session(recipe, user)
 
@@ -136,9 +144,12 @@ class VertexRecipeAgent(RecipeAgent):
                 parts=[Part.from_text(text=message.value)]
             ),
         ):
-            for part in event.content.parts:
-                if part and part.text:
-                    yield Recipe.Message(
-                        role=self._parse_role(event),
-                        value=part.text
-                    )
+            # Produces messages from each response
+            # TODO: some events won't have contents, maybe useful to store also
+            if event.content:
+                for part in event.content.parts:
+                    if part and part.text:
+                        yield Recipe.Message(
+                            role=self._parse_role(event),
+                            value=part.text
+                        )

@@ -12,7 +12,6 @@ class User(BaseModel, BaseUser):
     name: str
     role: "Role"
     provider: "Provider"
-
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     deleted_at: Optional[datetime] = None

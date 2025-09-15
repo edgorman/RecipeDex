@@ -10,12 +10,10 @@ class Recipe(BaseModel):
     id: UUID
     name: str
     private: bool = False
-    user_session_mapping: Dict[UUID, str] = Field(default_factory=dict)
-    user_role_mapping: Dict[UUID, "Role"] = Field(default_factory=dict)
-
     ingredients: List["Ingredient"] = Field(default_factory=list)
     instructions: List["Instruction"] = Field(default_factory=list)
-
+    user_session_mapping: Dict[UUID, str] = Field(default_factory=dict)
+    user_role_mapping: Dict[UUID, "Role"] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
     deleted_at: Optional[datetime] = None

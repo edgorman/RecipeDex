@@ -44,25 +44,26 @@ def run():
     user_storage_handler = FirestoreUserStorage(
         client=firestore_client, collection_path=(STORAGE_COLLECTION_USER_NAME,)
     )
+    session_storage_handler = FirestoreSessionStorage(
+        firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
+    )
 
     # Initialise auth handlers
     user_authenticate_handler = FirebaseUserAuthenticate(AUTH_USER_FIREBASE_AUDIENCE)
     user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
-    agent_sessions_service = FirestoreSessionStorage(
-        firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
-    )
     coordinator_agent = CoordinatorAgent(recipe_storage_handler)
     agent_runner_service = AgentRunner(
         app_name=AGENT_APP_NAME,
         agent=coordinator_agent,
         artifact_service=None,
         memory_service=None,
-        session_service=agent_sessions_service
+        session_service=session_storage_handler
     )
     recipe_agent_handler = VertexRecipeAgent(
         agent_runner_service=agent_runner_service,
+        session_storage_handler=session_storage_handler,
         recipe_storage_handler=recipe_storage_handler
     )
 

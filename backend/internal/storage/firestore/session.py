@@ -1,10 +1,10 @@
 from uuid import uuid4
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 from datetime import datetime, timezone
 from google.cloud.firestore import FieldFilter, Client as FirestoreClient
 from google.adk.sessions import Session
 from google.adk.sessions.base_session_service import GetSessionConfig, ListSessionsResponse
-from google.adk.events.event import Event
+from google.adk.events.event import Event, EventActions
 
 from internal.storage.session import SessionStorage
 
@@ -156,3 +156,48 @@ class FirestoreSessionStorage(SessionStorage):
             self.__collection.document(session_id).delete()
         except Exception as e:
             raise Exception(f"Could not delete session: `{str(e)}`.")
+
+    async def update_session_state(
+        self,
+        *,
+        app_name: str,
+        user_id: str,
+        session_id: str,
+        new_state: Dict[str, Any]
+    ) -> None:
+        """
+        Update the state of an existing session.
+
+        Args:
+            app_name: the name of the app.
+            user_id: the ID of the user.
+            session_id: the ID of the session to update.
+            new_state: the new state of the session.
+        """
+        try:
+            # Get the existing session from Firestore.
+            session = await self.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
+        except Exception as e:
+            raise Exception(f"Could not get session when updating state: `{str(e)}`.")
+
+        state_delta = {}
+
+        # Check for changed and new keys
+        for new_key, new_value in new_state.items():
+            if new_key not in session.state or session.state.get(new_key) != new_value:
+                state_delta[new_key] = new_value
+
+        # If there is no diff, return early
+        if not state_delta:
+            return
+
+        # Compose a new event to update the state
+        actions = EventActions(state_delta=state_delta)
+        event = Event(
+            invocation_id="create_message_prehook",
+            author="system",
+            actions=actions
+        )
+
+        # Update the state with the event
+        await self.append_event(session, event)

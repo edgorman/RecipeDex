@@ -25,12 +25,8 @@ lint: ## lint the backend
 test: ## test the backend
 	@uv run -- pytest tests -svv
 
-.PHONY: run-agent
-run-agent: ## run the backend agents in adk web ui
-	@adk web internal/agent/vertex/subagents
-
-.PHONY: run-service
-run-service: ## run the backend service
+.PHONY: run
+run: ## run the backend
 	@uv run -- commands/service.py run
 
 .PHONY: build-service
