@@ -1,13 +1,14 @@
+from datetime import datetime, timezone
 from typing import AsyncGenerator, Optional
 from google.adk.runners import Runner
-from google.adk.sessions import Session
+from google.adk.sessions import Session as BaseSession
 from google.adk.events import Event
 from google.genai.types import Content, Part
 
 from internal.agent.recipe import RecipeAgent
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
-from internal.objects.session import SessionState
+from internal.objects.session import Session
 from internal.storage.recipe import RecipeStorage
 from internal.storage.session import SessionStorage
 
@@ -33,20 +34,45 @@ class VertexRecipeAgent(RecipeAgent):
         self.__session_storage_handler = session_storage_handler
         self.__recipe_storage_handler = recipe_storage_handler
 
-    @staticmethod
-    def _parse_role(event: Event) -> Recipe.Message.Role:
+    async def _parse_messages(self, event: Event) -> AsyncGenerator[Session.Message, None]:
         """
-        Parses the role from an event.
+        Parse the messages from an event.
 
         Args:
             event: The event to parse.
 
         Returns:
-            The role of the message.
+            The messages from the event
         """
-        return Recipe.Message.Role.USER if event.author == 'user' else Recipe.Message.Role.MODEL
+        if event.content:
+            created_at = datetime.fromtimestamp(event.timestamp, tz=timezone.utc)
 
-    async def _get_session(self, recipe: Recipe, user: User) -> Optional[Session]:
+            for part in event.content.parts:
+                # Handle chat messages
+                if part.text:
+                    role = Session.Message.Role.USER if event.author == 'user' else Session.Message.Role.MODEL
+                    yield Session.Message(role=role, value=part.text, created_at=created_at)
+
+                # Handle tool completions
+                if part.function_response:
+                    yield Session.Message(
+                        role=Session.Message.Role.SYSTEM,
+                        tool=Session.Message.ToolResponse.model_validate(part.function_response.response),
+                        created_at=created_at
+                    )
+
+                # Handle tool calls
+                if part.function_call:
+                    yield Session.Message(
+                        role=Session.Message.Role.SYSTEM,
+                        tool=Session.Message.ToolResponse(
+                            name=part.function_call.name,
+                            status=Session.Message.ToolResponse.Status.PENDING
+                        ),
+                        created_at=created_at
+                    )
+
+    async def _get_session(self, recipe: Recipe, user: User) -> Optional[BaseSession]:
         """
         Gets the session for a user and recipe.
 
@@ -80,7 +106,7 @@ class VertexRecipeAgent(RecipeAgent):
         session = await self.__session_storage_handler.create_session(
             app_name=self.__agent_runner_service.app_name,
             user_id=user.display_id,
-            state=SessionState(
+            state=Session.State(
                 recipe_id=recipe.id,
                 user_id=user.id
             ).model_dump(mode="json")
@@ -90,7 +116,7 @@ class VertexRecipeAgent(RecipeAgent):
         recipe.user_session_mapping[user.id] = session.id
         self.__recipe_storage_handler.update(recipe.id, recipe)
 
-    async def get_messages(self, recipe: Recipe, user: User) -> AsyncGenerator[Recipe.Message, None]:
+    async def get_messages(self, recipe: Recipe, user: User) -> AsyncGenerator[Session.Message, None]:
         """
         Gets the messages for a recipe and user.
 
@@ -108,17 +134,12 @@ class VertexRecipeAgent(RecipeAgent):
 
         # Yield the messages from the session
         for event in session.events:
-            if event.content:
-                for part in event.content.parts:
-                    if part and part.text:
-                        yield Recipe.Message(
-                            role=self._parse_role(event),
-                            value=part.text
-                        )
+            async for message in self._parse_messages(event):
+                yield message
 
     async def create_message(
-        self, recipe: Recipe, user: User, message: Recipe.Message
-    ) -> AsyncGenerator[Recipe.Message, None]:
+        self, recipe: Recipe, user: User, message: Session.Message
+    ) -> AsyncGenerator[Session.Message, None]:
         """
         Creates a message for a recipe and user.
 
@@ -144,12 +165,5 @@ class VertexRecipeAgent(RecipeAgent):
                 parts=[Part.from_text(text=message.value)]
             ),
         ):
-            # Produces messages from each response
-            # TODO: some events won't have contents, maybe useful to store also
-            if event.content:
-                for part in event.content.parts:
-                    if part and part.text:
-                        yield Recipe.Message(
-                            role=self._parse_role(event),
-                            value=part.text
-                        )
+            async for message in self._parse_messages(event):
+                yield message

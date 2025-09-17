@@ -10,6 +10,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from internal.config.service import SERVICE_AUTH_SCOPE
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
+from internal.objects.session import Session
 from internal.service.fastapi.resources.recipe import RecipeResource
 from internal.service.fastapi.schemas import BaseRequest, BaseResponse
 from internal.service.fastapi.schemas.recipe import (
@@ -63,7 +64,7 @@ example_private_with_undefined_recipe = Recipe(
     user_role_mapping={example_user.id: Recipe.Role.UNDEFINED}
 )
 
-example_messages = [Recipe.Message(role=Recipe.Message.Role.USER, value="example_value")]
+example_messages = [Session.Message(role=Session.Message.Role.USER, value="example_value")]
 example_nonexistent_id = uuid4()
 
 

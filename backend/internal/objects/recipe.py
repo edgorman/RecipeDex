@@ -41,15 +41,6 @@ class Recipe(BaseModel):
     class Instruction(BaseModel):
         value: str
 
-    class Message(BaseModel):
-        role: "Role"
-        value: str
-
-        class Role(Enum):
-            UNDEFINED = "undefined"
-            MODEL = "model"
-            USER = "user"
-
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None

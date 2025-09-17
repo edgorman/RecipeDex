@@ -6,6 +6,7 @@ from internal.agent.recipe import RecipeAgent
 from internal.auth.recipe import RecipeAuthorize
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
+from internal.objects.session import Session
 from internal.storage.recipe import RecipeStorage
 from internal.service.fastapi.middleware.authenticate import get_user_from_request
 from internal.service.fastapi.schemas import BaseRequest, BaseResponse
@@ -417,8 +418,8 @@ class RecipeResource(APIRouter):
                 try:
                     # Validate the request data.
                     request_data = SendMessageRequest.model_validate(data)
-                    request_message = Recipe.Message(
-                        role=Recipe.Message.Role.USER,
+                    request_message = Session.Message(
+                        role=Session.Message.Role.USER,
                         value=request_data.value
                     )
                 except Exception as e:

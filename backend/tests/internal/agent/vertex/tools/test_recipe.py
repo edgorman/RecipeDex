@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
+from internal.objects.session import Session
 from internal.agent.vertex.tools.recipe import create_get_recipe_tools, create_update_recipe_tools
 
 
@@ -38,27 +39,37 @@ def mock_tool_context():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "get_field,expected_value",
+    "get_field,expected_value,expected_status",
     [
-        ("name", example_recipe.name),
-        ("private", example_recipe.private),
-        ("ingredients", [ingredient.model_dump(mode="json") for ingredient in example_recipe.ingredients]),
-        ("instructions", [instruction.model_dump(mode="json") for instruction in example_recipe.instructions]),
+        ("name", example_recipe.name, Session.Message.ToolResponse.Status.SUCCESS),
+        ("private", example_recipe.private, Session.Message.ToolResponse.Status.SUCCESS),
+        (
+            "ingredients",
+            [ingredient.model_dump(mode="json") for ingredient in example_recipe.ingredients],
+            Session.Message.ToolResponse.Status.SUCCESS
+        ),
+        (
+            "instructions",
+            [instruction.model_dump(mode="json") for instruction in example_recipe.instructions],
+            Session.Message.ToolResponse.Status.SUCCESS
+        ),
     ]
 )
 async def test_get_recipe_field_tool(
     mock_recipe_storage_handler,
     mock_tool_context,
     get_field,
-    expected_value
+    expected_value,
+    expected_status
 ):
     mock_tool_context.state.get.return_value = example_recipe.id
     mock_recipe_storage_handler.get.return_value = example_recipe
 
     tool = create_get_recipe_tools(mock_recipe_storage_handler)[get_field]
     response = await tool.run_async(args={}, tool_context=mock_tool_context)
-    assert response["status"] == "success", response["message"]
-    assert response["value"] == expected_value
+    tool_response = Session.Message.ToolResponse.model_validate(response)
+    assert tool_response.status == expected_status, tool_response.message
+    assert tool_response.value == expected_value
 
     mock_recipe_storage_handler.get.assert_called_once_with(example_recipe.id)
     mock_recipe_storage_handler.update.assert_not_called()
@@ -68,10 +79,18 @@ async def test_get_recipe_field_tool(
 @pytest.mark.parametrize(
     "update_field,new_value,expected_status",
     [
-        ("name", "new_name", "success"),
-        ("private", True, "success"),
-        ("ingredients", [{"name": "name", "unit": "unit", "quantity": float(100)}], "success"),
-        ("instructions", [{"value": "value"}], "success"),
+        ("name", "new_name", Session.Message.ToolResponse.Status.SUCCESS),
+        ("private", True, Session.Message.ToolResponse.Status.SUCCESS),
+        (
+            "ingredients",
+            [ingredient.model_dump(mode="json") for ingredient in example_recipe.ingredients],
+            Session.Message.ToolResponse.Status.SUCCESS
+        ),
+        (
+            "instructions",
+            [instruction.model_dump(mode="json") for instruction in example_recipe.instructions],
+            Session.Message.ToolResponse.Status.SUCCESS
+        ),
     ]
 )
 async def test_update_recipe_name_tool(
@@ -88,7 +107,8 @@ async def test_update_recipe_name_tool(
 
     tool = create_update_recipe_tools(mock_recipe_storage_handler)[update_field]
     response = await tool.run_async(args={"new_value": new_value}, tool_context=mock_tool_context)
-    assert response["status"] == expected_status, response["message"]
+    tool_response = Session.Message.ToolResponse.model_validate(response)
+    assert tool_response.status == expected_status, tool_response.message
 
     mock_recipe_storage_handler.get.assert_called_once_with(example_recipe.id)
     mock_recipe_storage_handler.update.assert_called_once()

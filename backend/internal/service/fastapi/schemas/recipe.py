@@ -1,9 +1,10 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Dict, List, Optional
-from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from internal.objects.recipe import Recipe
+from internal.objects.session import Session
 
 
 class ListRecipesItem(BaseModel):
@@ -79,8 +80,10 @@ class DeleteRecipeResponse(BaseModel):
 class GetMessagesItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    role: Recipe.Message.Role
-    value: str
+    role: Session.Message.Role
+    value: Optional[str]
+    tool: Optional[Session.Message.ToolResponse]
+    created_at: datetime
 
 
 class GetMessagesResponse(BaseModel):
@@ -93,8 +96,10 @@ class SendMessageRequest(BaseModel):
     value: str
 
 
-class SendMessageResponse(Recipe.Message):
+class SendMessageResponse(Session.Message):
     model_config = ConfigDict(from_attributes=True)
 
-    role: Recipe.Message.Role
-    value: str
+    role: Session.Message.Role
+    value: Optional[str]
+    tool: Optional[Session.Message.ToolResponse]
+    created_at: datetime

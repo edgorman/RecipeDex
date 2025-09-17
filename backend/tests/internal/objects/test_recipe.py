@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 from datetime import datetime, timezone
 
 from internal.objects.recipe import Recipe
+from internal.objects.session import Session
 
 
 @pytest.fixture
@@ -159,12 +160,12 @@ def test_instruction_creation(value: str):
 @pytest.mark.parametrize(
     "role, value",
     [
-        (Recipe.Message.Role.USER, "Hello"),
-        (Recipe.Message.Role.MODEL, "Hi there!"),
-        (Recipe.Message.Role.UNDEFINED, "Some message"),
+        (Session.Message.Role.USER, "Hello"),
+        (Session.Message.Role.MODEL, "Hi there!"),
+        (Session.Message.Role.UNDEFINED, "Some message"),
     ]
 )
-def test_message_creation(role: Recipe.Message.Role, value: str):
+def test_message_creation(role: Session.Message.Role, value: str):
     """
     Test that a Message object can be created with different parameters.
 
@@ -172,6 +173,6 @@ def test_message_creation(role: Recipe.Message.Role, value: str):
         role: the role of the message sender.
         value: the value of the message.
     """
-    message = Recipe.Message(role=role, value=value)
+    message = Session.Message(role=role, value=value)
     assert message.role == role
     assert message.value == value
