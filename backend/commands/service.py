@@ -53,7 +53,7 @@ def run():
     user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
-    coordinator_agent = CoordinatorAgent(recipe_storage_handler)
+    coordinator_agent = CoordinatorAgent(recipe_storage_handler, user_storage_handler)
     agent_runner_service = AgentRunner(
         app_name=AGENT_APP_NAME,
         agent=coordinator_agent,

@@ -19,19 +19,20 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         A list of FunctionTool objects for getting recipe fields.
     """
 
-    def _get_recipe_field(id_: UUID, field: str, tool_name: str) -> Dict[str, str]:
+    def _get_recipe_field(id_: UUID, field: str) -> Dict[str, str]:
         """
         Gets the field of a recipe.
 
         Args:
             id_: The id of the recipe to get.
             field: The field of the recipe to get.
-            tool_name: The name of the tool that called this function.
 
         Returns:
             A dict describing the outcome of the tool usage.
             see https://google.github.io/adk-docs/tools/function-tools/#return-type
         """
+        tool_name = f"get_recipe_{field}_tool"
+
         try:
             recipe = recipe_storage_handler.get(id_)
         except Exception as e:
@@ -79,11 +80,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         Returns:
             A dict describing the outcome
         """
-        return _get_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "name",
-            "get_recipe_name_tool"
-        )
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "name")
 
     def get_recipe_private_tool(tool_context: ToolContext) -> Dict[str, str]:
         """
@@ -95,11 +92,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         Returns:
             A dict describing the outcome
         """
-        return _get_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "private",
-            "get_recipe_private_tool"
-        )
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "private")
 
     def get_recipe_ingredients_tool(tool_context: ToolContext) -> Dict[str, str]:
         """
@@ -111,11 +104,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         Returns:
             A dict describing the outcome
         """
-        return _get_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "ingredients",
-            "get_recipe_ingredients_tool"
-        )
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "ingredients")
 
     def get_recipe_instructions_tool(tool_context: ToolContext) -> Dict[str, str]:
         """
@@ -127,11 +116,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         Returns:
             A dict describing the outcome
         """
-        return _get_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "instructions",
-            "get_recipe_instructions_tool"
-        )
+        return _get_recipe_field(tool_context.state.get("recipe_id"), "instructions")
 
     return {
         "name": FunctionTool(get_recipe_name_tool),
@@ -152,7 +137,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
         A list of FunctionTool objects for updating recipe fields.
     """
 
-    def _update_recipe_field(id_: UUID, field: str, new_value: Any, tool_name: str) -> Dict[str, str]:
+    def _update_recipe_field(id_: UUID, field: str, new_value: Any) -> Dict[str, str]:
         """
         Updates the field of a recipe.
 
@@ -160,12 +145,13 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
             id_: The id of the recipe to update.
             field: the field of the recipe to update.
             new_value: The new value for the field.
-            tool_name: The name of the tool that called this function.
 
         Returns:
             A dict describing the outcome of the tool usage.
             see https://google.github.io/adk-docs/tools/function-tools/#return-type
         """
+        tool_name = f"update_recipe_{field}_tool"
+
         try:
             recipe = recipe_storage_handler.get(id_)
         except Exception as e:
@@ -210,12 +196,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
         Returns:
             A dict describing the outcome
         """
-        return _update_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "name",
-            new_value,
-            "update_recipe_name_tool"
-        )
+        return _update_recipe_field(tool_context.state.get("recipe_id"), "name", new_value)
 
     def update_recipe_private_tool(new_value: bool, tool_context: ToolContext) -> Dict[str, str]:
         """
@@ -228,12 +209,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
         Returns:
             A dict describing the outcome
         """
-        return _update_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "private",
-            new_value,
-            "update_recipe_private_tool"
-        )
+        return _update_recipe_field(tool_context.state.get("recipe_id"), "private", new_value)
 
     def update_recipe_ingredients_tool(
         new_value: List[Recipe.Ingredient],
@@ -260,12 +236,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
                 message=f"Could not parse new value to ingredient: `{str(e)}`."
             ).model_dump(mode="json")
 
-        return _update_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "ingredients",
-            ingredients,
-            "update_recipe_ingredients_tool"
-        )
+        return _update_recipe_field(tool_context.state.get("recipe_id"), "ingredients", ingredients)
 
     def update_recipe_instructions_tool(
         new_value: List[Recipe.Instruction],
@@ -292,12 +263,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
                 message=f"Could not parse new value to instruction: `{str(e)}`."
             ).model_dump(mode="json")
 
-        return _update_recipe_field(
-            tool_context.state.get("recipe_id"),
-            "instructions",
-            instructions,
-            "update_recipe_instructions_tool"
-        )
+        return _update_recipe_field(tool_context.state.get("recipe_id"), "instructions", instructions)
 
     return {
         "name": FunctionTool(update_recipe_name_tool),
