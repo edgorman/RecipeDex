@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 from typing import Any, Dict, List
 from pydantic import BaseModel
 from google.adk.tools import FunctionTool, ToolContext
@@ -314,6 +314,8 @@ def create_search_recipe_tools(
         except Exception:
             # TODO: log and handle these units
             quantity = float(0)
+            if parsed_ingredient.quantity() is None:
+                quantity = float(1)
 
         return Recipe.Ingredient(
             name=parsed_ingredient.food(),
@@ -321,12 +323,14 @@ def create_search_recipe_tools(
             quantity=quantity
         )
 
-    def _scrape_recipe(url: str) -> Recipe:
+    def _scrape_recipe(url: str, recipe_id: UUID, user_id: UUID) -> Recipe:
         """
         Scrape a recipe from the url given into a Recipe instance.
 
         Args:
             url: The url of the recipe
+            recipe_id: The id of the recipe for the request
+            user_id: The id of the user making the request
 
         Returns:
             A Recipe from the url
@@ -336,18 +340,20 @@ def create_search_recipe_tools(
         instructions = [Recipe.Instruction(value=instruction) for instruction in scraped_recipe.instructions_list()]
 
         return Recipe(
-            id=uuid4(),
+            id=recipe_id,
             name=scraped_recipe.title(),
             ingredients=ingredients,
-            instructions=instructions
+            instructions=instructions,
+            user_role_mapping={user_id: Recipe.Role.OWNER}
         )
 
-    def search_recipes_from_internet(search_query: str) -> Dict[str, str]:
+    def search_recipes_from_internet(search_query: str, tool_context: ToolContext) -> Dict[str, str]:
         """
         Searches recipes from internet.
 
         Args:
-            search_query: the search terms to use
+            search_query: The search terms to use
+            tool_context: The context of the tool usage.
 
         Returns:
             A dict describing the outcome
@@ -372,7 +378,9 @@ def create_search_recipe_tools(
             for url in page_urls:
                 try:
                     # Scrape the recipe and append to list
-                    recipes.append(_scrape_recipe(url))
+                    recipes.append(
+                        _scrape_recipe(url, tool_context.state.get("recipe_id"), tool_context.state.get("user_id"))
+                    )
                 except Exception as e:
                     errors.append(f"could not scrape recipe from `{url}`: {str(e)}")
                     continue
@@ -409,7 +417,7 @@ def create_search_recipe_tools(
 
         try:
             # Scrape recipe from url
-            recipe = _scrape_recipe(url)
+            recipe = _scrape_recipe(url, tool_context.state.get("recipe_id"), tool_context.state.get("user_id"))
         except Exception as e:
             return Session.Message.ToolResponse(
                 name=tool_name,
