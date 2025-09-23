@@ -2,12 +2,14 @@ from enum import Enum
 from uuid import UUID
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from starlette.authentication import BaseUser
 
 
 class User(BaseModel, BaseUser):
     """Object that stores User information"""
+    model_config = ConfigDict(extra="forbid")
+
     id: UUID
     name: str
     role: "Role"

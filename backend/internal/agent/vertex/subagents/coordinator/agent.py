@@ -1,26 +1,37 @@
 from google.adk.agents import Agent
 
 from internal.config.agent import AGENT_COORDINATOR_NAME, AGENT_MODEL_NAME
+from internal.clients.search import SearchClient
 from internal.storage.recipe import RecipeStorage
 from internal.storage.user import UserStorage
-from internal.agent.vertex.tools.recipe import create_get_recipe_tools, create_update_recipe_tools
+from internal.agent.vertex.tools.recipe import (
+    create_get_recipe_tools, create_update_recipe_tools, create_search_recipe_tools
+)
 from internal.agent.vertex.tools.user import create_get_user_tools
 
 
 class CoordinatorAgent(Agent):
     """The CoordinatorAgent is the root agent for all user interactions."""
 
-    def __init__(self, recipe_storage_handler: RecipeStorage, user_storage_handler: UserStorage) -> None:
+    def __init__(
+        self,
+        recipe_storage_handler: RecipeStorage,
+        user_storage_handler: UserStorage,
+        search_client: SearchClient
+    ) -> None:
         """
         Initialise the CoordinatorAgent class.
 
         Args:
             recipe_storage_handler: the storage handler for recipes
             user_storage_handler: the storage handler for users
+            search_engine_id: the search engine id for agent searches
+            search_engine_key: the search engine key for agent searches
         """
-        tools = list(create_get_recipe_tools(recipe_storage_handler).values()) + \
-            list(create_update_recipe_tools(recipe_storage_handler).values()) + \
-            list(create_get_user_tools(user_storage_handler).values())
+        tools = create_get_recipe_tools(recipe_storage_handler) + \
+            create_update_recipe_tools(recipe_storage_handler) + \
+            create_search_recipe_tools(recipe_storage_handler, search_client) + \
+            create_get_user_tools(user_storage_handler)
 
         super().__init__(
             name=AGENT_COORDINATOR_NAME,

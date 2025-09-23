@@ -1,14 +1,17 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import Any, Dict, List
 from pydantic import BaseModel
 from google.adk.tools import FunctionTool, ToolContext
+from recipe_scrapers import scrape_html
+from ingredient_slicer import IngredientSlicer
 
+from internal.clients.search import SearchClient
 from internal.storage.recipe import RecipeStorage
 from internal.objects.recipe import Recipe
 from internal.objects.session import Session
 
 
-def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, FunctionTool]:
+def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[FunctionTool]:
     """
     Creates multiple tools used to get a field of a recipe.
 
@@ -118,15 +121,15 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, 
         """
         return _get_recipe_field(tool_context.state.get("recipe_id"), "instructions")
 
-    return {
-        "name": FunctionTool(get_recipe_name_tool),
-        "private": FunctionTool(get_recipe_private_tool),
-        "ingredients": FunctionTool(get_recipe_ingredients_tool),
-        "instructions": FunctionTool(get_recipe_instructions_tool),
-    }
+    return [
+        FunctionTool(get_recipe_name_tool),
+        FunctionTool(get_recipe_private_tool),
+        FunctionTool(get_recipe_ingredients_tool),
+        FunctionTool(get_recipe_instructions_tool),
+    ]
 
 
-def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[str, FunctionTool]:
+def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[FunctionTool]:
     """
     Creates multiple tools used to update a field of a recipe.
 
@@ -265,9 +268,173 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> Dict[st
 
         return _update_recipe_field(tool_context.state.get("recipe_id"), "instructions", instructions)
 
-    return {
-        "name": FunctionTool(update_recipe_name_tool),
-        "private": FunctionTool(update_recipe_private_tool),
-        "ingredients": FunctionTool(update_recipe_ingredients_tool),
-        "instructions": FunctionTool(update_recipe_instructions_tool),
-    }
+    return [
+        FunctionTool(update_recipe_name_tool),
+        FunctionTool(update_recipe_private_tool),
+        FunctionTool(update_recipe_ingredients_tool),
+        FunctionTool(update_recipe_instructions_tool),
+    ]
+
+
+def create_search_recipe_tools(
+    recipe_storage_handler: RecipeStorage,
+    search_client: SearchClient
+) -> List[FunctionTool]:
+    """
+    Creates multiple tools used to search google for recipe content.
+
+    Args:
+        recipe_storage_handler: The storage handler for recipes.
+        search_client: The search client for performing external searches.
+
+    Returns:
+        A list of FunctionTool objects for searching recipes.
+    """
+
+    def _parse_ingredient(value: str) -> Recipe.Ingredient:
+        """
+        Parse an ingredient from a scraped string into an Ingredient instance.
+
+        Args:
+            value: The ingredient as a string
+
+        Returns:
+            An ingredient from the value
+        """
+        parsed_ingredient = IngredientSlicer(value)
+
+        # Get the unit from the parsed ingredient
+        unit = parsed_ingredient.standardized_unit()
+        if not unit:
+            unit = parsed_ingredient.unit()
+
+        # Get the quantity and convert to float
+        try:
+            quantity = float(parsed_ingredient.quantity())
+        except Exception:
+            # TODO: log and handle these units
+            quantity = float(0)
+
+        return Recipe.Ingredient(
+            name=parsed_ingredient.food(),
+            unit=unit,
+            quantity=quantity
+        )
+
+    def _scrape_recipe(url: str) -> Recipe:
+        """
+        Scrape a recipe from the url given into a Recipe instance.
+
+        Args:
+            url: The url of the recipe
+
+        Returns:
+            A Recipe from the url
+        """
+        scraped_recipe = scrape_html(None, url, online=True, supported_only=True)
+        ingredients = [_parse_ingredient(ingredient) for ingredient in scraped_recipe.ingredients()]
+        instructions = [Recipe.Instruction(value=instruction) for instruction in scraped_recipe.instructions_list()]
+
+        return Recipe(
+            id=uuid4(),
+            name=scraped_recipe.title(),
+            ingredients=ingredients,
+            instructions=instructions
+        )
+
+    def search_recipes_from_internet(search_query: str) -> Dict[str, str]:
+        """
+        Searches recipes from internet.
+
+        Args:
+            search_query: the search terms to use
+
+        Returns:
+            A dict describing the outcome
+        """
+        tool_name = "search_recipes_from_internet"
+
+        recipes = []
+        errors = []
+        page_index = -1
+
+        # Run while loop until limits are hit
+        while len(recipes) < 3 and page_index < 9:
+            page_index += 1
+
+            try:
+                # Get next page of results from search client
+                page_urls = search_client.list(search_query, page_index)
+            except Exception as e:
+                errors.append(f"could not search `{search_query}` at page index {page_index}: {str(e)}")
+                continue
+
+            for url in page_urls:
+                try:
+                    # Scrape the recipe and append to list
+                    recipes.append(_scrape_recipe(url))
+                except Exception as e:
+                    errors.append(f"could not scrape recipe from `{url}`: {str(e)}")
+                    continue
+
+        # Handle worst case where no recipes were scraped
+        if len(recipes) == 0:
+            return Session.Message.ToolResponse(
+                name=tool_name,
+                status=Session.Message.ToolResponse.Status.ERROR,
+                message=f"Could not scrape recipe(s) from search: `{errors}`."
+            ).model_dump(mode="json")
+
+        # Return a successful tool response with scraped recipes as the value
+        # Only return the top 3 recipes that were scraped
+        return Session.Message.ToolResponse(
+            name=tool_name,
+            status=Session.Message.ToolResponse.Status.SUCCESS,
+            value=recipes[:3],
+            message="Recipe search ran successfully."
+        ).model_dump(mode="json")
+
+    def scrape_recipe_from_url(url: str, tool_context: ToolContext) -> Dict[str, str]:
+        """
+        Scrapes a recipe from a URL.
+
+        Args:
+            value: the search terms to use
+            tool_context: the context of the tool usage
+
+        Returns:
+            A dict describing the outcome
+        """
+        tool_name = "scrape_recipe_from_url"
+
+        try:
+            # Scrape recipe from url
+            recipe = _scrape_recipe(url)
+        except Exception as e:
+            return Session.Message.ToolResponse(
+                name=tool_name,
+                status=Session.Message.ToolResponse.Status.ERROR,
+                message=f"Could not scrape recipe: `{str(e)}`."
+            ).model_dump(mode="json")
+
+        try:
+            # Update the recipe using scraped content
+            id_ = tool_context.state.get("recipe_id")
+            recipe_storage_handler.update(id_, recipe)
+        except Exception as e:
+            return Session.Message.ToolResponse(
+                name=tool_name,
+                status=Session.Message.ToolResponse.Status.ERROR,
+                message=f"Could not store recipe: `{str(e)}`."
+            ).model_dump(mode="json")
+
+        return Session.Message.ToolResponse(
+            name=tool_name,
+            status=Session.Message.ToolResponse.Status.SUCCESS,
+            message="Recipe scrape ran successfully."
+        ).model_dump(mode="json")
+
+    return [
+        FunctionTool(search_recipes_from_internet),
+        FunctionTool(scrape_recipe_from_url)
+    ]

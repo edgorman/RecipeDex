@@ -2,7 +2,7 @@ import click
 from google.adk.runners import Runner as AgentRunner
 from google.cloud.firestore import Client as FirestoreClient
 
-from internal.config.agent import AGENT_APP_NAME
+from internal.config.agent import AGENT_APP_NAME, AGENT_SEARCH_ENGINE_ID, AGENT_SEARCH_ENGINE_KEY
 from internal.config.auth import AUTH_USER_FIREBASE_AUDIENCE
 from internal.config.service import (
     SERVICE_NAME,
@@ -23,6 +23,7 @@ from internal.auth.mac.user import MACUserAuthorize
 from internal.agent.vertex.recipe import VertexRecipeAgent
 from internal.agent.vertex.subagents.coordinator.agent import CoordinatorAgent
 from internal.auth.rbac.recipe import RBACRecipeAuthorize
+from internal.clients.google.search import GoogleSearchClient
 from internal.storage.firestore.user import FirestoreUserStorage
 from internal.storage.firestore.recipe import FirestoreRecipeStorage
 from internal.storage.firestore.session import FirestoreSessionStorage
@@ -48,12 +49,15 @@ def run():
         firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
     )
 
+    # Initialise other clients
+    google_search_client = GoogleSearchClient(AGENT_SEARCH_ENGINE_ID, AGENT_SEARCH_ENGINE_KEY)
+
     # Initialise auth handlers
     user_authenticate_handler = FirebaseUserAuthenticate(AUTH_USER_FIREBASE_AUDIENCE)
     user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
-    coordinator_agent = CoordinatorAgent(recipe_storage_handler, user_storage_handler)
+    coordinator_agent = CoordinatorAgent(recipe_storage_handler, user_storage_handler, google_search_client)
     agent_runner_service = AgentRunner(
         app_name=AGENT_APP_NAME,
         agent=coordinator_agent,

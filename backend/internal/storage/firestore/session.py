@@ -54,7 +54,8 @@ class FirestoreSessionStorage(SessionStorage):
             )
 
             # Add the session to Firestore.
-            self.__collection.add(session.model_dump(), session_id)
+            # We use a fallback for model_dump because some tools store `builtin_function_or_method` in the events
+            self.__collection.add(session.model_dump(mode="json", fallback=str), session_id)
 
             return session
         except Exception as e:
@@ -107,9 +108,10 @@ class FirestoreSessionStorage(SessionStorage):
         updated_event = await super().append_event(session, event)
 
         try:
-            # Update the session in Firestore.
             session.last_update_time = event.timestamp
-            self.__collection.document(session.id).set(session.model_dump())
+            # Update the session in Firestore.
+            # We use a fallback for model_dump because some tools store `builtin_function_or_method` in the events
+            self.__collection.document(session.id).set(session.model_dump(mode="json", fallback=str))
         except Exception as e:
             raise Exception(f"Could not update session after event: `{str(e)}`.")
 

@@ -14,7 +14,7 @@ example_session = Session(
     id=str(uuid4()),
     app_name="test_app",
     user_id="test_user",
-    state={"key": "value"},
+    state={"key": "value", "datetime_object": datetime.now(), "function_object": datetime.now},
     events=[],
     last_update_time=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc).timestamp()
 )
@@ -61,7 +61,10 @@ async def test_create_session(
             state=example_session.state
         )
 
-        mock_firestore_collection.add.assert_called_once_with(example_session.model_dump(), example_session.id)
+        mock_firestore_collection.add.assert_called_once_with(
+            example_session.model_dump(mode="json", fallback=str),
+            example_session.id
+        )
 
 
 @pytest.mark.parametrize(
@@ -137,7 +140,7 @@ async def test_append_event(
         assert example_session.last_update_time == mock_timestamp
         mock_firestore_collection.document.assert_called_once_with(example_session.id)
         mock_firestore_collection.document.return_value.set.assert_called_once_with(
-            example_session.model_dump()
+            example_session.model_dump(mode="json", fallback=str)
         )
 
         assert result_event == mock_event

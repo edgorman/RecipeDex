@@ -2,11 +2,13 @@ from enum import Enum
 from uuid import UUID
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Recipe(BaseModel):
     """Object that stores Recipe information"""
+    model_config = ConfigDict(extra="forbid")
+
     id: UUID
     name: str
     private: bool = False
@@ -35,8 +37,8 @@ class Recipe(BaseModel):
 
     class Ingredient(BaseModel):
         name: str
-        unit: str
-        quantity: float
+        unit: Optional[str] = None
+        quantity: Optional[float] = None
 
     class Instruction(BaseModel):
         value: str

@@ -425,7 +425,7 @@ class RecipeResource(APIRouter):
                 except Exception as e:
                     await connection.send_json(
                         BaseResponse(
-                            detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                            detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
                                    f"invalid request data: {str(e)}.",
                             data=None
                         ).model_dump(mode="json")
@@ -435,7 +435,7 @@ class RecipeResource(APIRouter):
                     # Send a confirmation to the client.
                     await connection.send_json(
                         BaseResponse(
-                            detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} received data successfully.",
+                            detail=f"Recipe {Recipe.Action.MESSAGE.value} received data successfully.",
                             data=None
                         ).model_dump(mode="json")
                     )
@@ -446,14 +446,14 @@ class RecipeResource(APIRouter):
                     ):
                         await connection.send_json(
                             BaseResponse(
-                                detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} responded successfully.",
+                                detail=f"Recipe {Recipe.Action.MESSAGE.value} responded successfully.",
                                 data=SendMessageResponse.model_validate(response_message)
                             ).model_dump(mode="json")
                         )
                 except Exception as e:
                     await connection.send_json(
                         BaseResponse(
-                            detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                            detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
                                    f"experienced internal error: {str(e)}.",
                             data=None
                         ).model_dump(mode="json")
@@ -463,7 +463,7 @@ class RecipeResource(APIRouter):
             # Handle WebSocket errors.
             await connection.send_json(
                 BaseResponse(
-                    detail=f"Could not {Recipe.Action.GET_MESSAGES.value} Recipe, "
+                    detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
                            f"experienced websocket error: `{str(we.reason)}`.",
                     data=None
                 ).model_dump(mode="json")

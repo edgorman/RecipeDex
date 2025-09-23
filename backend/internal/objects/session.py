@@ -2,11 +2,12 @@ from enum import Enum
 from uuid import UUID
 from typing import Any, Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Session:
     """Collection of models used in session objects"""
+    model_config = ConfigDict(extra="forbid")
 
     class State(BaseModel):
         """Object that will be stored in the state of a session object"""

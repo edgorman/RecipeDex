@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Dict
+from typing import Dict, List
 from pydantic import BaseModel
 from google.adk.tools import FunctionTool, ToolContext
 
@@ -7,7 +7,7 @@ from internal.storage.user import UserStorage
 from internal.objects.session import Session
 
 
-def create_get_user_tools(user_storage_handler: UserStorage) -> Dict[str, FunctionTool]:
+def create_get_user_tools(user_storage_handler: UserStorage) -> List[FunctionTool]:
     """
     Creates multiple tools used to get a field of a user.
 
@@ -81,6 +81,4 @@ def create_get_user_tools(user_storage_handler: UserStorage) -> Dict[str, Functi
         """
         return _get_user_field(tool_context.state.get("user_id"), "name")
 
-    return {
-        "name": FunctionTool(get_user_name_tool),
-    }
+    return [FunctionTool(get_user_name_tool)]
