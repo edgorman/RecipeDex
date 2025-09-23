@@ -9,3 +9,4 @@ AGENT_SEARCH_ENGINE_KEY = os.getenv("AGENT_SEARCH_ENGINE_KEY")
 
 AGENT_MODEL_NAME = "gemini-2.0-flash-001"
 AGENT_COORDINATOR_NAME = "coordinator_agent"
+AGENT_SEARCHER_NAME = "searcher_agent"

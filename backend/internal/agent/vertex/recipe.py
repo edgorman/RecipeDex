@@ -115,7 +115,7 @@ class VertexRecipeAgent(RecipeAgent):
             user_id=user.display_id,
             state=Session.State(
                 recipe_id=recipe.id,
-                user_id=user.id
+                user_id=user.id,
             ).model_dump(mode="json")
         )
 

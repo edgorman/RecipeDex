@@ -1,7 +1,6 @@
 from google.adk.agents import Agent
 
 from internal.config.agent import AGENT_COORDINATOR_NAME, AGENT_MODEL_NAME
-from internal.clients.search import SearchClient
 from internal.storage.recipe import RecipeStorage
 from internal.storage.user import UserStorage
 from internal.agent.vertex.tools.recipe import (
@@ -17,7 +16,6 @@ class CoordinatorAgent(Agent):
         self,
         recipe_storage_handler: RecipeStorage,
         user_storage_handler: UserStorage,
-        search_client: SearchClient
     ) -> None:
         """
         Initialise the CoordinatorAgent class.
@@ -25,12 +23,10 @@ class CoordinatorAgent(Agent):
         Args:
             recipe_storage_handler: the storage handler for recipes
             user_storage_handler: the storage handler for users
-            search_engine_id: the search engine id for agent searches
-            search_engine_key: the search engine key for agent searches
         """
         tools = create_get_recipe_tools(recipe_storage_handler) + \
             create_update_recipe_tools(recipe_storage_handler) + \
-            create_search_recipe_tools(recipe_storage_handler, search_client) + \
+            create_search_recipe_tools(recipe_storage_handler) + \
             create_get_user_tools(user_storage_handler)
 
         super().__init__(
@@ -46,7 +42,8 @@ Instructions: At the beginning, introduce yourself to the user first. Say someth
 
 Tools: You may use tools when directed by the user to get/update/create fields of a recipe. You cannot edit recipes
 directly, but can change them indirectly via tools. Use the tool names and descriptions to determine which is most
-applicable for the user's instructions.
+applicable for the user's instructions. When searching the internet for recipes, use the searcher agent tool which
+should include a list of recipe URLs, and then scrape it using the `scrape_recipe_from_url` tool.
 
 You may also use tools to get the current user's information, which may be used in recipes (e.g. use their allergy
 information to assist the user in making safe choices in regards to ingredients/preperation).
