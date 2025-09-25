@@ -97,9 +97,9 @@ export class RecipeMessageWebSocket {
         this.options.onError(event);
       };
 
-      this.socket.onclose = () => {
+      this.socket.onclose = (event) => {
         this.isConnected = false;
-        this.options.onClose();
+        this.options.onClose(event);
       };
 
     } catch (error) {

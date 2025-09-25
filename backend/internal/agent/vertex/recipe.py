@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import AsyncGenerator, Generator, Optional
 from pydantic import ValidationError
@@ -12,6 +13,9 @@ from internal.objects.user import User
 from internal.objects.session import Session
 from internal.storage.recipe import RecipeStorage
 from internal.storage.session import SessionStorage
+
+
+logger = logging.getLogger(__name__)
 
 
 class VertexRecipeAgent(RecipeAgent):
@@ -58,12 +62,16 @@ class VertexRecipeAgent(RecipeAgent):
                 if part.function_response:
                     try:
                         tool_response = Session.Message.ToolResponse.model_validate(part.function_response.response)
-                    except ValidationError:
+                    except ValidationError as ve:
                         # TODO: May need to write tool specific postprocessors to convert their geneirc response
                         #       into a ToolResponse object
                         tool_response = Session.Message.ToolResponse(
                             name=part.function_response.name,
                             status=Session.Message.ToolResponse.Status.SUCCESS
+                        )
+                        logger.warning(
+                            f"Could not parse response from tool `{part.function_response.name}`: `{str(ve)}`.",
+                            exc_info=ve
                         )
 
                     yield Session.Message(role=Session.Message.Role.SYSTEM, tool=tool_response, created_at=created_at)
@@ -138,7 +146,9 @@ class VertexRecipeAgent(RecipeAgent):
         try:
             session = await self._get_session(recipe, user)
         except Exception as e:
-            raise Exception(f"Could not get session for agent: `{str(e)}`.")
+            detail = f"Could not get session for agent: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         # No session available, return early
         if session is None:
@@ -150,7 +160,9 @@ class VertexRecipeAgent(RecipeAgent):
                 for message in self._parse_messages(event):
                     yield message
             except Exception as e:
-                raise Exception(f"Could not parse message from event: {str(e)}")
+                detail = f"Could not parse message from event: `{str(e)}`."
+                logger.error(detail, exc_info=e)
+                raise Exception(detail)
 
     async def create_message(
         self, recipe: Recipe, user: User, message: Session.Message
@@ -172,7 +184,9 @@ class VertexRecipeAgent(RecipeAgent):
             if session is None:
                 await self._create_session(recipe, user)
         except Exception as e:
-            raise Exception(f"Could not get session for agent: `{str(e)}`")
+            detail = f"Could not get session for recipe: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         try:
             # Run the agent for the given user message
@@ -188,4 +202,6 @@ class VertexRecipeAgent(RecipeAgent):
                 except Exception as e:
                     raise Exception(f"Could not parse message from event: {str(e)}")
         except Exception as e:
-            raise Exception(f"Could not run agent: `{str(e)}`.")
+            detail = f"Could not message agent: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)

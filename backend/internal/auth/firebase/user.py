@@ -1,9 +1,13 @@
+import logging
 from typing import Any, Dict, Tuple
 from google.auth.transport import requests as token_request
 from google.oauth2.id_token import verify_firebase_token
 
 from internal.auth.user import UserAuthenticate
 from internal.objects.user import User
+
+
+logger = logging.getLogger(__name__)
 
 
 class FirebaseUserAuthenticate(UserAuthenticate):
@@ -38,4 +42,6 @@ class FirebaseUserAuthenticate(UserAuthenticate):
                 info = verify_firebase_token(token, token_request.Request(), audience=self.__audience)
                 return info["user_id"], info["name"], info
             case _:
-                raise NotImplementedError(f"Auth provider `{provider.name}` is not implemented")
+                detail = f"Could not authenticate provider `{provider.name}`: `it is not implemented`."
+                logger.warning(detail)
+                raise NotImplementedError(detail)

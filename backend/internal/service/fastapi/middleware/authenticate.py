@@ -1,3 +1,4 @@
+import logging
 from uuid import uuid4
 from typing import Tuple
 from fastapi import FastAPI, status, Request, HTTPException
@@ -19,6 +20,9 @@ from internal.config.service import (
 from internal.auth.user import UserAuthenticate
 from internal.objects.user import User
 from internal.storage.user import UserStorage
+
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
@@ -49,7 +53,8 @@ class AuthenticationAsyncMiddleware(AuthenticationMiddleware):
                 try:
                     await send({"type": "websocket.send", "detail": he.detail})
                     await send({"type": "websocket.close", "code": he.status_code})
-                except Exception:
+                except Exception as e:
+                    logger.error("Failed to send WebSocket error message: %s", e, exc_info=True)
                     await send({"type": "websocket.close", "code": status.WS_1011_INTERNAL_ERROR})
             else:
                 response = JSONResponse({"detail": he.detail}, he.status_code)
@@ -97,7 +102,7 @@ class AuthenticateBackend(AuthenticationBackend):
                 provider, token = await self._parse_http_headers(connection)
                 if provider is None and token is None:
                     # Allow unauthenticated requests.
-                    return  # TODO: should this be `AuthCredentials(), UnauthenticatedUser()`?
+                    return
         except HTTPException as he:
             raise HTTPException(
                 he.status_code, f"Could not parse authentication parameters: {he.detail}."
@@ -117,10 +122,11 @@ class AuthenticateBackend(AuthenticationBackend):
 
         try:
             # Authenticate the user with the provider.
-            provider_id, provider_name, provider_info = self.__user_authenticate_handler.authenticate(
+            provider_id, provider_username, provider_info = self.__user_authenticate_handler.authenticate(
                 provider_type, token
             )
         except Exception as e:
+            logger.error("Could not authenticate a user: %s", e, exc_info=True)
             code = status.HTTP_500_INTERNAL_SERVER_ERROR
             if isinstance(connection, WebSocket):
                 code = status.WS_1011_INTERNAL_ERROR
@@ -137,7 +143,7 @@ class AuthenticateBackend(AuthenticationBackend):
             if user is None:
                 user = User(
                     id=uuid4(),
-                    name=provider_name,
+                    name=provider_username,
                     role=User.Role.UNDEFINED,
                     provider=User.Provider(
                         id=provider_id,
@@ -146,8 +152,10 @@ class AuthenticateBackend(AuthenticationBackend):
                     )
                 )
                 self.__user_storage_handler.create(user)
+                logger.info("Created new user '%s' for provider %s", provider_username, provider_type.value)
 
         except Exception as e:
+            logger.error("Could not get or create user: %s", e, exc_info=True)
             code = status.HTTP_500_INTERNAL_SERVER_ERROR
             if isinstance(connection, WebSocket):
                 code = status.WS_1011_INTERNAL_ERROR

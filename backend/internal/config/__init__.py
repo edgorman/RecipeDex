@@ -9,3 +9,7 @@ env_path = os.path.abspath(
     os.path.join(CONFIG_DIRECTORY, "..", "..", ".env")
 )
 load_dotenv(env_path)
+
+
+def str_to_bool(value: str) -> bool:
+    return value.strip().lower() == "true"

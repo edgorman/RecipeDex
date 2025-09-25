@@ -1,3 +1,4 @@
+import logging
 from uuid import uuid4, UUID
 from fastapi import APIRouter, Depends, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, status, Query
 from starlette.authentication import BaseUser
@@ -15,6 +16,9 @@ from internal.service.fastapi.schemas.recipe import (
     CreateRecipeRequest, CreateRecipeResponse, UpdateRecipeRequest, UpdateRecipeResponse, DeleteRecipeResponse,
     SendMessageRequest, SendMessageResponse
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class RecipeResource(APIRouter):
@@ -153,10 +157,9 @@ class RecipeResource(APIRouter):
             # List recipes from storage.
             recipes = self.__recipe_storage_handler.list(page=page, page_size=page_size)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Could not {Recipe.Action.GET.value} recipes: `{str(e)}`."
-            )
+            detail = f"Could not {Recipe.Action.GET.value} recipes: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         # Filter out recipes that the user is not authorized to see.
         recipes = [
@@ -168,9 +171,9 @@ class RecipeResource(APIRouter):
             # Format the response.
             data = ListRecipesResponse(recipes=[ListRecipesItem.model_validate(recipe) for recipe in recipes])
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.GET.value} finished successfully.", data=data)
 
@@ -193,9 +196,9 @@ class RecipeResource(APIRouter):
             # Format the response.
             data = GetRecipeResponse.model_validate(recipe)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.GET.value} finished successfully.", data=data)
 
@@ -218,9 +221,9 @@ class RecipeResource(APIRouter):
             # Format the response.
             data = GetMetadataResponse.model_validate(recipe)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.GET_METADATA.value} finished successfully.", data=data)
 
@@ -244,9 +247,9 @@ class RecipeResource(APIRouter):
             # Format the response.
             data = GetMessagesResponse(messages=[GetMessagesItem.model_validate(message) for message in messages])
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.GET_MESSAGES.value} finished successfully.", data=data)
 
@@ -292,21 +295,20 @@ class RecipeResource(APIRouter):
             )
 
         try:
+            # Format the response (before updating the storage).
+            data = CreateRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            detail = f"Could not format response (recipe does not exist yet): `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+        try:
             # Create the recipe in storage.
             self.__recipe_storage_handler.create(recipe)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Could not {Recipe.Action.CREATE.value} recipe: `{e}`."
-            )
-
-        try:
-            # Format the response.
-            data = CreateRecipeResponse.model_validate(recipe)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not {Recipe.Action.CREATE.value} recipe: `{e}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.CREATE.value} finished successfully.", data=data)
 
@@ -351,21 +353,20 @@ class RecipeResource(APIRouter):
             )
 
         try:
+            # Format the response (before updating the storage).
+            data = UpdateRecipeResponse.model_validate(recipe)
+        except Exception as e:
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+        try:
             # Update the recipe in storage.
             self.__recipe_storage_handler.update(recipe.id, recipe)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
-            )
-
-        try:
-            # Format the response.
-            data = UpdateRecipeResponse.model_validate(recipe)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not {Recipe.Action.UPDATE.value} recipe: `{e}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.UPDATE.value} finished successfully.", data=data)
 
@@ -384,16 +385,21 @@ class RecipeResource(APIRouter):
         """
         recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.DELETE)
 
-        # Delete the recipe from storage.
-        self.__recipe_storage_handler.delete(recipe.id)
-
         try:
-            # Format the response.
+            # Format the response (before updating the storage).
             data = DeleteRecipeResponse.model_validate(recipe)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+        try:
+            # Delete the recipe from storage.
+            self.__recipe_storage_handler.delete(recipe.id)
+        except Exception as e:
+            detail = f"Could not {Recipe.Action.DELETE.value} recipe: `{e}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"Recipe {Recipe.Action.DELETE.value} finished successfully.", data=data)
 
@@ -406,11 +412,24 @@ class RecipeResource(APIRouter):
             recipe_id: the ID of the recipe to send the message to.
         """
         request_user: User = get_user_from_request(connection)
-        recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
+
+        await connection.accept()
+        logger.debug("Client connected to recipe message websocket.")
 
         try:
-            await connection.accept()
+            # Get the recipe (and perform authorization)
+            recipe = self.__preprocess(recipe_id, request_user, Recipe.Action.MESSAGE)
+        except HTTPException as he:
+            await connection.close(code=3003, reason=he.detail)
+            return
+        except Exception as e:
+            await connection.close(
+                code=status.WS_1011_INTERNAL_ERROR,
+                reason=f"Could not {Recipe.Action.MESSAGE.value} Recipe: `{str(e)}`."
+            )
+            return
 
+        try:
             while True:
                 # Receive a message from the client.
                 data = await connection.receive_json()
@@ -426,10 +445,13 @@ class RecipeResource(APIRouter):
                     await connection.send_json(
                         BaseResponse(
                             detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                                   f"invalid request data: {str(e)}.",
+                                   f"invalid request data: `{str(e)}`.",
                             data=None
                         ).model_dump(mode="json")
                     )
+
+                    # Assume bad input was one off, continue to receive json again
+                    continue
 
                 try:
                     # Send a confirmation to the client.
@@ -451,23 +473,20 @@ class RecipeResource(APIRouter):
                             ).model_dump(mode="json")
                         )
                 except Exception as e:
+                    detail = (f"Could not {Recipe.Action.MESSAGE.value} Recipe, experienced internal error: {str(e)}.")
+                    logger.error(detail, exc_info=True)
                     await connection.send_json(
-                        BaseResponse(
-                            detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                                   f"experienced internal error: {str(e)}.",
-                            data=None
-                        ).model_dump(mode="json")
+                        BaseResponse(detail=detail, data=None).model_dump(mode="json")
                     )
 
         except WebSocketException as we:
             # Handle WebSocket errors.
+            detail = f"Could not {Recipe.Action.MESSAGE.value} Recipe, experienced websocket error: `{str(we.reason)}`."
+            logger.warning(detail)
             await connection.send_json(
-                BaseResponse(
-                    detail=f"Could not {Recipe.Action.MESSAGE.value} Recipe, "
-                           f"experienced websocket error: `{str(we.reason)}`.",
-                    data=None
-                ).model_dump(mode="json")
+                BaseResponse(detail=detail, data=None).model_dump(mode="json")
             )
         except WebSocketDisconnect:
             # Handle client disconnects.
+            logger.debug("Client disconnected from recipe message websocket.")
             pass

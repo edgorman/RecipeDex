@@ -1,3 +1,4 @@
+import logging
 from uuid import uuid4
 from typing import Any, Dict, Optional, Tuple
 from datetime import datetime, timezone
@@ -7,6 +8,9 @@ from google.adk.sessions.base_session_service import GetSessionConfig, ListSessi
 from google.adk.events.event import Event, EventActions
 
 from internal.storage.session import SessionStorage
+
+
+logger = logging.getLogger(__name__)
 
 
 class FirestoreSessionStorage(SessionStorage):
@@ -59,7 +63,9 @@ class FirestoreSessionStorage(SessionStorage):
 
             return session
         except Exception as e:
-            raise Exception(f"Could not create session: `{str(e)}`.")
+            detail = f"Could not create session: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
     async def get_session(
         self,
@@ -85,12 +91,22 @@ class FirestoreSessionStorage(SessionStorage):
             # Get the document from Firestore.
             document = self.__collection.document(session_id).get()
         except Exception as e:
-            raise Exception(f"Could not get session: `{str(e)}`.")
+            detail = f"Could not get session: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
+        # Check the document exists in firestore.
         if not document.exists:
+            logger.debug("Could not get session: `document doesn't exist`, returning.")
             return None
 
-        session = Session.model_validate(document.to_dict())
+        try:
+            # Create a session instance from the document.
+            session = Session.model_validate(document.to_dict())
+        except Exception as e:
+            detail = f"Could not format session: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         return session
 
@@ -113,7 +129,9 @@ class FirestoreSessionStorage(SessionStorage):
             # We use a fallback for model_dump because some tools store `builtin_function_or_method` in the events
             self.__collection.document(session.id).set(session.model_dump(mode="json", fallback=str))
         except Exception as e:
-            raise Exception(f"Could not update session after event: `{str(e)}`.")
+            detail = f"Could not update session: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         return updated_event
 
@@ -130,19 +148,30 @@ class FirestoreSessionStorage(SessionStorage):
         """
         try:
             # Query Firestore for the sessions.
-            results = self.__collection \
+            documents = self.__collection \
                 .where(filter=FieldFilter("app_name", "==", app_name)) \
                 .where(filter=FieldFilter("user_id", "==", user_id)) \
                 .get()
 
-            sessions = []
-            for document in results:
-                if document.exists:
-                    sessions.append(Session.model_validate(document.to_dict()))
+            # Get the documents that exist.
+            documents_that_exist = list(filter(lambda document: document.exists, documents))
+        except Exception as e:
+            detail = f"Could not list sessions: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
+
+        try:
+            # Format each session into a session object.
+            sessions = [
+                Session.model_validate(document.to_dict())
+                for document in documents_that_exist
+            ]
 
             return ListSessionsResponse(sessions=sessions)
         except Exception as e:
-            raise Exception(f"Could not list sessions: `{str(e)}`.")
+            detail = f"Could not format sessions: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
     async def delete_session(self, *, app_name: str, user_id: str, session_id: str) -> None:
         """
@@ -157,7 +186,9 @@ class FirestoreSessionStorage(SessionStorage):
             # Delete the session from Firestore.
             self.__collection.document(session_id).delete()
         except Exception as e:
-            raise Exception(f"Could not delete session: `{str(e)}`.")
+            detail = f"Could not delete session: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
     async def update_session_state(
         self,
@@ -176,11 +207,13 @@ class FirestoreSessionStorage(SessionStorage):
             session_id: the ID of the session to update.
             new_state: the new state of the session.
         """
-        try:
-            # Get the existing session from Firestore.
-            session = await self.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
-        except Exception as e:
-            raise Exception(f"Could not get session when updating state: `{str(e)}`.")
+        # Get the existing session from Firestore.
+        session = await self.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
+        if session is None:
+            e = Exception(f"{session_id} does not exist")
+            detail = f"Could not update session state: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         state_delta = {}
 
@@ -191,6 +224,7 @@ class FirestoreSessionStorage(SessionStorage):
 
         # If there is no diff, return early
         if not state_delta:
+            logger.debug("Could not update session state: `no delta generated`, returning.", exc_info=e)
             return
 
         # Compose a new event to update the state

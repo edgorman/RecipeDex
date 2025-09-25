@@ -1,10 +1,14 @@
-from typing import Any, Optional, Tuple
+import logging
 from uuid import UUID
+from typing import Any, Optional, Tuple
 from datetime import datetime, timezone
 from google.cloud.firestore import FieldFilter, Client as FirestoreClient
 
 from internal.objects.user import User
 from internal.storage.user import UserStorage
+
+
+logger = logging.getLogger(__name__)
 
 
 class FirestoreUserStorage(UserStorage):
@@ -34,7 +38,9 @@ class FirestoreUserStorage(UserStorage):
             # Get the document from Firestore.
             document = self.__collection.document(str(id_)).get()
         except Exception as e:
-            raise Exception(f"Could not get user: `{str(e)}`.")
+            detail = f"Could not {User.Action.GET.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
         if document.exists:
             return User.model_validate(document.to_dict())
@@ -51,28 +57,40 @@ class FirestoreUserStorage(UserStorage):
         Returns:
             the user if they exist, otherwise None.
         """
-        query = (
-            self.__collection
-            .where(filter=FieldFilter("deleted_at", "==", None))
-            .where(filter=FieldFilter("provider.type", "==", type_.value))
-            .where(filter=FieldFilter("provider.id", "==", id_))
-        )
-
         try:
             # Query Firestore for the user.
-            documents = query.get()
+            documents = self.__collection \
+                .where(filter=FieldFilter("deleted_at", "==", None)) \
+                .where(filter=FieldFilter("provider.type", "==", type_.value)) \
+                .where(filter=FieldFilter("provider.id", "==", id_)) \
+                .get()
+
+            # Get the documents that exist.
+            documents_that_exist = list(filter(lambda document: document.exists, documents))
         except Exception as e:
-            raise Exception(f"Could not get user by auth provider: `{str(e)}`.")
+            detail = f"Could not {User.Action.GET_BY_PROVIDER.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
-        if len(documents) == 0:
+        # Handle difference cases for number of users returned.
+        if len(documents_that_exist) == 0:
+            logger.debug(f"Could not {User.Action.GET_BY_PROVIDER.value} user: `no users found`, returning.")
             return None
-        elif len(documents) > 1:
-            raise Exception("Could not get user by auth provider: `more than one user returned`.")
+        elif len(documents_that_exist) > 1:
+            e = Exception("more than one user returned")
+            detail = f"Could not {User.Action.GET_BY_PROVIDER.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
-        document = documents[0]
-        if document.exists:
-            return User.model_validate(document.to_dict())
-        return None
+        try:
+            # Create a user instance from the document.
+            user = User.model_validate(documents_that_exist[0].to_dict())
+        except Exception as e:
+            detail = f"Could not format user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
+
+        return user
 
     def create(self, user: User) -> None:
         """
@@ -85,7 +103,9 @@ class FirestoreUserStorage(UserStorage):
             # Add the user to Firestore.
             self.__collection.add(user.model_dump(mode="json"), user.display_id)
         except Exception as e:
-            raise Exception(f"Could not create user: `{str(e)}`.")
+            detail = f"Could not {User.Action.CREATE.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
     def update(self, id_: UUID, user: User) -> None:
         """
@@ -100,7 +120,9 @@ class FirestoreUserStorage(UserStorage):
             user.updated_at = datetime.now(tz=timezone.utc)
             self.__collection.document(str(id_)).set(user.model_dump(mode="json"))
         except Exception as e:
-            raise Exception(f"Could not update user: `{str(e)}`.")
+            detail = f"Could not {User.Action.UPDATE.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)
 
     def delete(self, id_: UUID) -> None:
         """
@@ -113,4 +135,6 @@ class FirestoreUserStorage(UserStorage):
             # Soft delete the user in Firestore.
             self.__collection.document(str(id_)).update({"deleted_at": datetime.now(tz=timezone.utc)})
         except Exception as e:
-            raise Exception(f"Could not delete user: `{str(e)}`.")
+            detail = f"Could not {User.Action.DELETE.value} user: `{str(e)}`."
+            logger.error(detail, exc_info=e)
+            raise Exception(detail)

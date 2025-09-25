@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from starlette.authentication import BaseUser
+import logging
 from uuid import UUID
+from starlette.authentication import BaseUser
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from internal.objects.user import User
 from internal.storage.user import UserStorage
@@ -10,6 +11,9 @@ from internal.service.fastapi.schemas import BaseRequest, BaseResponse
 from internal.service.fastapi.schemas.user import (
     GetUserResponse, GetUserByProviderResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserResponse
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserResource(APIRouter):
@@ -121,9 +125,9 @@ class UserResource(APIRouter):
             # Format the response.
             data = GetUserResponse.model_validate(user)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"User {User.Action.GET.value} finished successfully.", data=data)
 
@@ -135,6 +139,7 @@ class UserResource(APIRouter):
     ) -> BaseResponse[GetUserByProviderResponse]:
         """
         Get a user by provider and provider ID.
+        # TODO: can deprecate/remove this ? what uses it ?
 
         Args:
             provider: the provider to get the user by.
@@ -174,9 +179,9 @@ class UserResource(APIRouter):
             # Format the response.
             data = GetUserByProviderResponse.model_validate(user)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"User {User.Action.GET_BY_PROVIDER.value} finished successfully.", data=data)
 
@@ -221,21 +226,20 @@ class UserResource(APIRouter):
             )
 
         try:
+            # Format the response (before updating the storage).
+            data = UpdateUserResponse.model_validate(user)
+        except Exception as e:
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+        try:
             # Update the user in storage.
             self.__user_storage_handler.update(user.id, user)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Could not {User.Action.UPDATE.value} user with id `{user_id}`: `{e}`."
-            )
-
-        try:
-            # Format the response.
-            data = UpdateUserResponse.model_validate(user)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not {User.Action.UPDATE.value} user with id `{user_id}`: `{e}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"User {User.Action.UPDATE.value} finished successfully.", data=data)
 
@@ -255,20 +259,19 @@ class UserResource(APIRouter):
         user = self.__preprocess(user_id, request_user, User.Action.DELETE)
 
         try:
+            # Format the response (before updating the storage).
+            data = DeleteUserResponse.model_validate(user)
+        except Exception as e:
+            detail = f"Could not format response: `{str(e)}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+        try:
             # Delete the user from storage.
             self.__user_storage_handler.delete(user.id)
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Could not {User.Action.DELETE.value} user with id `{user_id}`: `{e}`."
-            )
-
-        try:
-            # Format the response.
-            data = DeleteUserResponse.model_validate(user)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not format response: `{str(e)}`."
-            )
+            detail = f"Could not {User.Action.DELETE.value} user with id `{user_id}`: `{e}`."
+            logger.error(detail, exc_info=True)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
         return BaseResponse(detail=f"User {User.Action.DELETE.value} finished successfully.", data=data)

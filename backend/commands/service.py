@@ -18,6 +18,13 @@ from internal.config.storage import (
     STORAGE_COLLECTION_USER_NAME,
     STORAGE_COLLECTION_SESSION_NAME
 )
+from internal.config.telemetry import (
+    TELEMETRY_PROJECT_ID,
+    TELEMETRY_SERVICE_NAME,
+    TELEMETRY_LOG_LEVEL,
+    TELEMETRY_CLOUD_ENABLED,
+    TELEMETRY_TRACING_ENABLED
+)
 from internal.auth.firebase.user import FirebaseUserAuthenticate
 from internal.auth.mac.user import MACUserAuthorize
 from internal.agent.vertex.recipe import VertexRecipeAgent
@@ -27,6 +34,10 @@ from internal.storage.firestore.user import FirestoreUserStorage
 from internal.storage.firestore.recipe import FirestoreRecipeStorage
 from internal.storage.firestore.session import FirestoreSessionStorage
 from internal.service.fastapi.api import FastapiAPIService
+from internal.telemetry.gcp.logging import GCPLoggingTelemetry
+from internal.telemetry.gcp.tracing import GCPTracingTelemetry
+from internal.telemetry.local.logging import LocalLoggingTelemetry
+from internal.telemetry.local.tracing import LocalTracingTelemetry
 
 
 @click.Group
@@ -36,6 +47,13 @@ def service():
 
 @service.command
 def run():
+    # Initialise logging and tracing
+    logging_class = GCPLoggingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalLoggingTelemetry
+    tracing_class = GCPTracingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalTracingTelemetry
+    logging_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME)
+    if TELEMETRY_TRACING_ENABLED:
+        tracing_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME, TELEMETRY_PROJECT_ID)
+
     # Initialise storage client and handlers
     firestore_client = FirestoreClient(STORAGE_PROJECT_ID, database=STORAGE_DATABASE_NAME)
     recipe_storage_handler = FirestoreRecipeStorage(

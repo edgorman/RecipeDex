@@ -88,9 +88,17 @@ export default function EngineeringConsole() {
       onError: (error) => {
         setWsLog((l) => [...l, { type: 'error', at: new Date().toISOString(), data: String(error?.message || 'ws error') }]);
       },
-      onClose: () => {
+      onClose: (event) => {
         setWsConnected(false);
-        setWsLog((l) => [...l, { type: 'close', at: new Date().toISOString() }]);
+        setWsLog((l) => [...l, {
+          type: 'close',
+          at: new Date().toISOString(),
+          data: {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+          },
+        }]);
       }
     });
 
