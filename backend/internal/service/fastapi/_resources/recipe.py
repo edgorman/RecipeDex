@@ -9,9 +9,9 @@ from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.objects.session import Session
 from internal.storage.recipe import RecipeStorage
-from internal.service.fastapi.middleware.authenticate import get_user_from_request
-from internal.service.fastapi.schemas import BaseRequest, BaseResponse
-from internal.service.fastapi.schemas.recipe import (
+from internal.service.fastapi._middleware.auth import get_user_from_request
+from internal.service._schemas import BaseRequest, BaseResponse
+from internal.service._schemas.recipe import (
     ListRecipesResponse, ListRecipesItem, GetRecipeResponse, GetMetadataResponse, GetMessagesResponse, GetMessagesItem,
     CreateRecipeRequest, CreateRecipeResponse, UpdateRecipeRequest, UpdateRecipeResponse, DeleteRecipeResponse,
     SendMessageRequest, SendMessageResponse

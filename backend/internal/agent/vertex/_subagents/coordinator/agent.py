@@ -3,10 +3,10 @@ from google.adk.agents import Agent
 from internal.config.agent import AGENT_COORDINATOR_NAME, AGENT_MODEL_NAME
 from internal.storage.recipe import RecipeStorage
 from internal.storage.user import UserStorage
-from internal.agent.vertex.tools.recipe import (
+from internal.agent.vertex._tools.recipe import (
     create_get_recipe_tools, create_update_recipe_tools, create_search_recipe_tools
 )
-from internal.agent.vertex.tools.user import create_get_user_tools
+from internal.agent.vertex._tools.user import create_get_user_tools
 
 
 class CoordinatorAgent(Agent):

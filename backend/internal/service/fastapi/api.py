@@ -12,12 +12,12 @@ from internal.auth.user import UserAuthenticate, UserAuthorize
 from internal.service.api import APIService
 from internal.storage.user import UserStorage
 from internal.storage.recipe import RecipeStorage
-from internal.service.fastapi.middleware.cors import add_cors_middleware
-from internal.service.fastapi.middleware.authenticate import add_authenticate_middleware, get_user_from_request
-from internal.service.fastapi.resources.user import UserResource
-from internal.service.fastapi.resources.recipe import RecipeResource
-from internal.service.fastapi.schemas import BaseResponse
-from internal.service.fastapi.schemas.root import GetRootResponse
+from internal.service.fastapi._middleware.cors import add_cors_middleware
+from internal.service.fastapi._middleware.auth import add_authenticate_middleware, get_user_from_request
+from internal.service.fastapi._resources.user import UserResource
+from internal.service.fastapi._resources.recipe import RecipeResource
+from internal.service._schemas import BaseResponse
+from internal.service._schemas.root import GetRootResponse
 
 
 logger = logging.getLogger(__name__)

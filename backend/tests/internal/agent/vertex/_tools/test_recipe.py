@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
 from internal.objects.session import Session
-from internal.agent.vertex.tools.recipe import create_get_recipe_tools, create_update_recipe_tools
+from internal.agent.vertex._tools.recipe import create_get_recipe_tools, create_update_recipe_tools
 
 
 example_recipe = Recipe(

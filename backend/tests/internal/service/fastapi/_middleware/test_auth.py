@@ -14,7 +14,7 @@ from internal.config.service import (
     SERVICE_AUTH_PROVIDER_QUERY
 )
 from internal.objects.user import User
-from internal.service.fastapi.middleware.authenticate import add_authenticate_middleware
+from internal.service.fastapi._middleware.auth import add_authenticate_middleware
 
 
 example_user = User(

@@ -9,9 +9,9 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 from internal.config.service import SERVICE_AUTH_SCOPE
 from internal.objects.user import User
-from internal.service.fastapi.resources.user import UserResource
-from internal.service.fastapi.schemas import BaseResponse
-from internal.service.fastapi.schemas.user import GetUserResponse, UpdateUserResponse, DeleteUserResponse
+from internal.service.fastapi._resources.user import UserResource
+from internal.service._schemas import BaseResponse
+from internal.service._schemas.user import GetUserResponse, UpdateUserResponse, DeleteUserResponse
 
 
 example_user = User(

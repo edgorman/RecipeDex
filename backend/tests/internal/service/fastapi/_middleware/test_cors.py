@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from internal.service.fastapi.middleware.cors import add_cors_middleware
+from internal.service.fastapi._middleware.cors import add_cors_middleware
 
 
 @pytest.mark.parametrize(

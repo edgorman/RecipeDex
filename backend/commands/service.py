@@ -1,5 +1,4 @@
 import click
-from google.adk.runners import Runner as AgentRunner
 from google.cloud.firestore import Client as FirestoreClient
 
 from internal.config.agent import AGENT_APP_NAME
@@ -28,7 +27,6 @@ from internal.config.telemetry import (
 from internal.auth.firebase.user import FirebaseUserAuthenticate
 from internal.auth.mac.user import MACUserAuthorize
 from internal.agent.vertex.recipe import VertexRecipeAgent
-from internal.agent.vertex.subagents.coordinator.agent import CoordinatorAgent
 from internal.auth.rbac.recipe import RBACRecipeAuthorize
 from internal.storage.firestore.user import FirestoreUserStorage
 from internal.storage.firestore.recipe import FirestoreRecipeStorage
@@ -71,18 +69,11 @@ def run():
     user_authorize_handler = MACUserAuthorize()
 
     # Initialise agent services and handlers
-    coordinator_agent = CoordinatorAgent(recipe_storage_handler, user_storage_handler)
-    agent_runner_service = AgentRunner(
-        app_name=AGENT_APP_NAME,
-        agent=coordinator_agent,
-        artifact_service=None,
-        memory_service=None,
-        session_service=session_storage_handler
-    )
     recipe_agent_handler = VertexRecipeAgent(
-        agent_runner_service=agent_runner_service,
-        session_storage_handler=session_storage_handler,
-        recipe_storage_handler=recipe_storage_handler
+        app_name=AGENT_APP_NAME,
+        recipe_storage_handler=recipe_storage_handler,
+        user_storage_handler=user_storage_handler,
+        session_storage_handler=session_storage_handler
     )
 
     # Initialise main service and run

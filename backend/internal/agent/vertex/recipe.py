@@ -2,16 +2,18 @@ import logging
 from datetime import datetime, timezone
 from typing import AsyncGenerator, Generator, Optional
 from pydantic import ValidationError
-from google.adk.runners import Runner
 from google.adk.sessions import Session as BaseSession
 from google.adk.events import Event
 from google.genai.types import Content, Part
+from google.adk.runners import Runner as AgentRunner
 
 from internal.agent.recipe import RecipeAgent
+from internal.agent.vertex._subagents.coordinator.agent import CoordinatorAgent
 from internal.objects.recipe import Recipe
 from internal.objects.user import User
 from internal.objects.session import Session
 from internal.storage.recipe import RecipeStorage
+from internal.storage.user import UserStorage
 from internal.storage.session import SessionStorage
 
 
@@ -23,21 +25,32 @@ class VertexRecipeAgent(RecipeAgent):
 
     def __init__(
         self,
-        agent_runner_service: Runner,
-        session_storage_handler: SessionStorage,
-        recipe_storage_handler: RecipeStorage
+        app_name: str,
+        recipe_storage_handler: RecipeStorage,
+        user_storage_handler: UserStorage,
+        session_storage_handler: SessionStorage
     ) -> None:
         """
         Initializes the VertexRecipeAgent.
 
         Args:
-            agent_runner_service: The runner service for the agent.
-            session_storage_handler: The session service for the agent.
+            app_name: The name of this recipe agent app
             recipe_storage_handler: The storage handler for recipes.
+            user_storage_handler: The storage handler for users.
+            session_storage_handler: The session service for the agent.
         """
-        self.__agent_runner_service = agent_runner_service
+        self.__app_name = app_name
         self.__session_storage_handler = session_storage_handler
         self.__recipe_storage_handler = recipe_storage_handler
+
+        coordinator_agent = CoordinatorAgent(recipe_storage_handler, user_storage_handler)
+        self.__agent_runner_service = AgentRunner(
+            app_name=self.__app_name,
+            agent=coordinator_agent,
+            artifact_service=None,
+            memory_service=None,
+            session_service=session_storage_handler
+        )
 
     def _parse_messages(self, event: Event) -> Generator[Session.Message, None, None]:
         """
@@ -104,7 +117,7 @@ class VertexRecipeAgent(RecipeAgent):
 
         # Get the session from the session storage handler
         return await self.__session_storage_handler.get_session(
-            app_name=self.__agent_runner_service.app_name,
+            app_name=self.__app_name,
             user_id=user.display_id,
             session_id=recipe.user_session_mapping[user.id]
         )
@@ -119,7 +132,7 @@ class VertexRecipeAgent(RecipeAgent):
         """
         # Create a new session for the user
         session = await self.__session_storage_handler.create_session(
-            app_name=self.__agent_runner_service.app_name,
+            app_name=self.__app_name,
             user_id=user.display_id,
             state=Session.State(
                 recipe_id=recipe.id,

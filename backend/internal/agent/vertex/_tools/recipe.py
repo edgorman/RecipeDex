@@ -1,17 +1,17 @@
 from uuid import UUID
 from typing import Any, Dict, List
 from pydantic import BaseModel
-from google.adk.tools import AgentTool, FunctionTool, ToolContext
+from google.adk.tools import AgentTool, BaseTool, FunctionTool, ToolContext
 from recipe_scrapers import scrape_html
 from ingredient_slicer import IngredientSlicer
 
-from internal.agent.vertex.subagents.searcher.agent import SearcherAgent
+from internal.agent.vertex._subagents.searcher.agent import SearcherAgent
 from internal.storage.recipe import RecipeStorage
 from internal.objects.recipe import Recipe
 from internal.objects.session import Session
 
 
-def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[FunctionTool]:
+def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[BaseTool]:
     """
     Creates multiple tools used to get a field of a recipe.
 
@@ -19,7 +19,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[Funct
         recipe_storage_handler: The storage handler for recipes.
 
     Returns:
-        A list of FunctionTool objects for getting recipe fields.
+        A list of tools for getting recipe fields.
     """
 
     def _get_recipe_field(id_: UUID, field: str) -> Dict[str, str]:
@@ -129,7 +129,7 @@ def create_get_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[Funct
     ]
 
 
-def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[FunctionTool]:
+def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[BaseTool]:
     """
     Creates multiple tools used to update a field of a recipe.
 
@@ -137,7 +137,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[Fu
         recipe_storage_handler: The storage handler for recipes.
 
     Returns:
-        A list of FunctionTool objects for updating recipe fields.
+        A list of tools for updating recipe fields.
     """
 
     def _update_recipe_field(id_: UUID, field: str, new_value: Any) -> Dict[str, str]:
@@ -276,7 +276,7 @@ def create_update_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[Fu
     ]
 
 
-def create_search_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[FunctionTool]:
+def create_search_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[BaseTool]:
     """
     Creates multiple tools used to search google for recipe content.
 
@@ -284,7 +284,7 @@ def create_search_recipe_tools(recipe_storage_handler: RecipeStorage) -> List[Fu
         recipe_storage_handler: The storage handler for recipes.
 
     Returns:
-        A list of FunctionTool objects for searching recipes.
+        A list of tools for searching recipes.
     """
 
     def _parse_ingredient(value: str) -> Recipe.Ingredient:

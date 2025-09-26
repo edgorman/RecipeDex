@@ -11,9 +11,9 @@ from internal.config.service import SERVICE_AUTH_SCOPE
 from internal.objects.user import User
 from internal.objects.recipe import Recipe
 from internal.objects.session import Session
-from internal.service.fastapi.resources.recipe import RecipeResource
-from internal.service.fastapi.schemas import BaseRequest, BaseResponse
-from internal.service.fastapi.schemas.recipe import (
+from internal.service.fastapi._resources.recipe import RecipeResource
+from internal.service._schemas import BaseRequest, BaseResponse
+from internal.service._schemas.recipe import (
     ListRecipesItem, ListRecipesResponse, GetRecipeResponse, GetMetadataResponse, CreateRecipeRequest,
     UpdateRecipeRequest, UpdateRecipeResponse, DeleteRecipeResponse, GetMessagesItem, GetMessagesResponse,
     CreateRecipeResponse
@@ -327,7 +327,7 @@ def test_create(
     mock_recipe_authorize_handler.authorize.return_value = mock_authorize_user
     mock_recipe_storage_handler.create.return_value = None
 
-    with patch('internal.service.fastapi.resources.recipe.uuid4') as mock_uuid_module:
+    with patch('internal.service.fastapi._resources.recipe.uuid4') as mock_uuid_module:
         mock_uuid_module.return_value = example_nonexistent_id
         request = BaseRequest(data=CreateRecipeRequest.model_validate(request_body))
         response = mock_client.post(f"/{mock_endpoint}/", json=request.model_dump(mode="json"))

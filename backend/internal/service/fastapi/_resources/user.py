@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from internal.objects.user import User
 from internal.storage.user import UserStorage
 from internal.auth.user import UserAuthorize
-from internal.service.fastapi.middleware.authenticate import get_user_from_request
-from internal.service.fastapi.schemas import BaseRequest, BaseResponse
-from internal.service.fastapi.schemas.user import (
+from internal.service.fastapi._middleware.auth import get_user_from_request
+from internal.service._schemas import BaseRequest, BaseResponse
+from internal.service._schemas.user import (
     GetUserResponse, GetUserByProviderResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserResponse
 )
 

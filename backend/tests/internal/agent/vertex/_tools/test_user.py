@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from internal.objects.user import User
 from internal.objects.session import Session
-from internal.agent.vertex.tools.user import create_get_user_tools
+from internal.agent.vertex._tools.user import create_get_user_tools
 
 
 example_user = User(
