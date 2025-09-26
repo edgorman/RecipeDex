@@ -1,8 +1,7 @@
 import logging
 import uvicorn
 from typing import List
-from starlette.authentication import BaseUser
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from internal.config.telemetry import TELEMETRY_UVICORN_CONFIG
@@ -13,11 +12,10 @@ from internal.service.api import APIService
 from internal.storage.user import UserStorage
 from internal.storage.recipe import RecipeStorage
 from internal.service.fastapi._middleware.cors import add_cors_middleware
-from internal.service.fastapi._middleware.auth import add_authenticate_middleware, get_user_from_request
+from internal.service.fastapi._middleware.auth import add_authenticate_middleware
+from internal.service.fastapi._resources.root import RootResource
 from internal.service.fastapi._resources.user import UserResource
 from internal.service.fastapi._resources.recipe import RecipeResource
-from internal.service._schemas import BaseResponse
-from internal.service._schemas.root import GetRootResponse
 
 
 logger = logging.getLogger(__name__)
@@ -71,10 +69,13 @@ class FastapiAPIService(APIService):
         add_authenticate_middleware(self.__api, self.__user_storage_handler, self.__user_authenticate_handler)
         add_cors_middleware(self.__api, allowed_origins)
 
-        # Add the root endpoint.
-        self.__api.add_api_route("/", self._root, methods=["GET"], response_model=BaseResponse[GetRootResponse])
-
         # Add the API resources.
+        self.__api.include_router(
+            RootResource(
+                name=self.__name,
+                version=self.__version
+            )
+        )
         self.__api.include_router(
             UserResource(
                 self.__user_storage_handler,
@@ -98,28 +99,3 @@ class FastapiAPIService(APIService):
         """Run the API service."""
         logger.info("Running fastapi service...")
         self.__server.run()
-
-    async def _root(self, request_user: BaseUser = Depends(get_user_from_request)) -> BaseResponse[GetRootResponse]:
-        """
-        Root endpoint for the API.
-
-        Args:
-            request_user: the user making the request.
-
-        Returns:
-            a friendly response.
-        """
-        message = "Hello World :)"
-        if request_user.is_authenticated:
-            message = f"Welcome back {request_user.display_name} :)"
-
-        try:
-            # Format the response.
-            data = GetRootResponse(name=self.__name, version=self.__version, message=message)
-        except Exception as e:
-            detail = f"Could not format response: `{str(e)}`."
-            logger.error(detail, exc_info=True)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
-
-        logger.debug("Root finished successfully.")
-        return BaseResponse(detail="Root get finished successfully.", data=data)
