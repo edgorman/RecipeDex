@@ -13,6 +13,7 @@ from internal.storage.user import UserStorage
 from internal.storage.recipe import RecipeStorage
 from internal.service.fastapi._middleware.cors import add_cors_middleware
 from internal.service.fastapi._middleware.auth import add_authenticate_middleware
+from internal.service.fastapi._middleware.rate import add_rate_limiter_middleware
 from internal.service.fastapi._resources.root import RootResource
 from internal.service.fastapi._resources.user import UserResource
 from internal.service.fastapi._resources.recipe import RecipeResource
@@ -68,6 +69,7 @@ class FastapiAPIService(APIService):
         FastAPIInstrumentor.instrument_app(self.__api)
         add_authenticate_middleware(self.__api, self.__user_storage_handler, self.__user_authenticate_handler)
         add_cors_middleware(self.__api, allowed_origins)
+        add_rate_limiter_middleware(self.__api)
 
         # Add the API resources.
         self.__api.include_router(
