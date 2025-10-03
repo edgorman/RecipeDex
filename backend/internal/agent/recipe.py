@@ -10,9 +10,9 @@ class RecipeAgent(ABC):
     """The RecipeAgent coordinates messages between the user and generative AI"""
 
     @abstractmethod
-    def get_messages(self, recipe: Recipe, user: User) -> AsyncGenerator[Session.Message]:
+    def get_messages(self, recipe: Recipe, user: User) -> AsyncGenerator[Session.Message, None]:
         ...
 
     @abstractmethod
-    def create_message(self, recipe: Recipe, user: User, message: Session.Message) -> AsyncGenerator[Session.Message]:
+    def create_message(self, recipe: Recipe, user: User, message: Session.Message) -> AsyncGenerator[Session.Message, None]:
         ...
