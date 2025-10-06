@@ -66,6 +66,9 @@ jobs:
           env_vars: |-
             GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}
             GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            GCP_PROJECT_REGION=${{ secrets.GCP_PROJECT_REGION }}
+            GOOGLE_CLOUD_LOCATION=${{ secrets.GCP_PROJECT_REGION }}
+            GOOGLE_GENAI_USE_VERTEXAI=1
 
       # TODO: should restrict this in the future for public access
       - id: config
