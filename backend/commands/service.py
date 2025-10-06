@@ -48,7 +48,7 @@ def run():
     # Initialise logging and tracing
     logging_class = GCPLoggingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalLoggingTelemetry
     tracing_class = GCPTracingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalTracingTelemetry
-    logging_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME)
+    logging_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME, TELEMETRY_PROJECT_ID)
     if TELEMETRY_TRACING_ENABLED:
         tracing_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME, TELEMETRY_PROJECT_ID)
 

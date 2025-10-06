@@ -19,6 +19,9 @@ class GCPLoggingTelemetry(LoggingTelemetry):
             service_name: The name of the service.
             gcp_project_id: The GCP project to trace to.
         """
+        if not gcp_project_id:
+            raise Exception("Could not initialise cloud logging: missing gcp project id.")
+
         logging.info("Using cloud logging handler.")
         client = LoggingClient(project=gcp_project_id)
         handler = CloudLoggingHandler(client, name=service_name)
