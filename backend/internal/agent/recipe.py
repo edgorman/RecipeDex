@@ -14,5 +14,7 @@ class RecipeAgent(ABC):
         ...
 
     @abstractmethod
-    def create_message(self, recipe: Recipe, user: User, message: Session.Message) -> AsyncGenerator[Session.Message, None]:
+    def create_message(
+        self, recipe: Recipe, user: User, message: Session.Message
+    ) -> AsyncGenerator[Session.Message, None]:
         ...
