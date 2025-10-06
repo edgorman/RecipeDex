@@ -101,3 +101,63 @@ resource "google_artifact_registry_repository" "recipedex_registry" {
     google_project_service.artifactregistry
   ]
 }
+
+resource "google_firestore_database" "recipedex_firestore" {
+  project     = var.gcp_project_id
+  name        = var.firestore_database_name
+  location_id = var.gcp_project_region
+  type        = var.firestore_database_type
+}
+
+resource "google_firestore_index" "recipedex_firestore_recipe_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_recipe_name
+
+  fields {
+    field_path = "deleted_at"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "name"
+    order      = "ASCENDING"
+  }
+}
+
+resource "google_firestore_index" "recipedex_firestore_user_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_user_name
+
+  fields {
+    field_path = "deleted_at"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "provider.type"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "provider.id"
+    order      = "ASCENDING"
+  }
+}
+
+resource "google_firestore_index" "recipedex_firestore_session_index" {
+  project    = var.gcp_project_id
+  database   = google_firestore_database.recipedex_firestore.name
+  collection = var.firestore_collection_session_name
+
+  fields {
+    field_path = "app_name"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "user_id"
+    order      = "ASCENDING"
+  }
+}
