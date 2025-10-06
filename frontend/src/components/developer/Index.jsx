@@ -1,25 +1,32 @@
 import React from 'react';
-import { api, BASE_URL } from '../api/client';
-import { getAuth } from 'firebase/auth';
+import { api, BASE_URL } from '../../api/Client';
+import { useAuthUser } from '../../auth/UseAuthUser';
+
+// Material Web components
+import '@material/web/button/filled-button.js';
+import '@material/web/button/outlined-button.js';
+import '@material/web/textfield/outlined-text-field.js';
+import '@material/web/checkbox/checkbox.js';
+import '@material/web/elevation/elevation.js';
 
 function Section({ title, children }) {
   return (
-    <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
+    <md-elevated-card style={{display: 'block', padding: 16, marginBottom: 16}}>
+      <div slot="headline" style={{fontSize: '1.1rem', fontWeight: 600, marginBottom: 8}}>{title}</div>
       {children}
-    </div>
+    </md-elevated-card>
   );
 }
 
 function JsonView({ data }) {
   return (
-    <pre style={{ background: '#f7f7f7', padding: 12, borderRadius: 6, overflow: 'auto' }}>
+    <pre style={{ padding: 12, borderRadius: 6, overflow: 'auto' }}>
       {data == null ? '—' : JSON.stringify(data, null, 2)}
     </pre>
   );
 }
 
-export default function EngineeringConsole() {
+export function DeveloperConsole() {
   const [state, setState] = React.useState({});
 
   const run = async (key, fn) => {
@@ -45,9 +52,7 @@ export default function EngineeringConsole() {
   const [wsLog, setWsLog] = React.useState([]);
   const [wsMessage, setWsMessage] = React.useState('');
 
-  const auth = getAuth();
-  const [user, setUser] = React.useState(auth.currentUser);
-  React.useEffect(() => auth.onAuthStateChanged(setUser), [auth]);
+  const user = useAuthUser();
 
   const panel = (key) => state[key] || {};
 
@@ -131,7 +136,7 @@ export default function EngineeringConsole() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
-      <h2>RecipeDex Engineering Console</h2>
+      <h2>Developer Console</h2>
       <p>Backend base URL: <code>{BASE_URL}</code></p>
       {user && (
         <p>
@@ -143,64 +148,62 @@ export default function EngineeringConsole() {
       )}
 
       <Section title="Root">
-        <button onClick={() => run('root', () => api.root())}>GET /</button>
+        <md-filled-button onClick={() => run('root', () => api.root())}>GET /</md-filled-button>
         <JsonView data={panel('root').data || panel('root').error} />
       </Section>
 
       <Section title="User">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="user_id" value={state.userId || ''} onChange={(e) => setState((s) => ({ ...s, userId: e.target.value }))} />
-          <button onClick={() => run('getUser', () => api.getUser(state.userId))}>GET /user/{'{user_id}'}</button>
-          <button onClick={() => run('deleteUser', () => api.deleteUser(state.userId))}>DELETE /user/{'{user_id}'}</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="user_id" value={state.userId || ''} onInput={(e) => setState((s) => ({ ...s, userId: e.target.value }))} />
+          <md-filled-button onClick={() => run('getUser', () => api.getUser(state.userId))}>GET /user/{'{user_id}'}</md-filled-button>
+          <md-filled-button onClick={() => run('deleteUser', () => api.deleteUser(state.userId))}>DELETE /user/{'{user_id}'}</md-filled-button>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
-          <input placeholder="provider (e.g. firebase)" value={state.provider || ''} onChange={(e) => setState((s) => ({ ...s, provider: e.target.value }))} />
-          <input placeholder="provider_id (e.g. Firebase UID)" value={state.providerId || ''} onChange={(e) => setState((s) => ({ ...s, providerId: e.target.value }))} />
-          <button onClick={() => run('getUserByProvider', () => api.getUserByProvider(state.provider, state.providerId))}>GET /user/provider/{'{provider}/{provider_id}'}</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 8, flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="provider" value={state.provider || ''} onInput={(e) => setState((s) => ({ ...s, provider: e.target.value }))} />
+          <md-outlined-text-field label="provider_id" value={state.providerId || ''} onInput={(e) => setState((s) => ({ ...s, providerId: e.target.value }))} />
+          <md-filled-button onClick={() => run('getUserByProvider', () => api.getUserByProvider(state.provider, state.providerId))}>GET /user/provider/{'{provider}/{provider_id}'}</md-filled-button>
         </div>
         <JsonView data={panel('getUser').data || panel('getUser').error || panel('getUserByProvider').data || panel('getUserByProvider').error || panel('deleteUser').data || panel('deleteUser').error} />
       </Section>
 
       <Section title="Update User">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="user_id" value={state.updateUserId || ''} onChange={(e) => setState((s) => ({ ...s, updateUserId: e.target.value }))} />
-          <input placeholder="name" value={state.updateUserName || ''} onChange={(e) => setState((s) => ({ ...s, updateUserName: e.target.value }))} />
-          <button onClick={() => run('updateUser', () => api.updateUser(state.updateUserId, { name: state.updateUserName || undefined }))}>PUT /user/{'{user_id}'}</button>
-          <button onClick={() => setState((s) => ({ ...s, updateUserId: '', updateUserName: '' }))}>Clear</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="user_id" value={state.updateUserId || ''} onInput={(e) => setState((s) => ({ ...s, updateUserId: e.target.value }))} />
+          <md-outlined-text-field label="name" value={state.updateUserName || ''} onInput={(e) => setState((s) => ({ ...s, updateUserName: e.target.value }))} />
+          <md-filled-button onClick={() => run('updateUser', () => api.updateUser(state.updateUserId, { name: state.updateUserName || undefined }))}>PUT /user/{'{user_id}'}</md-filled-button>
+          <md-outlined-button onClick={() => setState((s) => ({ ...s, updateUserId: '', updateUserName: '' }))}>Clear</md-outlined-button>
         </div>
         <JsonView data={panel('updateUser').data || panel('updateUser').error} />
       </Section>
 
       <Section title="List Recipes">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label>page</label>
-          <input type="number" value={listPage} onChange={(e) => setListPage(parseInt(e.target.value, 10) || 0)} style={{ width: 80 }} />
-          <label>page_size</label>
-          <input type="number" value={listPageSize} onChange={(e) => setListPageSize(parseInt(e.target.value, 10) || 25)} style={{ width: 80 }} />
-          <button onClick={() => run('listRecipes', () => api.listRecipes(listPage, listPageSize))}>GET /recipe/</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field type="number" label="page" value={listPage} onInput={(e) => setListPage(parseInt(e.target.value, 10) || 0)} style={{ width: 120 }} />
+          <md-outlined-text-field type="number" label="page_size" value={listPageSize} onInput={(e) => setListPageSize(parseInt(e.target.value, 10) || 25)} style={{ width: 120 }} />
+          <md-filled-button onClick={() => run('listRecipes', () => api.listRecipes(listPage, listPageSize))}>GET /recipe/</md-filled-button>
         </div>
         <JsonView data={panel('listRecipes').data || panel('listRecipes').error} />
       </Section>
 
       <Section title="Create Recipe">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="name (optional)" value={createName} onChange={(e) => setCreateName(e.target.value)} />
-          <button onClick={() => run('createRecipe', async () => {
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="name (optional)" value={createName} onInput={(e) => setCreateName(e.target.value)} />
+          <md-filled-button onClick={() => run('createRecipe', async () => {
             const res = await api.createRecipe(createName || undefined);
             const id = res?.data?.id || res?.id;
             if (id) { setCreatedId(id); setRecipeId(id); }
             return res;
-          })}>POST /recipe/</button>
+          })}>POST /recipe/</md-filled-button>
           {createdId && <span>Created id: <code>{createdId}</code></span>}
         </div>
         <JsonView data={panel('createRecipe').data || panel('createRecipe').error} />
       </Section>
 
       <Section title="Recipe">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="recipe_id" value={recipeId} onChange={(e) => setRecipeId(e.target.value)} />
-          <button onClick={() => { setRecipeResultKey('getRecipe'); run('getRecipe', () => api.getRecipe(recipeId)); }}>GET /recipe/{'{recipe_id}'}</button>
-          <button onClick={() => { setRecipeResultKey('getMetadata'); run('getMetadata', () => api.getRecipeMetadata(recipeId)); }}>GET /recipe/{'{recipe_id}'}/metadata</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="recipe_id" value={recipeId} onInput={(e) => setRecipeId(e.target.value)} />
+          <md-filled-button onClick={() => { setRecipeResultKey('getRecipe'); run('getRecipe', () => api.getRecipe(recipeId)); }}>GET /recipe/{'{recipe_id}'}</md-filled-button>
+          <md-filled-button onClick={() => { setRecipeResultKey('getMetadata'); run('getMetadata', () => api.getRecipeMetadata(recipeId)); }}>GET /recipe/{'{recipe_id}'}/metadata</md-filled-button>
         </div>
         {(() => {
           const p = recipeResultKey ? panel(recipeResultKey) : {};
@@ -210,47 +213,43 @@ export default function EngineeringConsole() {
 
       <Section title="Update Recipe">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="recipe_id" value={recipeId} onChange={(e) => setRecipeId(e.target.value)} />
-          <input placeholder="name" value={state.updateRecipeName || ''} onChange={(e) => setState((s) => ({ ...s, updateRecipeName: e.target.value }))} />
+          <md-outlined-text-field label="recipe_id" value={recipeId} onInput={(e) => setRecipeId(e.target.value)} />
+          <md-outlined-text-field label="name" value={state.updateRecipeName || ''} onInput={(e) => setState((s) => ({ ...s, updateRecipeName: e.target.value }))} />
           <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input 
-              type="checkbox" 
-              checked={state.updateRecipePrivate || false} 
-              onChange={(e) => setState((s) => ({ ...s, updateRecipePrivate: e.target.checked }))} 
-            />
-            Private
+            <md-checkbox checked={state.updateRecipePrivate || false} onChange={(e) => setState((s) => ({ ...s, updateRecipePrivate: e.target.checked }))}></md-checkbox>
+            <span style={{ fontSize: 14 }}>Private</span>
           </label>
-          <button onClick={() => {
+          <md-filled-button onClick={() => {
             const updateData = {};
             if (state.updateRecipeName) updateData.name = state.updateRecipeName;
             if (state.updateRecipePrivate !== undefined) updateData.private = state.updateRecipePrivate;
             run('updateRecipe', () => api.updateRecipe(recipeId, updateData));
-          }}>PUT /recipe/{'{recipe_id}'}</button>
+          }}>PUT /recipe/{'{recipe_id}'}</md-filled-button>
         </div>
         <JsonView data={panel('updateRecipe').data || panel('updateRecipe').error} />
       </Section>
 
       <Section title="Delete Recipe">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="recipe_id" value={recipeId} onChange={(e) => setRecipeId(e.target.value)} />
-          <button onClick={() => run('deleteRecipe', () => api.deleteRecipe(recipeId))}>DELETE /recipe/{'{recipe_id}'}</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="recipe_id" value={recipeId} onInput={(e) => setRecipeId(e.target.value)} />
+          <md-filled-button onClick={() => run('deleteRecipe', () => api.deleteRecipe(recipeId))}>DELETE /recipe/{'{recipe_id}'}</md-filled-button>
         </div>
         <JsonView data={panel('deleteRecipe').data || panel('deleteRecipe').error} />
       </Section>
 
       <Section title="Recipe Messages (GET & WebSocket)">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input placeholder="recipe_id" value={recipeId} onChange={(e) => setRecipeId(e.target.value)} />
-          <button onClick={() => run('getMessages', () => api.getRecipeMessages(recipeId))}>GET /recipe/{'{recipe_id}'}/message</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-outlined-text-field label="recipe_id" value={recipeId} onInput={(e) => setRecipeId(e.target.value)} />
+          <md-filled-button onClick={() => run('getMessages', () => api.getRecipeMessages(recipeId))}>GET /recipe/{'{recipe_id}'}/message</md-filled-button>
         </div>
         <JsonView data={panel('getMessages').data || panel('getMessages').error} />
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button disabled={wsConnected} onClick={connectWs}>Connect WS</button>
-          <button disabled={!wsConnected} onClick={disconnectWs}>Disconnect WS</button>
-          <input placeholder="message" value={wsMessage} onChange={(e) => setWsMessage(e.target.value)} />
-          <button disabled={!wsConnected || !wsMessage} onClick={sendWs}>Send</button>
+        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <md-filled-button disabled={wsConnected} onClick={connectWs}>Connect WS</md-filled-button>
+            <md-filled-button disabled={!wsConnected} onClick={disconnectWs}>Disconnect WS</md-filled-button>
+          <md-outlined-text-field label="message" value={wsMessage} onInput={(e) => setWsMessage(e.target.value)} />
+          <md-filled-button disabled={!wsConnected || !wsMessage} onClick={sendWs}>Send</md-filled-button>
         </div>
-        <pre style={{ background: '#f0f0f0', padding: 12, borderRadius: 6, maxHeight: 240, overflow: 'auto', marginTop: 8 }}>
+        <pre style={{ padding: 12, borderRadius: 6, maxHeight: 240, overflow: 'auto', marginTop: 8 }}>
 {JSON.stringify(wsLog, null, 2)}
         </pre>
       </Section>

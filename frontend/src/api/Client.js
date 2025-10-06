@@ -1,8 +1,5 @@
-/* API client for RecipeDex backend */
-
 const BASE_URL = process.env.REACT_APP_BACKEND_API || 'http://127.0.0.1:8080';
 
-// Lazy import to avoid circulars if firebase isn't set up yet
 async function getIdToken() {
   try {
     const { getAuth } = await import('firebase/auth');
@@ -15,12 +12,16 @@ async function getIdToken() {
   }
 }
 
+function parseJsonMaybe(text) {
+  try { return text ? JSON.parse(text) : null; } catch { return text; }
+}
+
 async function request(path, { method = 'GET', query, body, headers } = {}) {
   const url = new URL(path, BASE_URL);
   if (query) {
-    Object.entries(query)
-      .filter(([, v]) => v !== undefined && v !== null && v !== '')
-      .forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    for (const [k, v] of Object.entries(query)) {
+      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+    }
   }
 
   const token = await getIdToken();
@@ -28,25 +29,22 @@ async function request(path, { method = 'GET', query, body, headers } = {}) {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}`, "Authorization-Provider": `firebase` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}`, 'Authorization-Provider': 'firebase' } : {}),
       ...(headers || {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const text = await res.text();
-  let json;
-  try { json = text ? JSON.parse(text) : null; } catch { json = text; }
+  const payload = parseJsonMaybe(await res.text());
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`);
     err.status = res.status;
-    err.body = json;
+    err.body = payload;
     throw err;
   }
-  return json;
+  return payload;
 }
 
-// WebSocket connection manager for recipe messages
 export class RecipeMessageWebSocket {
   constructor(recipeId, options = {}) {
     this.recipeId = recipeId;

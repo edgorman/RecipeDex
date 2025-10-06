@@ -1,0 +1,5 @@
+/* TODO: customise this css */
+
+.firebaseui-container .firebaseui-idp-list, .firebaseui-container .firebaseui-idp-list>.firebaseui-list-item{
+  margin: 0;
+}
