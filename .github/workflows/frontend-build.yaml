@@ -45,11 +45,11 @@ jobs:
         env:
           CI: true
         run: |
-          make frontend-clean
-          make frontend-install
-          make frontend-lint
-          make frontend-test
-          make frontend-build
+          make frontend clean
+          make frontend install
+          make frontend lint
+          make frontend test
+          make frontend build
 
       - id: upload
         uses: actions/upload-artifact@v4

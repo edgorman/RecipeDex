@@ -1,48 +1,71 @@
-from typing import Dict, Any
-from dataclasses import dataclass, asdict
-import json
-
+from enum import Enum
+from uuid import UUID
+from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+from pydantic import BaseModel, Field, ConfigDict
 from starlette.authentication import BaseUser
-from internal.config.auth import AuthProvider
 
 
-@dataclass
-class User(BaseUser):
-    """Class for storing user information"""
-    id: str
+class User(BaseModel, BaseUser):
+    """Object that stores User information"""
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
     name: str
-    provider: AuthProvider
-    provider_info: Dict[str, Any]
+    role: "Role"
+    provider: "Provider"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    deleted_at: Optional[datetime] = None
+
+    class Action(Enum):
+        GET = "get"
+        GET_BY_PROVIDER = "get_by_provider"
+        CREATE = "create"
+        UPDATE = "update"
+        DELETE = "delete"
+
+    class Role(Enum):
+        UNDEFINED = "undefined"
+        ADMIN = "admin"
+
+    class ProviderType(Enum):
+        UNDEFINED = "undefined"
+        FIREBASE = "firebase"
+
+    class Provider(BaseModel):
+        id: Any
+        type: "User.ProviderType"
+        info: Dict[str, Any]
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
     @property
     def is_authenticated(self) -> bool:
         return True
 
     @property
+    def display_id(self) -> str:
+        return str(self.id)
+
+    @property
     def display_name(self) -> str:
         return self.name
 
-    def to_json(self) -> str:
-        def default(obj):
-            if isinstance(obj, AuthProvider):
-                return obj.value
-            if hasattr(obj, "to_json"):
-                return json.loads(obj.to_json())
-            if hasattr(obj, "__dict__"):
-                return obj.__dict__
-            if hasattr(obj, "name"):
-                return obj.name
-            if hasattr(obj, "value"):
-                return obj.value
-            return str(obj)
-        return json.dumps(asdict(self), default=default)
+    @property
+    def provider_id(self) -> str:
+        return self.provider.id
 
-    @staticmethod
-    def from_json(data: str) -> "User":
-        obj = json.loads(data)
-        return User(
-            id=obj["id"],
-            name=obj["name"],
-            provider=AuthProvider(obj["provider"]),
-            provider_info=obj["provider_info"]
-        )
+    @property
+    def can_call_generative_ai(self) -> bool:
+        # for now, only admins are authorized
+        # in the future, this will depend on whether the user is paying
+        return self.role == self.Role.ADMIN
+
+    @property
+    def can_create_recipe(self) -> bool:
+        # for now, only admins are authorized
+        # in the future, this will depend on whether the user is paying
+        return self.role == self.Role.ADMIN

@@ -1,17 +1,41 @@
 import click
-from google.adk.runners import Runner as AgentRunner
-# from google.cloud.firestore import Client as FirestoreClient  # noqa: F401
+from google.cloud.firestore import Client as FirestoreClient
 
-from internal.config.service import (  # noqa: F401
-    HOST as SERVICE_HOST, PORT as SERVICE_PORT, NAME as SERVICE_NAME
+from internal.config.agent import AGENT_APP_NAME
+from internal.config.auth import AUTH_USER_FIREBASE_AUDIENCE
+from internal.config.service import (
+    SERVICE_NAME,
+    SERVICE_VERSION,
+    SERVICE_HOST,
+    SERVICE_PORT,
+    SERVICE_ALLOWED_ORIGIN
 )
-from internal.config.gcp import PROJECT_ID as GCP_PROJECT_ID  # noqa: F401
-from internal.agents.vertex.recipe import VertexRecipeAgent
-from internal.agents.vertex.subagents.coordinator.agent import root_agent as base_agent
-from internal.storage.firestore.chat import FirestoreChatStorage
+from internal.config.storage import (
+    STORAGE_PROJECT_ID,
+    STORAGE_DATABASE_NAME,
+    STORAGE_COLLECTION_RECIPE_NAME,
+    STORAGE_COLLECTION_USER_NAME,
+    STORAGE_COLLECTION_SESSION_NAME
+)
+from internal.config.telemetry import (
+    TELEMETRY_PROJECT_ID,
+    TELEMETRY_SERVICE_NAME,
+    TELEMETRY_LOG_LEVEL,
+    TELEMETRY_CLOUD_ENABLED,
+    TELEMETRY_TRACING_ENABLED
+)
+from internal.auth.firebase.user import FirebaseUserAuthenticate
+from internal.auth.mac.user import MACUserAuthorize
+from internal.agent.vertex.recipe import VertexRecipeAgent
+from internal.auth.rbac.recipe import RBACRecipeAuthorize
 from internal.storage.firestore.user import FirestoreUserStorage
 from internal.storage.firestore.recipe import FirestoreRecipeStorage
+from internal.storage.firestore.session import FirestoreSessionStorage
 from internal.service.fastapi.api import FastapiAPIService
+from internal.telemetry.gcp.logging import GCPLoggingTelemetry
+from internal.telemetry.gcp.tracing import GCPTracingTelemetry
+from internal.telemetry.local.logging import LocalLoggingTelemetry
+from internal.telemetry.local.tracing import LocalTracingTelemetry
 
 
 @click.Group
@@ -21,24 +45,51 @@ def service():
 
 @service.command
 def run():
-    firestore_client = None  # FirestoreClient(GCP_PROJECT_ID)
-    agent_runner_handler = AgentRunner(
-        app_name=SERVICE_NAME, agent=base_agent, artifact_service=None, session_service=None, memory_service=None
+    # Initialise logging and tracing
+    logging_class = GCPLoggingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalLoggingTelemetry
+    tracing_class = GCPTracingTelemetry if TELEMETRY_CLOUD_ENABLED else LocalTracingTelemetry
+    logging_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME, TELEMETRY_PROJECT_ID)
+    if TELEMETRY_TRACING_ENABLED:
+        tracing_class.setup(TELEMETRY_LOG_LEVEL, TELEMETRY_SERVICE_NAME, TELEMETRY_PROJECT_ID)
+
+    # Initialise storage client and handlers
+    firestore_client = FirestoreClient(STORAGE_PROJECT_ID, database=STORAGE_DATABASE_NAME)
+    recipe_storage_handler = FirestoreRecipeStorage(
+        client=firestore_client, collection_path=(STORAGE_COLLECTION_RECIPE_NAME,)
+    )
+    user_storage_handler = FirestoreUserStorage(
+        client=firestore_client, collection_path=(STORAGE_COLLECTION_USER_NAME,)
+    )
+    session_storage_handler = FirestoreSessionStorage(
+        firestore_client, collection_path=(STORAGE_COLLECTION_SESSION_NAME,)
     )
 
-    chat_storage_handler = FirestoreChatStorage(client=firestore_client)
-    recipe_agent_handler = VertexRecipeAgent(agent_runner=agent_runner_handler, chat_handler=chat_storage_handler)
-    recipe_storage_handler = FirestoreRecipeStorage(client=firestore_client)
-    user_storage_handler = FirestoreUserStorage(client=firestore_client)
+    # Initialise auth handlers
+    user_authenticate_handler = FirebaseUserAuthenticate(AUTH_USER_FIREBASE_AUDIENCE)
+    user_authorize_handler = MACUserAuthorize()
 
-    service = FastapiAPIService(
-        host=SERVICE_HOST,
-        port=SERVICE_PORT,
-        recipe_agent_handler=recipe_agent_handler,
+    # Initialise agent services and handlers
+    recipe_agent_handler = VertexRecipeAgent(
+        app_name=AGENT_APP_NAME,
         recipe_storage_handler=recipe_storage_handler,
         user_storage_handler=user_storage_handler,
+        session_storage_handler=session_storage_handler
     )
 
+    # Initialise main service and run
+    service = FastapiAPIService(
+        name=SERVICE_NAME,
+        version=SERVICE_VERSION,
+        host=SERVICE_HOST,
+        port=SERVICE_PORT,
+        allowed_origins=[SERVICE_ALLOWED_ORIGIN],
+        recipe_agent_handler=recipe_agent_handler,
+        recipe_storage_handler=recipe_storage_handler,
+        recipe_authorize_handler=RBACRecipeAuthorize,
+        user_storage_handler=user_storage_handler,
+        user_authenticate_handler=user_authenticate_handler,
+        user_authorize_handler=user_authorize_handler
+    )
     service.run()
 
 

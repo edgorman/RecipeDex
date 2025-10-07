@@ -1,11 +1,4 @@
-from enum import Enum
+import os
 
 
-AUTHENTICATED_SCOPE = "authenticated"
-AUTHORIZATION_HEADER = "Authorization"
-AUTHORIZATION_BEARER_PREFIX = "Bearer "
-AUTHORIZATION_PROVIDER_HEADER = "Authorization-Provider"
-
-
-class AuthProvider(Enum):
-    FIREBASE = "firebase"
+AUTH_USER_FIREBASE_AUDIENCE = os.getenv("GCP_PROJECT_ID")
