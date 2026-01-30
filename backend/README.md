@@ -1,10 +1,12 @@
 # backend
 
-## Running
+## Service
+
+### Running
 
 Get a bearer token from frontend
 
-To make requests to local endpoints run
+To make requests to local endpoints run:
 
 ```bash
 make backend run-service
@@ -36,4 +38,14 @@ To test the backend run
 
 ```bash
 make backend test
+```
+
+## Agents
+
+### Running
+
+To run the agent sdk web view, run:
+
+```bash
+make backend-run-agent
 ```

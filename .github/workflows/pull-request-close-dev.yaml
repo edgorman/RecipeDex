@@ -25,8 +25,9 @@ jobs:
 
       - id: cleanup
         run: |
-          SERVICE_NAME="backend-pr-${{ github.event.pull_request.base.sha }}"
-          gcloud run services delete "$SERVICE_NAME" --region="${{ secrets.GCP_PROJECT_REGION }}" --quiet || echo "Service $SERVICE_NAME not found or already deleted."
+          gcloud auth configure-docker ${{ secrets.GCP_PROJECT_REGION }}-docker.pkg.dev
+          gcloud run services delete "backend-pr-${{ github.event.pull_request.base.sha }}" --region="${{ secrets.GCP_PROJECT_REGION }}" --quiet
+          gcloud docker images --filter "reference=*:backend-pr-${{ github.event.pull_request.base.sha }}" -q | xargs -r docker rmi
 
   github-cleanup:
     name: GitHub Cleanup
